@@ -2,11 +2,6 @@
   "routes": [
     {
       "route": "/*"
-    },
-    {
-      "route": "/faqs",
-      "rewrite": "/faqs.html",
-      "redirect": "/faqs.html"
     }
   ]
 }
