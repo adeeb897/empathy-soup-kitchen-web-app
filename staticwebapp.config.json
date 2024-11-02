@@ -5,6 +5,7 @@
     },
     {
       "route": "/faqs",
+      "rewrite": "/",
       "redirect": "/"
     }
   ]
