@@ -64,9 +64,6 @@
             "properties": {
                 "resource": {
                     "id": "volunteerShiftsDB"
-                },
-                "options": {
-                    "throughput": 400
                 }
             }
         },
@@ -84,9 +81,6 @@
                         "paths": [ "/date" ],
                         "kind": "Hash"
                     }
-                },
-                "options": {
-                    "throughput": 400
                 }
             }
         }
