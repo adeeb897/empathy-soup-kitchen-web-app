@@ -18,7 +18,7 @@
     "variables": {},
     "resources": [
         {
-            "apiVersion": "2024-09-01-preview",
+            "apiVersion": "2023-09-15",
             "kind": "GlobalDocumentDB",
             "type": "Microsoft.DocumentDb/databaseAccounts",
             "name": "[parameters('name')]",
@@ -55,6 +55,42 @@
             "tags": {
                 "defaultExperience": "[parameters('defaultExperience')]",
                 "hidden-cosmos-mmspecial": ""
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDb/databaseAccounts/sqlDatabases",
+            "apiVersion": "2023-09-15",
+            "name": "[concat(parameters('name'), '/volunteerShiftsDB')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('name'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "volunteerShiftsDB"
+                },
+                "options": {
+                    "throughput": 400
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDb/databaseAccounts/sqlDatabases/containers",
+            "apiVersion": "2023-09-15",
+            "name": "[concat(parameters('name'), '/volunteerShiftsDB/volunteerShifts')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDb/databaseAccounts/sqlDatabases', parameters('name'), 'volunteerShiftsDB')]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "volunteerShifts",
+                    "partitionKey": {
+                        "paths": [ "/date" ],
+                        "kind": "Hash"
+                    }
+                },
+                "options": {
+                    "throughput": 400
+                }
             }
         }
     ],
