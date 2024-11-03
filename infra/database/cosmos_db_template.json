@@ -18,7 +18,7 @@
     "variables": {},
     "resources": [
         {
-            "apiVersion": "2023-09-15",
+            "apiVersion": "2024-05-15-preview",
             "kind": "GlobalDocumentDB",
             "type": "Microsoft.DocumentDb/databaseAccounts",
             "name": "[parameters('name')]",
@@ -94,5 +94,10 @@
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "cosmosDBConnectionString": {
+            "type": "string",
+            "value": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', parameters('name')), '2023-09-15').primaryMasterKey]"
+        }
+    }
 }
