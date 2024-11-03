@@ -47,10 +47,7 @@
                 "minimalTlsVersion": "Tls12",
                 "capabilities": [],
                 "capacityMode": "Serverless",
-                "enableFreeTier": false,
-                "capacity": {
-                    "totalThroughputLimit": 4000
-                }
+                "enableFreeTier": false
             },
             "tags": {
                 "defaultExperience": "[parameters('defaultExperience')]",
