@@ -9,10 +9,6 @@ on:
     branches:
       - main
 
-env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './infra/functions/' # set this to the path to your functions, defaults to the repository root
-  NODE_VERSION: '20.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
-
 jobs:
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
@@ -58,52 +54,6 @@ jobs:
           resourceGroupName: ${{ secrets.AZURE_RG }}
           template: infra/database/cosmos_db_template.json
           parameters: infra/database/cosmos_db_parameters.json
-
-  deploy_azure_function_app_job:
-      runs-on: windows-latest
-      needs: deploy_infrastructure_job
-      permissions:
-        id-token: write #This is required for requesting the JWT
-      steps:
-        - name: 'Checkout GitHub Action'
-          uses: actions/checkout@v4
-
-        - name: Setup Node ${{ env.NODE_VERSION }} Environment
-          uses: actions/setup-node@v3
-          with:
-            node-version: ${{ env.NODE_VERSION }}
-
-        - name: 'Resolve Project Dependencies Using Npm'
-          shell: pwsh
-          run: |
-            pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-            npm install
-            npm run build --if-present
-            popd
-
-        - name: Upload artifact for deployment job
-          uses: actions/upload-artifact@v4
-          with:
-            name: node-app
-            path: .
-
-        - name: Download artifact from build job
-          uses: actions/download-artifact@v4
-          with:
-            name: node-app
-        
-        - name: "Login via Azure CLI"
-          uses: azure/login@v1
-          with:
-            creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-        - name: 'Run Azure Functions Action'
-          uses: Azure/functions-action@v1
-          id: fa
-          with:
-            app-name: 'empathy-soup-kitchen-functions'
-            slot-name: 'production'
-            package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
