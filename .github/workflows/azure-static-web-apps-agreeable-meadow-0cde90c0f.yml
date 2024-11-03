@@ -33,6 +33,27 @@ jobs:
           output_location: "dist/empathy-soup-kitchen-web-app/browser" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
 
+  deploy_infrastructure_job:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    name: Deploy Infrastructure
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: "Login via Azure CLI"
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Cosmos DB
+        uses: azure/arm-deploy@v1
+        with:
+          scope: "resource-group"
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
+          resourceGroupName: ${{ secrets.AZURE_RG }}
+          template: infra/database/cosmos_db_template.json
+          parameters: infra/database/cosmos_db_parameters.json
+
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
