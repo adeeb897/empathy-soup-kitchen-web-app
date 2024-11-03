@@ -129,7 +129,7 @@ export async function httpTrigger(request: HttpRequest, context: InvocationConte
     }
 };
 
-app.http('httpTrigger1', {
+app.http('httpTrigger', {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     authLevel: 'anonymous',
     handler: httpTrigger
