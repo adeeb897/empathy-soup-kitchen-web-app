@@ -55,21 +55,6 @@ jobs:
           template: infra/database/cosmos_db_template.json
           parameters: infra/database/cosmos_db_parameters.json
 
-      - name: Get Cosmos DB Connection String
-        id: get-connection-string
-        uses: azure/arm-deploy@v1
-        with:
-          scope: "resourcegroup"
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
-          resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: infra/database/cosmos_db_template.json
-          parameters: infra/database/cosmos_db_parameters.json
-          deploymentMode: "Complete"
-
-      - name: Set Cosmos DB Connection String as GitHub Secret
-        run: |
-          echo "COSMOS_DB_CONNECTION_STRING=$(echo ${{ steps.get-connection-string.outputs.cosmosDBConnectionString }})" >> $GITHUB_ENV
-
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
