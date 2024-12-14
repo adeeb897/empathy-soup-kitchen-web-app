@@ -34,16 +34,6 @@ jobs:
           parameters: infra/database/cosmos_db_parameters.json
           deploymentName: "cosmos-db-deployment"
 
-      - name: Retrieve Cosmos DB Connection String
-        id: get-connection-string
-        run: |
-          CONNECTION_STRING=$(az deployment group show --resource-group ${{ secrets.AZURE_RG }} --name cosmos-db-deployment --query "properties.outputs.cosmosDBConnectionString.value" -o tsv)
-          echo "CONNECTION_STRING=${CONNECTION_STRING}" >> $GITHUB_ENV
-
-      - name: Set GitHub Secret
-        run: |
-          gh secret set COSMOS_DB_CONNECTION_STRING --body "$CONNECTION_STRING"
-
   deploy_web_app_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
