@@ -20,7 +20,7 @@
       "host": {
         "mode": "production",
         "cors": {
-          "origins": ["http://localhost:4280"],
+          "origins": ["https://empathysoupkitchen.org/"],
           "allow-credentials": false
         },
         "authentication": {
