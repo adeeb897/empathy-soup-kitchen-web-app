@@ -11,5 +11,6 @@ type Book @model {
 
 """
 type VolunteerShift @model {
+  id: String
   date: String
 }

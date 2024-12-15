@@ -12,7 +12,7 @@ export class CalendarComponent {
     const query = `
     {
       volunteerShifts {
-        items {
+        Items {
           id
           date
         }
