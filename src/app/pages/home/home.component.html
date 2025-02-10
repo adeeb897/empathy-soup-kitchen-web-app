@@ -1,27 +1,38 @@
-<section class="hero">
-  <h1>Empathy Soup Kitchen</h1>
-  <p>We are dedicated to serving the people
-    with a place of comfort and acceptance
-    as well as delicious and nutritious food.</p>
-</section>
-
-<section class="location">
-  <h2>Join with us today!</h2>
-  <div class="location-container">
-    <div class="address">
-      <p>The Soup Kitchen is located at</p>
-      <p class="address-text">
-        523 Sinclair Street, McKeesport,<br>
-        Pennsylvania 15132.
-      </p>
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Empathy Soup Kitchen</h1>
+      <p>Serving our community with warmth, dignity, and nutritious meals.</p>
+      <button mat-raised-button [routerLink]="['/calendar']">VOLUNTEER NOW</button>
     </div>
-    <iframe id="map"
-      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.873990503389!2d-79.84668!3d40.347302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8834dd3f7b7f051f%3A0x3ada31dc83666f6f!2s523%20Sinclair%20St%2C%20McKeesport%2C%20PA%2015132!5e0!3m2!1sen!2sus!4v1637329894007!5m2!1sen!2sus"
-      style="border:0;"
-      allowfullscreen=""
-      loading="lazy">
-    </iframe>
-  </div>
-  <p class="info">The new kitchen was built in 2024 with generous donations.</p>
-</section>
+  </section>
+
+  <!-- Mission Section -->
+  <section class="mission">
+    <h2>Our Mission</h2>
+    <p>We are dedicated to serving people with a place of comfort and acceptance, providing delicious and nutritious meals to those in need.</p>
+  </section>
+
+  <!-- Location Section -->
+  <section class="location">
+    <div class="content-wrapper">
+      <div class="location-info">
+        <h2>Visit Us</h2>
+        <address>
+          523 Sinclair Street<br>
+          McKeesport, PA 15132
+        </address>
+        <p class="info">Our new kitchen was built in 2024 with generous donations from our community.</p>
+      </div>
+      <div class="map-container">
+        <iframe 
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.873990503389!2d-79.84668!3d40.347302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8834dd3f7b7f051f%3A0x3ada31dc83666f6f!2s523%20Sinclair%20St%2C%20McKeesport%2C%20PA%2015132!5e0!3m2!1sen!2sus!4v1637329894007!5m2!1sen!2sus"
+          allowfullscreen=""
+          loading="lazy">
+        </iframe>
+      </div>
+    </div>
+  </section>
+</div>
 

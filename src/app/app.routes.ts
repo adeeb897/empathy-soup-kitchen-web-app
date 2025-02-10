@@ -12,7 +12,7 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'who-we-are',
+    path: 'about',
     loadComponent: () =>
       import('./pages/who-we-are/who-we-are.component').then(
         (m) => m.WhoWeAreComponent
