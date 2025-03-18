@@ -52,6 +52,28 @@
         max-width: 800px;
         margin: 0 auto;
       }
+
+      .donate-button {
+        display: inline-block;
+        margin-top: 2rem; // Increased from 1rem to push it down more
+        position: relative;
+        top: 1rem; // Push button down a bit to better center it
+        font-size: 1.2rem;
+        padding: 1.2rem 3rem;
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+
+        &:hover {
+          background-color: darken(#e74c3c, 10%);
+          transform: translateY(-2px);
+        }
+      }
     }
   }
 
