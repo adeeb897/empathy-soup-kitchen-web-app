@@ -73,7 +73,7 @@
         margin-right: auto;
       }
 
-      button {
+      button, .donate-button {
         font-size: 1.2rem;
         padding: 1.2rem 3rem;
         background-color: #e74c3c;
@@ -83,6 +83,7 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         transition: all 0.3s ease;
+        text-decoration: none; // Remove underline from link
 
         &:hover {
           background-color: darken(#e74c3c, 10%);
@@ -164,6 +165,12 @@
         border: 0;
       }
     }
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem; // Adjust spacing as needed
+    justify-content: center; // Center the buttons horizontally
   }
 }
 

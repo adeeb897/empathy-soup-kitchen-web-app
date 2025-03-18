@@ -9,5 +9,4 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
-  // No additional code needed
 }

@@ -4,7 +4,10 @@
     <div class="hero-content">
       <h1>Empathy Soup Kitchen</h1>
       <p>Serving our community with warmth, dignity, and nutritious meals.</p>
-      <button mat-raised-button [routerLink]="['/calendar']">VOLUNTEER NOW</button>
+      <div class="button-group">
+        <button mat-raised-button [routerLink]="['/calendar']">VOLUNTEER NOW</button>
+        <a mat-raised-button class="donate-button" href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank">DONATE</a>
+      </div>
     </div>
   </section>
 
