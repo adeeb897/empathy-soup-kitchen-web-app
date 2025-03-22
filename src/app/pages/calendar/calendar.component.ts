@@ -2,7 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSlideToggleModule, MatSlideToggleChange } from '@angular/material/slide-toggle';
+import {
+  MatSlideToggleModule,
+  MatSlideToggleChange,
+} from '@angular/material/slide-toggle';
 import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
 import { ShiftModalComponent } from './components/shift-modal/shift-modal.component';
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
@@ -42,9 +45,9 @@ export class CalendarComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchShifts();
-    
+
     // Check for admin authentication
-    this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+    this.authService.isAuthenticated$.subscribe((isAuthenticated) => {
       this.isAdminMode = isAuthenticated;
     });
   }
@@ -68,10 +71,10 @@ export class CalendarComponent implements OnInit {
     try {
       // Fetch all signups at once
       const allSignups = await this.listAllSignups();
-      
+
       // Group signups by ShiftID
       const signupsByShiftId: { [key: number]: SignUp[] } = {};
-      allSignups.forEach(signup => {
+      allSignups.forEach((signup) => {
         if (!signupsByShiftId[signup.ShiftID]) {
           signupsByShiftId[signup.ShiftID] = [];
         }
@@ -79,7 +82,7 @@ export class CalendarComponent implements OnInit {
       });
 
       // Assign signups to each shift
-      this.shifts.forEach(shift => {
+      this.shifts.forEach((shift) => {
         shift.signups = signupsByShiftId[shift.ShiftID] || [];
       });
     } catch (error) {
@@ -164,9 +167,21 @@ export class CalendarComponent implements OnInit {
         console.log('Empty response received');
         // Return test data
         return [
-          { ShiftID: 1, StartTime: '2025-04-10T09:00:00Z', EndTime: '2025-04-10T12:00:00Z', Capacity: 5, signups: [] },
-          { ShiftID: 2, StartTime: '2025-04-11T13:00:00Z', EndTime: '2025-04-11T16:00:00Z', Capacity: 3, signups: [] },
-        ]
+          {
+            ShiftID: 1,
+            StartTime: '2025-04-10T09:00:00Z',
+            EndTime: '2025-04-10T12:00:00Z',
+            Capacity: 5,
+            signups: [],
+          },
+          {
+            ShiftID: 2,
+            StartTime: '2025-04-11T13:00:00Z',
+            EndTime: '2025-04-11T16:00:00Z',
+            Capacity: 3,
+            signups: [],
+          },
+        ];
         // return [];
       }
 
@@ -203,9 +218,23 @@ export class CalendarComponent implements OnInit {
         console.log('Empty response received');
         // Return test data for signups
         return [
-          { SignUpID: 1, ShiftID: shiftId, Name: 'John Doe', Email: 'test@test.com', PhoneNumber: '1234567890', NumPeople: 1 },
-          { SignUpID: 2, ShiftID: shiftId, Name: 'Jane Doe', Email: 'test2@test.com', PhoneNumber: '0987654321', NumPeople: 2 },
-        ]
+          {
+            SignUpID: 1,
+            ShiftID: shiftId,
+            Name: 'John Doe',
+            Email: 'test@test.com',
+            PhoneNumber: '1234567890',
+            NumPeople: 1,
+          },
+          {
+            SignUpID: 2,
+            ShiftID: shiftId,
+            Name: 'Jane Doe',
+            Email: 'test2@test.com',
+            PhoneNumber: '0987654321',
+            NumPeople: 2,
+          },
+        ];
         // return [];
       }
 
@@ -239,7 +268,7 @@ export class CalendarComponent implements OnInit {
 
   async handleSignupSubmit(formData: any): Promise<void> {
     if (!this.selectedShift) return;
-  
+
     try {
       // Calculate remaining capacity
       const filledSlots = this.selectedShift.signups.reduce(
@@ -247,68 +276,74 @@ export class CalendarComponent implements OnInit {
         0
       );
       const remainingCapacity = this.selectedShift.Capacity - filledSlots;
-      
+
       // Check if there's enough capacity
       if (formData.NumPeople > remainingCapacity) {
-        alert(`Sorry, there are only ${remainingCapacity} spots remaining for this shift.`);
+        alert(
+          `Sorry, there are only ${remainingCapacity} spots remaining for this shift.`
+        );
         return;
       }
-      
+
       const data = {
         ...formData,
         ShiftID: this.selectedShift.ShiftID,
       };
-  
+
       const endpoint = `/data-api/rest/SignUps/`;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-  
+
       // Get the new signup from the response
       const text = await response.text();
       if (text) {
         try {
           const newSignupResponse = JSON.parse(text);
           const newSignup = newSignupResponse.value[0] || newSignupResponse;
-          
+
           // Add the new signup to the shift's signups
           if (this.selectedShift.signups) {
             this.selectedShift.signups.push(newSignup);
           } else {
             this.selectedShift.signups = [newSignup];
           }
-          
+
           // Find this shift in the shifts array and update it
-          const shiftIndex = this.shifts.findIndex(s => s.ShiftID === this.selectedShift?.ShiftID);
+          const shiftIndex = this.shifts.findIndex(
+            (s) => s.ShiftID === this.selectedShift?.ShiftID
+          );
           if (shiftIndex !== -1) {
             this.shifts[shiftIndex] = { ...this.selectedShift };
-            
+
             // Update calendar days to reflect the new signup
-            this.calendarDays.forEach(day => {
-              const dayShiftIndex = day.shifts.findIndex(s => s.ShiftID === this.selectedShift?.ShiftID);
+            this.calendarDays.forEach((day) => {
+              const dayShiftIndex = day.shifts.findIndex(
+                (s) => s.ShiftID === this.selectedShift?.ShiftID
+              );
               if (dayShiftIndex !== -1) {
                 day.shifts[dayShiftIndex] = { ...this.selectedShift! };
               }
             });
           }
-          
+
           // Show a success message
-          alert(`Thank you ${newSignup.Name ?? ''}! Your signup has been confirmed.`);
-  
+          alert(
+            `Thank you ${newSignup.Name ?? ''}! Your signup has been confirmed.`
+          );
         } catch (parseError) {
           console.error('Failed to parse response:', parseError);
         }
       }
-  
+
       // Reset form and close it
       this.showSignupForm = false;
-  
     } catch (error) {
       console.error('Error submitting signup:', error);
       alert('There was an error processing your signup. Please try again.');
@@ -364,7 +399,7 @@ export class CalendarComponent implements OnInit {
       this.closeModal();
     }
   }
-  
+
   hideAdminLogin(): void {
     this.showAdminLogin = false;
   }
@@ -372,11 +407,11 @@ export class CalendarComponent implements OnInit {
   openAdminPanel(): void {
     this.showAdminPanel = true;
   }
-  
+
   closeAdminPanel(): void {
     this.showAdminPanel = false;
   }
-  
+
   // Admin methods for shifts
   async createShift(shiftData: Partial<VolunteerShift>): Promise<void> {
     try {
@@ -397,11 +432,11 @@ export class CalendarComponent implements OnInit {
           const data = JSON.parse(text);
           const newShift = data.value || data;
           newShift.signups = [];
-          
+
           // Add to shifts array and refresh calendar
           this.shifts.push(newShift);
           this.organizeShiftsByDate();
-          
+
           alert('Shift created successfully!');
         } catch (parseError) {
           console.error('Failed to parse response:', parseError);
@@ -412,8 +447,11 @@ export class CalendarComponent implements OnInit {
       alert('Failed to create shift. Please try again.');
     }
   }
-  
-  async updateShift(shiftId: number, shiftData: Partial<VolunteerShift>): Promise<void> {
+
+  async updateShift(
+    shiftId: number,
+    shiftData: Partial<VolunteerShift>
+  ): Promise<void> {
     try {
       const endpoint = `/data-api/rest/VolunteerShifts(${shiftId})`;
       const response = await fetch(endpoint, {
@@ -427,16 +465,16 @@ export class CalendarComponent implements OnInit {
       }
 
       // Find and update the shift in the shifts array
-      const shiftIndex = this.shifts.findIndex(s => s.ShiftID === shiftId);
+      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
       if (shiftIndex !== -1) {
         this.shifts[shiftIndex] = {
           ...this.shifts[shiftIndex],
-          ...shiftData
+          ...shiftData,
         };
-        
+
         // Refresh the calendar
         this.organizeShiftsByDate();
-        
+
         alert('Shift updated successfully!');
       }
     } catch (error) {
@@ -444,14 +482,9 @@ export class CalendarComponent implements OnInit {
       alert('Failed to update shift. Please try again.');
     }
   }
-  
-  async deleteShift(shiftId: number): Promise<void> {
-    if (!confirm('Are you sure you want to delete this shift? This will also delete all signups for this shift.')) {
-      return;
-    }
-    
-    try {
 
+  async deleteShift(shiftId: number): Promise<void> {
+    try {
       // Delete all signups for this shift first (if any)
       const signups = await this.getSignUpsForShift(shiftId);
       for (const signup of signups) {
@@ -468,24 +501,20 @@ export class CalendarComponent implements OnInit {
       }
 
       // Remove the shift from the shifts array
-      this.shifts = this.shifts.filter(s => s.ShiftID !== shiftId);
-      
+      this.shifts = this.shifts.filter((s) => s.ShiftID !== shiftId);
+
       // Refresh the calendar
       this.organizeShiftsByDate();
-      
+
       alert('Shift deleted successfully!');
     } catch (error) {
       console.error('Error deleting shift:', error);
       alert('Failed to delete shift. Please try again.');
     }
   }
-  
+
   // Admin methods for signups
   async deleteSignup(signupId: number, shiftId: number): Promise<void> {
-    if (!confirm('Are you sure you want to delete this signup?')) {
-      return;
-    }
-    
     try {
       const endpoint = `/data-api/rest/SignUps/SignUpID`;
       const response = await fetch(`${endpoint}/${signupId}`, {
@@ -497,17 +526,17 @@ export class CalendarComponent implements OnInit {
       }
 
       // Find the shift and remove the signup
-      const shiftIndex = this.shifts.findIndex(s => s.ShiftID === shiftId);
+      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
       if (shiftIndex !== -1) {
-        this.shifts[shiftIndex].signups = this.shifts[shiftIndex].signups.filter(
-          s => s.SignUpID !== signupId
-        );
-        
+        this.shifts[shiftIndex].signups = this.shifts[
+          shiftIndex
+        ].signups.filter((s) => s.SignUpID !== signupId);
+
         // If we're currently viewing this shift, update the selectedShift
         if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
           this.selectedShift = { ...this.shifts[shiftIndex] };
         }
-        
+
         alert('Signup deleted successfully!');
       }
     } catch (error) {
@@ -515,8 +544,12 @@ export class CalendarComponent implements OnInit {
       alert('Failed to delete signup. Please try again.');
     }
   }
-  
-  async updateSignup(signupId: number, shiftId: number, signupData: Partial<SignUp>): Promise<void> {
+
+  async updateSignup(
+    signupId: number,
+    shiftId: number,
+    signupData: Partial<SignUp>
+  ): Promise<void> {
     try {
       const endpoint = `/data-api/rest/SignUps(${signupId})`;
       const response = await fetch(endpoint, {
@@ -530,23 +563,23 @@ export class CalendarComponent implements OnInit {
       }
 
       // Find the shift and update the signup
-      const shiftIndex = this.shifts.findIndex(s => s.ShiftID === shiftId);
+      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
       if (shiftIndex !== -1) {
         const signupIndex = this.shifts[shiftIndex].signups.findIndex(
-          s => s.SignUpID === signupId
+          (s) => s.SignUpID === signupId
         );
-        
+
         if (signupIndex !== -1) {
           this.shifts[shiftIndex].signups[signupIndex] = {
             ...this.shifts[shiftIndex].signups[signupIndex],
-            ...signupData
+            ...signupData,
           };
-          
+
           // If we're currently viewing this shift, update the selectedShift
           if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
             this.selectedShift = { ...this.shifts[shiftIndex] };
           }
-          
+
           alert('Signup updated successfully!');
         }
       }
