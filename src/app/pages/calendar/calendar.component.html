@@ -1,14 +1,40 @@
-<div class="construction-notice">
-  <p>🚧 This page is currently under construction. Please visit our <a href="https://www.signupgenius.com/go/10C0A4DAEA92EA4FFC16-50454986-soup#/" target="_blank">temporary volunteer signup page</a> to register for shifts. 🚧</p>
-</div>
-
 <div class="calendar-container">
-  <h1>Volunteer Schedule Management</h1>
+  <h1>Volunteer Signup Calendar</h1>
   <blockquote>
-    Manage volunteer shifts and schedules
+    Browse upcoming volunteer opportunities and sign up to help serve our
+    community.
   </blockquote>
-  <div class="button-group">
-    <button mat-raised-button color="primary" id="list" (click)="list()">View Schedule</button>
-    <button mat-raised-button color="accent" id="create" (click)="create()">Add Shift</button>
+
+  <div class="calendar-wrapper">
+    <div class="week-container" *ngFor="let week of getCalendarWeeks()">
+      <div class="week-header">
+        <h2>Week of {{ week.weekStartDate | date : "MMM d, y" }}</h2>
+      </div>
+
+      <div class="calendar">
+        <app-calendar-day
+          *ngFor="let day of week.days"
+          [date]="day.date"
+          [shifts]="day.shifts"
+          (shiftSelected)="onShiftSelected($event)"
+        ></app-calendar-day>
+      </div>
+    </div>
+
+    <div *ngIf="canShowMore()" class="show-more-container">
+      <button mat-stroked-button color="primary" (click)="showMoreWeeks()">
+        <mat-icon>expand_more</mat-icon> Show More Weeks
+      </button>
+    </div>
   </div>
+
+  <!-- Shift Modal -->
+  <app-shift-modal
+    *ngIf="showSignups && selectedShift"
+    [shift]="selectedShift"
+    [showSignupForm]="showSignupForm"
+    (close)="closeModal()"
+    (showSignupFormChange)="setShowSignupForm($event)"
+    (submitSignup)="handleSignupSubmit($event)"
+  ></app-shift-modal>
 </div>

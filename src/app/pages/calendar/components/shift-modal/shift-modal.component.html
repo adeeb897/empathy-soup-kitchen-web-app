@@ -1,0 +1,146 @@
+<div class="modal-backdrop">
+  <div class="modal-content">
+    <button class="close-button" mat-icon-button (click)="closeModal()">
+      <mat-icon>close</mat-icon>
+    </button>
+
+    <div *ngIf="!showSignupForm">
+      <h2>Volunteer Opportunity</h2>
+      <p><strong>Date:</strong> {{ formatDate(shift.StartTime) }}</p>
+      <p>
+        <strong>Time:</strong> {{ formatTime(shift.StartTime) }} -
+        {{ formatTime(shift.EndTime) }}
+      </p>
+
+      <div class="capacity-summary">
+        <strong>Availability:</strong>
+        <div class="capacity-bar modal-capacity">
+          <div
+            class="capacity-filled"
+            [style.width]="percentFilled + '%'"
+          ></div>
+        </div>
+        <span>{{ filledSlots }}/{{ shift.Capacity }} spots filled</span>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          mat-raised-button
+          color="primary"
+          [disabled]="isShiftFull()"
+          (click)="toggleSignupForm(true)"
+        >
+          <mat-icon>person_add</mat-icon> Sign Up Now
+        </button>
+        <button mat-stroked-button (click)="closeModal()">Cancel</button>
+      </div>
+
+      <div
+        class="signups-section"
+        *ngIf="shift.signups && shift.signups.length > 0"
+      >
+        <h3>Current Volunteers ({{ shift.signups.length }})</h3>
+        <div class="signup-list">
+          <div *ngFor="let signup of shift.signups" class="signup-card">
+            <div class="signup-header">
+              <strong>{{ signup.Name }}</strong>
+            </div>
+            <div class="signup-details">
+              <p>
+                <mat-icon>group</mat-icon> {{ signup.NumPeople }}
+                {{ signup.NumPeople === 1 ? "person" : "people" }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signup Form -->
+    <div *ngIf="showSignupForm" class="signup-form-container">
+      <h2>Sign Up for Volunteer Shift</h2>
+      <p>
+        {{ formatDate(shift.StartTime) }}, {{ formatTime(shift.StartTime) }} -
+        {{ formatTime(shift.EndTime) }}
+      </p>
+      
+      <div class="capacity-info">
+        <strong>Remaining capacity:</strong> {{ remainingCapacity }} spots available
+      </div>
+
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+        <div class="form-field" [class.error]="isFieldInvalid('Name')">
+          <label for="name">Your Name *</label>
+          <input
+            id="name"
+            type="text"
+            formControlName="Name"
+            placeholder="Full Name"
+          />
+          <div *ngIf="isFieldInvalid('Name')" class="error-message">
+            {{ getErrorMessage('Name') }}
+          </div>
+        </div>
+
+        <div class="form-field" [class.error]="isFieldInvalid('Email')">
+          <label for="email">Email Address *</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="Email"
+            placeholder="email@example.com"
+          />
+          <div *ngIf="isFieldInvalid('Email')" class="error-message">
+            {{ getErrorMessage('Email') }}
+          </div>
+        </div>
+
+        <div class="form-field" [class.error]="isFieldInvalid('PhoneNumber')">
+          <label for="phone">Phone Number *</label>
+          <input
+            id="phone"
+            type="tel"
+            formControlName="PhoneNumber"
+            placeholder="(123) 456-7890"
+          />
+          <div *ngIf="isFieldInvalid('PhoneNumber')" class="error-message">
+            {{ getErrorMessage('PhoneNumber') }}
+          </div>
+        </div>
+
+        <div class="form-field" [class.error]="isFieldInvalid('NumPeople')">
+          <label for="people">Number of People *</label>
+          <input
+            id="people"
+            type="number"
+            formControlName="NumPeople"
+            min="1"
+            [max]="getRemainingCapacity()"
+          />
+          <small>How many people (including yourself) are you signing up?</small>
+          <div *ngIf="isFieldInvalid('NumPeople')" class="error-message">
+            {{ getErrorMessage('NumPeople') }}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            mat-raised-button
+            color="primary"
+            [disabled]="signupForm.invalid || getRemainingCapacity() <= 0"
+          >
+            Submit
+          </button>
+          <button
+            type="button"
+            mat-stroked-button
+            (click)="toggleSignupForm(false)"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
