@@ -258,7 +258,7 @@ export class CalendarComponent implements OnInit {
       if (text) {
         try {
           const newSignupResponse = JSON.parse(text);
-          const newSignup = newSignupResponse.value || newSignupResponse;
+          const newSignup = newSignupResponse.value[0] || newSignupResponse;
           
           // Add the new signup to the shift's signups
           if (this.selectedShift.signups) {
@@ -282,7 +282,7 @@ export class CalendarComponent implements OnInit {
           }
           
           // Show a success message
-          alert(`Thank you ${newSignup.Name}! Your signup has been confirmed.`);
+          alert(`Thank you ${newSignup.Name ?? ''}! Your signup has been confirmed.`);
   
         } catch (parseError) {
           console.error('Failed to parse response:', parseError);
