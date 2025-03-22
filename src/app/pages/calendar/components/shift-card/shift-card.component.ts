@@ -16,7 +16,7 @@ export class ShiftCardComponent {
   @Output() shiftClicked = new EventEmitter<void>();
 
   getFilledSlots(): number {
-    if (!this.shift.signups) return 0;
+    if (!this.shift || !this.shift.signups) return 0;
     return this.shift.signups.reduce(
       (total, signup) => total + (signup.NumPeople || 1),
       0
@@ -24,7 +24,7 @@ export class ShiftCardComponent {
   }
 
   isShiftFull(): boolean {
-    if (!this.shift.signups) return false;
+    if (!this.shift || !this.shift.signups) return false;
     return this.getFilledSlots() >= this.shift.Capacity;
   }
 

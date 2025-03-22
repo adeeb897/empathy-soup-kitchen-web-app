@@ -63,9 +63,13 @@
         {{ formatDate(shift.StartTime) }}, {{ formatTime(shift.StartTime) }} -
         {{ formatTime(shift.EndTime) }}
       </p>
+      
+      <div class="capacity-info">
+        <strong>Remaining capacity:</strong> {{ getRemainingCapacity() }} spots available
+      </div>
 
       <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-        <div class="form-field">
+        <div class="form-field" [class.error]="isFieldInvalid('Name')">
           <label for="name">Your Name *</label>
           <input
             id="name"
@@ -73,9 +77,12 @@
             formControlName="Name"
             placeholder="Full Name"
           />
+          <div *ngIf="isFieldInvalid('Name')" class="error-message">
+            {{ getErrorMessage('Name') }}
+          </div>
         </div>
 
-        <div class="form-field">
+        <div class="form-field" [class.error]="isFieldInvalid('Email')">
           <label for="email">Email Address *</label>
           <input
             id="email"
@@ -83,9 +90,12 @@
             formControlName="Email"
             placeholder="email@example.com"
           />
+          <div *ngIf="isFieldInvalid('Email')" class="error-message">
+            {{ getErrorMessage('Email') }}
+          </div>
         </div>
 
-        <div class="form-field">
+        <div class="form-field" [class.error]="isFieldInvalid('PhoneNumber')">
           <label for="phone">Phone Number *</label>
           <input
             id="phone"
@@ -93,19 +103,24 @@
             formControlName="PhoneNumber"
             placeholder="(123) 456-7890"
           />
+          <div *ngIf="isFieldInvalid('PhoneNumber')" class="error-message">
+            {{ getErrorMessage('PhoneNumber') }}
+          </div>
         </div>
 
-        <div class="form-field">
+        <div class="form-field" [class.error]="isFieldInvalid('NumPeople')">
           <label for="people">Number of People *</label>
           <input
             id="people"
             type="number"
             formControlName="NumPeople"
             min="1"
+            [max]="getRemainingCapacity()"
           />
-          <small
-            >How many people (including yourself) are you signing up?</small
-          >
+          <small>How many people (including yourself) are you signing up?</small>
+          <div *ngIf="isFieldInvalid('NumPeople')" class="error-message">
+            {{ getErrorMessage('NumPeople') }}
+          </div>
         </div>
 
         <div class="form-actions">
@@ -113,7 +128,7 @@
             type="submit"
             mat-raised-button
             color="primary"
-            [disabled]="signupForm.invalid"
+            [disabled]="signupForm.invalid || getRemainingCapacity() <= 0"
           >
             Submit
           </button>

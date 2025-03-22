@@ -37,10 +37,66 @@ export class CalendarComponent implements OnInit {
       const shifts = await this.list();
       if (shifts && shifts.length > 0) {
         this.shifts = shifts;
+        // Fetch signups for all shifts
+        await this.fetchAllShiftSignups();
         this.organizeShiftsByDate();
       }
     } catch (error) {
       console.error('Error fetching shifts:', error);
+    }
+  }
+
+  // New method to fetch signups for all shifts
+  async fetchAllShiftSignups(): Promise<void> {
+    try {
+      // Fetch all signups at once
+      const allSignups = await this.listAllSignups();
+      
+      // Group signups by ShiftID
+      const signupsByShiftId: { [key: number]: SignUp[] } = {};
+      allSignups.forEach(signup => {
+        if (!signupsByShiftId[signup.ShiftID]) {
+          signupsByShiftId[signup.ShiftID] = [];
+        }
+        signupsByShiftId[signup.ShiftID].push(signup);
+      });
+
+      // Assign signups to each shift
+      this.shifts.forEach(shift => {
+        shift.signups = signupsByShiftId[shift.ShiftID] || [];
+      });
+    } catch (error) {
+      console.error('Error fetching signups for shifts:', error);
+    }
+  }
+
+  // New method to fetch all signups at once
+  async listAllSignups(): Promise<SignUp[]> {
+    try {
+      const endpoint = '/data-api/rest/SignUps';
+      const response = await fetch(endpoint);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const text = await response.text();
+
+      if (!text) {
+        console.log('Empty response received');
+        return [];
+      }
+
+      try {
+        const data = JSON.parse(text);
+        return data.value;
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching all signups:', error);
+      return [];
     }
   }
 
@@ -140,14 +196,8 @@ export class CalendarComponent implements OnInit {
   }
 
   async onShiftSelected(shift: VolunteerShift): Promise<void> {
-    try {
-      const signups = await this.getSignUpsForShift(shift.ShiftID);
-      shift.signups = signups;
-      this.selectedShift = shift;
-      this.showSignups = true;
-    } catch (error) {
-      console.error('Error fetching shift details:', error);
-    }
+    this.selectedShift = shift;
+    this.showSignups = true;
   }
 
   closeModal(): void {
@@ -164,6 +214,19 @@ export class CalendarComponent implements OnInit {
     if (!this.selectedShift) return;
 
     try {
+      // Calculate remaining capacity
+      const filledSlots = this.selectedShift.signups.reduce(
+        (total, signup) => total + (signup.NumPeople || 1),
+        0
+      );
+      const remainingCapacity = this.selectedShift.Capacity - filledSlots;
+      
+      // Check if there's enough capacity
+      if (formData.NumPeople > remainingCapacity) {
+        alert(`Sorry, there are only ${remainingCapacity} spots remaining for this shift.`);
+        return;
+      }
+      
       const data = {
         ...formData,
         ShiftID: this.selectedShift.ShiftID,
@@ -180,9 +243,26 @@ export class CalendarComponent implements OnInit {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      // Refresh the shift details to show updated signup information
+      // Get the new signup from the response
+      const text = await response.text();
+      if (text) {
+        try {
+          const newSignup = JSON.parse(text);
+          
+          // Add the new signup to the shift's signups
+          if (this.selectedShift.signups) {
+            this.selectedShift.signups.push(newSignup);
+          } else {
+            this.selectedShift.signups = [newSignup];
+          }
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+        }
+      }
+
+      // Reset form
       this.showSignupForm = false;
-      await this.onShiftSelected(this.selectedShift);
+
     } catch (error) {
       console.error('Error submitting signup:', error);
     }

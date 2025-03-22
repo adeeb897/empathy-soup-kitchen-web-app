@@ -12,7 +12,6 @@
     <div class="capacity-indicator">
       <div class="capacity-bar">
         <div
-          *ngIf="shift.signups"
           class="capacity-filled"
           [style.width]="(getFilledSlots() / shift.Capacity) * 100 + '%'"
         ></div>
@@ -20,9 +19,7 @@
       <div class="capacity-text">
         <span *ngIf="isShiftFull()" class="full-indicator">FULL</span>
         <span *ngIf="!isShiftFull()">
-          <span *ngIf="shift.signups">{{ getFilledSlots() }}</span>
-          <span *ngIf="!shift.signups">0</span>
-          /{{ shift.Capacity }} spots
+          {{ getFilledSlots() }}/{{ shift.Capacity }} spots
         </span>
       </div>
     </div>
