@@ -13,13 +13,13 @@
       <div class="capacity-bar">
         <div
           class="capacity-filled"
-          [style.width]="(getFilledSlots() / shift.Capacity) * 100 + '%'"
+          [style.width]="percentFilled + '%'"
         ></div>
       </div>
       <div class="capacity-text">
         <span *ngIf="isShiftFull()" class="full-indicator">FULL</span>
         <span *ngIf="!isShiftFull()">
-          {{ getFilledSlots() }}/{{ shift.Capacity }} spots
+          {{ filledSlots }}/{{ shift.Capacity }} spots
         </span>
       </div>
     </div>

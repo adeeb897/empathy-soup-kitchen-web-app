@@ -145,7 +145,12 @@ export class CalendarComponent implements OnInit {
 
       if (!text) {
         console.log('Empty response received');
-        return [];
+        // Return test data
+        return [
+          { ShiftID: 1, StartTime: '2025-04-10T09:00:00Z', EndTime: '2025-04-10T12:00:00Z', Capacity: 5, signups: [] },
+          { ShiftID: 2, StartTime: '2025-04-11T13:00:00Z', EndTime: '2025-04-11T16:00:00Z', Capacity: 3, signups: [] },
+        ]
+        // return [];
       }
 
       try {
@@ -179,7 +184,12 @@ export class CalendarComponent implements OnInit {
 
       if (!text) {
         console.log('Empty response received');
-        return [];
+        // Return test data for signups
+        return [
+          { SignUpID: 1, ShiftID: shiftId, Name: 'John Doe', Email: 'test@test.com', PhoneNumber: '1234567890', NumPeople: 1 },
+          { SignUpID: 2, ShiftID: shiftId, Name: 'Jane Doe', Email: 'test2@test.com', PhoneNumber: '0987654321', NumPeople: 2 },
+        ]
+        // return [];
       }
 
       try {
@@ -212,7 +222,7 @@ export class CalendarComponent implements OnInit {
 
   async handleSignupSubmit(formData: any): Promise<void> {
     if (!this.selectedShift) return;
-
+  
     try {
       // Calculate remaining capacity
       const filledSlots = this.selectedShift.signups.reduce(
@@ -231,23 +241,24 @@ export class CalendarComponent implements OnInit {
         ...formData,
         ShiftID: this.selectedShift.ShiftID,
       };
-
+  
       const endpoint = `/data-api/rest/SignUps/`;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
+  
       // Get the new signup from the response
       const text = await response.text();
       if (text) {
         try {
-          const newSignup = JSON.parse(text);
+          const newSignupResponse = JSON.parse(text);
+          const newSignup = newSignupResponse.value || newSignupResponse;
           
           // Add the new signup to the shift's signups
           if (this.selectedShift.signups) {
@@ -255,16 +266,35 @@ export class CalendarComponent implements OnInit {
           } else {
             this.selectedShift.signups = [newSignup];
           }
+          
+          // Find this shift in the shifts array and update it
+          const shiftIndex = this.shifts.findIndex(s => s.ShiftID === this.selectedShift?.ShiftID);
+          if (shiftIndex !== -1) {
+            this.shifts[shiftIndex] = { ...this.selectedShift };
+            
+            // Update calendar days to reflect the new signup
+            this.calendarDays.forEach(day => {
+              const dayShiftIndex = day.shifts.findIndex(s => s.ShiftID === this.selectedShift?.ShiftID);
+              if (dayShiftIndex !== -1) {
+                day.shifts[dayShiftIndex] = { ...this.selectedShift! };
+              }
+            });
+          }
+          
+          // Show a success message
+          alert(`Thank you ${newSignup.Name}! Your signup has been confirmed.`);
+  
         } catch (parseError) {
           console.error('Failed to parse response:', parseError);
         }
       }
-
-      // Reset form
+  
+      // Reset form and close it
       this.showSignupForm = false;
-
+  
     } catch (error) {
       console.error('Error submitting signup:', error);
+      alert('There was an error processing your signup. Please try again.');
     }
   }
 

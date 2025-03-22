@@ -17,10 +17,10 @@
         <div class="capacity-bar modal-capacity">
           <div
             class="capacity-filled"
-            [style.width]="(getFilledSlots() / shift.Capacity) * 100 + '%'"
+            [style.width]="percentFilled + '%'"
           ></div>
         </div>
-        <span>{{ getFilledSlots() }}/{{ shift.Capacity }} spots filled</span>
+        <span>{{ filledSlots }}/{{ shift.Capacity }} spots filled</span>
       </div>
 
       <div class="modal-actions">
@@ -65,7 +65,7 @@
       </p>
       
       <div class="capacity-info">
-        <strong>Remaining capacity:</strong> {{ getRemainingCapacity() }} spots available
+        <strong>Remaining capacity:</strong> {{ remainingCapacity }} spots available
       </div>
 
       <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">

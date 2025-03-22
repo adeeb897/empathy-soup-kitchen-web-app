@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,7 +17,7 @@ import { VolunteerShift } from '../../models/volunteer.model';
   templateUrl: './shift-modal.component.html',
   styleUrls: ['./shift-modal.component.scss'],
 })
-export class ShiftModalComponent {
+export class ShiftModalComponent implements OnChanges {
   @Input() shift!: VolunteerShift;
   @Input() showSignupForm = false;
 
@@ -28,6 +28,11 @@ export class ShiftModalComponent {
   signupForm: FormGroup;
   formSubmitted = false;
 
+  // Track capacities
+  remainingCapacity = 0;
+  filledSlots = 0;
+  percentFilled = 0;
+
   constructor(private fb: FormBuilder) {
     this.signupForm = this.fb.group({
       Name: ['', Validators.required],
@@ -37,30 +42,49 @@ export class ShiftModalComponent {
     });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['shift'] || changes['showSignupForm']) {
+      this.updateCapacityCalculations();
+      
+      // Update form validators if form is shown
+      if (this.showSignupForm) {
+        this.updateFormValidators();
+      }
+    }
+  }
+
+  updateCapacityCalculations(): void {
+    this.filledSlots = this.getFilledSlots();
+    this.remainingCapacity = this.shift.Capacity - this.filledSlots;
+    this.percentFilled = (this.filledSlots / this.shift.Capacity) * 100;
+  }
+
+  updateFormValidators(): void {
+    // Update NumPeople validator to include max value
+    this.signupForm.get('NumPeople')?.setValidators([
+      Validators.required,
+      Validators.min(1),
+      Validators.max(this.remainingCapacity)
+    ]);
+    
+    // Set initial value to 1 or remaining capacity (whichever is smaller)
+    this.signupForm.get('NumPeople')?.setValue(Math.min(1, this.remainingCapacity));
+    this.signupForm.get('NumPeople')?.updateValueAndValidity();
+  }
+
   closeModal(): void {
     this.close.emit();
   }
 
   toggleSignupForm(show: boolean): void {
     this.showSignupFormChange.emit(show);
+    
     if (!show) {
       this.signupForm.reset({ NumPeople: 1 });
       this.formSubmitted = false;
     } else {
-      // Calculate remaining capacity
-      const remainingCapacity = this.shift.Capacity - this.getFilledSlots();
-      
-      // Update NumPeople validator to include max value
-      this.signupForm.get('NumPeople')?.setValidators([
-        Validators.required,
-        Validators.min(1),
-        Validators.max(remainingCapacity)
-      ]);
-      
-      // Set initial value to 1 or remaining capacity (whichever is smaller)
-      this.signupForm.get('NumPeople')?.setValue(Math.min(1, remainingCapacity));
-
-      this.signupForm.get('NumPeople')?.updateValueAndValidity();
+      this.updateCapacityCalculations();
+      this.updateFormValidators();
     }
   }
 
@@ -104,7 +128,7 @@ export class ShiftModalComponent {
   }
 
   getRemainingCapacity(): number {
-    return this.shift.Capacity - this.getFilledSlots();
+    return this.remainingCapacity;
   }
 
   getFilledSlots(): number {
