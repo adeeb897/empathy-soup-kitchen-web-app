@@ -332,11 +332,6 @@ export class CalendarComponent implements OnInit {
               }
             });
           }
-
-          // Show a success message
-          alert(
-            `Thank you ${newSignup.Name ?? ''}! Your signup has been confirmed.`
-          );
         } catch (parseError) {
           console.error('Failed to parse response:', parseError);
         }
@@ -436,8 +431,6 @@ export class CalendarComponent implements OnInit {
           // Add to shifts array and refresh calendar
           this.shifts.push(newShift);
           this.organizeShiftsByDate();
-
-          alert('Shift created successfully!');
         } catch (parseError) {
           console.error('Failed to parse response:', parseError);
         }
@@ -474,8 +467,6 @@ export class CalendarComponent implements OnInit {
 
         // Refresh the calendar
         this.organizeShiftsByDate();
-
-        alert('Shift updated successfully!');
       }
     } catch (error) {
       console.error('Error updating shift:', error);
@@ -505,8 +496,6 @@ export class CalendarComponent implements OnInit {
 
       // Refresh the calendar
       this.organizeShiftsByDate();
-
-      alert('Shift deleted successfully!');
     } catch (error) {
       console.error('Error deleting shift:', error);
       alert('Failed to delete shift. Please try again.');
@@ -536,8 +525,6 @@ export class CalendarComponent implements OnInit {
         if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
           this.selectedShift = { ...this.shifts[shiftIndex] };
         }
-
-        alert('Signup deleted successfully!');
       }
     } catch (error) {
       console.error('Error deleting signup:', error);
@@ -579,8 +566,6 @@ export class CalendarComponent implements OnInit {
           if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
             this.selectedShift = { ...this.shifts[shiftIndex] };
           }
-
-          alert('Signup updated successfully!');
         }
       }
     } catch (error) {
