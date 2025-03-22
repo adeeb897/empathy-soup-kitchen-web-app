@@ -451,8 +451,8 @@ export class CalendarComponent implements OnInit {
     }
     
     try {
-      const endpoint = `/data-api/rest/VolunteerShifts(${shiftId})`;
-      const response = await fetch(endpoint, {
+      const endpoint = `/data-api/rest/VolunteerShifts/ShiftID`;
+      const response = await fetch(`${endpoint}/${shiftId}`, {
         method: 'DELETE',
       });
 
@@ -480,8 +480,8 @@ export class CalendarComponent implements OnInit {
     }
     
     try {
-      const endpoint = `/data-api/rest/SignUps(${signupId})`;
-      const response = await fetch(endpoint, {
+      const endpoint = `/data-api/rest/SignUps/SignUpID`;
+      const response = await fetch(`${endpoint}/${signupId}`, {
         method: 'DELETE',
       });
 
