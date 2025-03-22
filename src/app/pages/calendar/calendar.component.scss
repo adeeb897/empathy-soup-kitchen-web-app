@@ -1,3 +1,4 @@
+// Base container styles
 .calendar-container {
   background: white;
   padding: 20px;
@@ -23,21 +24,18 @@
   }
 }
 
-// Week container styling
+// Calendar layout
 .week-container {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   
-  .week-header {
+  .week-header h2 {
+    font-size: 1.1rem;
+    color: #333;
+    background: #f0f2f5;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-block;
     margin-bottom: 10px;
-    
-    h2 {
-      font-size: 1.2rem;
-      color: #333;
-      background: #f0f2f5;
-      padding: 8px 12px;
-      border-radius: 6px;
-      display: inline-block;
-    }
   }
 }
 
@@ -45,27 +43,18 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
-  margin-top: 10px;
   
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: 1200px) { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
 
+// Day cell styles
 .calendar-day {
   border: 1px solid #e0e0e0;
   border-radius: 5px;
   overflow: hidden;
   min-height: 120px;
-  background-color: #fff;
   
   .day-header {
     background-color: #f5f5f5;
@@ -97,6 +86,7 @@
   }
 }
 
+// Shift card styles
 .shift-card {
   cursor: pointer;
   transition: all 0.2s;
@@ -109,11 +99,9 @@
   &:hover {
     border-color: #3f51b5;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     
-    .card-overlay {
-      opacity: 1;
-    }
+    .card-overlay { opacity: 1; }
   }
   
   &.shift-full {
@@ -121,34 +109,14 @@
     background-color: #f9f9f9;
     color: #999;
     
-    h4 {
-      color: #999;
-    }
-    
-    &:hover {
-      transform: none;
-      box-shadow: none;
-    }
-    
-    .card-overlay {
-      display: none;
-    }
+    h4 { color: #999; }
+    &:hover { transform: none; box-shadow: none; }
+    .card-overlay { display: none; }
   }
   
-  mat-card-content {
-    padding: 8px 12px;
-  }
-  
-  h4 {
-    margin: 0 0 8px 0;
-    color: #3f51b5;
-    font-size: 0.95em;
-  }
-  
-  p {
-    margin: 4px 0;
-    font-size: 0.9em;
-  }
+  mat-card-content { padding: 8px 12px; }
+  h4 { margin: 0 0 8px 0; color: #3f51b5; font-size: 0.95em; }
+  p { margin: 4px 0; font-size: 0.9em; }
   
   .capacity-indicator {
     margin-top: 8px;
@@ -173,42 +141,34 @@
       text-align: right;
       color: #666;
       
-      .full-indicator {
-        color: #f44336;
-        font-weight: bold;
-      }
+      .full-indicator { color: #f44336; font-weight: bold; }
     }
   }
   
   .card-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background-color: rgba(63, 81, 181, 0.8);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s;
     color: white;
     
     mat-icon {
       font-size: 24px;
-      width: 24px;
-      height: 24px;
+      width: 24px; height: 24px;
       margin-bottom: 4px;
     }
     
-    span {
-      font-size: 14px;
-      font-weight: 500;
-    }
+    span { font-size: 14px; font-weight: 500; }
   }
 }
 
+// Navigation
 .show-more-container {
   display: flex;
   justify-content: center;
@@ -224,10 +184,8 @@
 // Modal styles
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -238,7 +196,7 @@
 .modal-content {
   background-color: white;
   border-radius: 8px;
-  padding: 24px;
+  padding: 20px;
   max-width: 600px;
   width: 90%;
   max-height: 80vh;
@@ -247,27 +205,22 @@
   
   h2 {
     color: #3f51b5;
-    margin-top: 0;
-    margin-bottom: 16px;
+    margin: 0 0 16px;
   }
   
   .close-button {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 2;
+    top: 10px; right: 10px;
   }
 }
 
+// Capacity indicator in modal
 .capacity-summary {
   display: flex;
   align-items: center;
-  margin: 20px 0;
+  margin: 15px 0;
   
-  strong {
-    margin-right: 10px;
-    min-width: 85px;
-  }
+  strong { margin-right: 10px; min-width: 85px; }
   
   .modal-capacity {
     width: 150px;
@@ -276,22 +229,15 @@
   }
 }
 
-.modal-actions {
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
-}
+// Actions and signup section
+.modal-actions { margin: 15px 0; display: flex; gap: 10px; }
 
 .signups-section {
-  margin-top: 30px;
-  padding-top: 20px;
+  margin-top: 20px;
+  padding-top: 15px;
   border-top: 1px solid #eee;
   
-  h3 {
-    font-size: 1.1em;
-    color: #333;
-    margin-bottom: 15px;
-  }
+  h3 { font-size: 1.1em; margin-bottom: 15px; }
 }
 
 .signup-list {
@@ -321,8 +267,7 @@
       
       mat-icon {
         font-size: 16px;
-        width: 16px;
-        height: 16px;
+        width: 16px; height: 16px;
         margin-right: 8px;
         color: #5c6bc0;
       }
@@ -330,39 +275,24 @@
   }
 }
 
-// Signup form styling
+// Form styles
 .signup-form-container {
-  h2 {
-    margin-bottom: 8px;
-  }
+  h2 { margin-bottom: 8px; }
+  p { margin-bottom: 15px; color: #666; }
   
-  p {
-    margin-bottom: 20px;
-    color: #666;
-  }
-  
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
+  form { display: flex; flex-direction: column; gap: 15px; }
   
   .form-field {
     display: flex;
     flex-direction: column;
     gap: 5px;
     
-    label {
-      font-weight: 500;
-      font-size: 0.9em;
-      color: #333;
-    }
+    label { font-weight: 500; font-size: 0.9em; }
     
     input {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1em;
       
       &:focus {
         outline: none;
@@ -370,15 +300,8 @@
       }
     }
     
-    small {
-      font-size: 0.8em;
-      color: #666;
-    }
+    small { font-size: 0.8em; color: #666; }
   }
   
-  .form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-  }
+  .form-actions { margin-top: 10px; display: flex; gap: 10px; }
 }
