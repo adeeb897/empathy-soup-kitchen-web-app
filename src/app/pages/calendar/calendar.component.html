@@ -30,27 +30,36 @@
     community.
   </blockquote>
 
-  <div class="calendar-wrapper">
-    <div class="week-container" *ngFor="let week of getCalendarWeeks()">
-      <div class="week-header">
-        <h2>Week of {{ week.weekStartDate | date : "MMM d, y" }}</h2>
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="60"></mat-spinner>
+    <p>Loading calendar data...</p>
+  </div>
+
+  <!-- Main calendar content - only show when not loading -->
+  <div class="calendar-content" *ngIf="!loading">
+    <div class="calendar-wrapper">
+      <div class="week-container" *ngFor="let week of getCalendarWeeks()">
+        <div class="week-header">
+          <h2>Week of {{ week.weekStartDate | date : "MMM d, y" }}</h2>
+        </div>
+
+        <div class="calendar">
+          <app-calendar-day
+            *ngFor="let day of week.days"
+            [date]="day.date"
+            [shifts]="day.shifts"
+            [isAdminMode]="isAdminMode"
+            (shiftSelected)="onShiftSelected($event)"
+          ></app-calendar-day>
+        </div>
       </div>
 
-      <div class="calendar">
-        <app-calendar-day
-          *ngFor="let day of week.days"
-          [date]="day.date"
-          [shifts]="day.shifts"
-          [isAdminMode]="isAdminMode"
-          (shiftSelected)="onShiftSelected($event)"
-        ></app-calendar-day>
+      <div *ngIf="canShowMore()" class="show-more-container">
+        <button mat-stroked-button color="primary" (click)="showMoreWeeks()">
+          <mat-icon>expand_more</mat-icon> Show More Weeks
+        </button>
       </div>
-    </div>
-
-    <div *ngIf="canShowMore()" class="show-more-container">
-      <button mat-stroked-button color="primary" (click)="showMoreWeeks()">
-        <mat-icon>expand_more</mat-icon> Show More Weeks
-      </button>
     </div>
   </div>
 

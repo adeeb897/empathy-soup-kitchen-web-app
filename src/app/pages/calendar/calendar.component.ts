@@ -6,6 +6,7 @@ import {
   MatSlideToggleModule,
   MatSlideToggleChange,
 } from '@angular/material/slide-toggle';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
 import { ShiftModalComponent } from './components/shift-modal/shift-modal.component';
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
@@ -21,6 +22,7 @@ import { AdminAuthService } from './services/admin-auth.service';
     MatButtonModule,
     MatIconModule,
     MatSlideToggleModule,
+    MatProgressSpinnerModule,
     CalendarDayComponent,
     ShiftModalComponent,
     AdminPanelComponent,
@@ -40,6 +42,7 @@ export class CalendarComponent implements OnInit {
   isAdminMode = false;
   showAdminPanel = false;
   showAdminLogin = false;
+  loading = true; // Add loading state
 
   constructor(private authService: AdminAuthService) {}
 
@@ -53,6 +56,7 @@ export class CalendarComponent implements OnInit {
   }
 
   async fetchShifts(): Promise<void> {
+    this.loading = true; // Start loading
     try {
       const shifts = await this.list();
       if (shifts && shifts.length > 0) {
@@ -63,6 +67,8 @@ export class CalendarComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error fetching shifts:', error);
+    } finally {
+      this.loading = false; // End loading regardless of success/failure
     }
   }
 

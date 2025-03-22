@@ -1,7 +1,6 @@
 <mat-card
   [class.shift-card]="true"
   [class.shift-full]="isShiftFull()"
-  [class.admin-mode]="isAdminMode"
   (click)="shiftClicked.emit()"
 >
   <mat-card-content>
@@ -23,9 +22,6 @@
           {{ filledSlots }}/{{ shift.Capacity }} spots
         </span>
       </div>
-    </div>
-    <div *ngIf="isAdminMode" class="admin-indicator">
-      <mat-icon>admin_panel_settings</mat-icon>
     </div>
   </mat-card-content>
   <div class="card-overlay">

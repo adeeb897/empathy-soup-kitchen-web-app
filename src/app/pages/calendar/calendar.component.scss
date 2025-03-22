@@ -100,3 +100,18 @@
     }
   }
 }
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  margin: 20px 0;
+  
+  p {
+    margin-top: 20px;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
