@@ -7,72 +7,66 @@ import { Component } from '@angular/core';
   styleUrls: ['./calendar.component.scss'],
 })
 export class CalendarComponent {
-  // No additional code needed
   async list(): Promise<void> {
-    const query = `
-    {
-      volunteerShifts {
-        Items {
-          id
-          date
-        }
-      }
-    }`;
+    try {
+      const endpoint = '/data-api/rest/VolunteerShifts';
+      const response = await fetch(endpoint);
 
-    const endpoint = '/data-api/graphql';
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: query }),
-    })
-    .then(response => {
-      return response.text()
-    })
-    .then((data) => {
-      if (!data) {
-        console.log('No data found');
-        return {};
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-      return JSON.parse(data);
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    })
-    
-    console.log(response);
+
+      const text = await response.text(); // Get response as text first
+
+      if (!text) {
+        console.log('Empty response received');
+        return;
+      }
+
+      try {
+        const data = JSON.parse(text);
+        console.table(data.value);
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
+        console.log('Raw response:', text);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   }
 
   async create() {
+    try {
+      const data = {
+        Name: 'Pedro',
+      };
+      const endpoint = `/data-api/rest/SignUps/`;
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    const data = {
-      id: "3",
-      date: "2021-12-31"
-    };
-  
-    const gql = `
-      mutation create($item: CreateVolunteerShiftInput!) {
-        createVolunteerShift(item: $item) {
-          id
-          date
-        }
-      }`;
-    
-    const query = {
-      query: gql,
-      variables: {
-        item: data
-      } 
-    };
-    
-    const endpoint = "/data-api/graphql";
-    const result = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(query)
-    });
-    console.log(result);
-  
-    const response = await result.json();
-    console.table(response.data.createVolunteerShift);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const text = await response.text(); // Get response as text first
+
+      if (!text) {
+        console.log('Empty response received');
+        return;
+      }
+
+      try {
+        const result = JSON.parse(text);
+        console.table(result.value);
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
+        console.log('Raw response:', text);
+      }
+    } catch (error) {
+      console.error('Error creating data:', error);
+    }
   }
 }
