@@ -12,7 +12,7 @@ interface VolunteerShift {
   StartTime: string;
   EndTime: string;
   Capacity: number;
-  signups?: SignUp[];
+  signups: SignUp[];
 }
 
 interface SignUp {

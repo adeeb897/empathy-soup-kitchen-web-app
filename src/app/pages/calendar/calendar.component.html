@@ -129,7 +129,7 @@
         </div>
         
         <div class="signups-section" *ngIf="selectedShift.signups && selectedShift.signups.length > 0">
-          <h3>Current Volunteers ({{ selectedShift.signups?.length }})</h3>
+          <h3>Current Volunteers ({{ selectedShift.signups.length }})</h3>
           <div class="signup-list">
             <div *ngFor="let signup of selectedShift.signups" class="signup-card">
               <div class="signup-header">
