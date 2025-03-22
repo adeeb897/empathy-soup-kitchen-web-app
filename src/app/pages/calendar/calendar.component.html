@@ -8,10 +8,6 @@
     Manage volunteer shifts and schedules
   </blockquote>
   
-  <div class="button-group">
-    <button mat-raised-button color="primary" id="list" (click)="fetchShifts()">Refresh Schedule</button>
-  </div>
-
   <div class="calendar">
     <div *ngFor="let day of calendarDays" class="calendar-day">
       <div class="day-header">
@@ -25,7 +21,21 @@
           <mat-card-content>
             <h4>Volunteer Shift</h4>
             <p>{{ formatTime(shift.StartTime) }} - {{ formatTime(shift.EndTime) }}</p>
-            <p>Capacity: {{ shift.Capacity }}</p>
+            <div class="capacity-indicator">
+              <div class="capacity-label">Capacity:</div>
+              <div class="capacity-bar">
+                <div *ngIf="shift.signups" class="capacity-filled" 
+                  [style.width]="((getFilledSlots(shift) / shift.Capacity) * 100) + '%'">
+                </div>
+              </div>
+              <div class="capacity-text">
+                <span *ngIf="shift.signups">{{ getFilledSlots(shift) }}/{{ shift.Capacity }}</span>
+                <span *ngIf="!shift.signups">0/{{ shift.Capacity }}</span>
+              </div>
+            </div>
+            <div class="click-indicator">
+              <mat-icon>info</mat-icon> Click for details
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -38,23 +48,34 @@
       <h2>Shift Details</h2>
       <p><strong>Date:</strong> {{ formatDate(selectedShift.StartTime) }}</p>
       <p><strong>Time:</strong> {{ formatTime(selectedShift.StartTime) }} - {{ formatTime(selectedShift.EndTime) }}</p>
-      <p><strong>Capacity:</strong> {{ selectedShift.Capacity }}</p>
+      
+      <div class="capacity-summary">
+        <strong>Capacity:</strong> 
+        <div class="capacity-bar modal-capacity">
+          <div class="capacity-filled" 
+            [style.width]="((getFilledSlots(selectedShift) / selectedShift.Capacity) * 100) + '%'">
+          </div>
+        </div>
+        <span>{{ getFilledSlots(selectedShift) }}/{{ selectedShift.Capacity }} slots filled</span>
+      </div>
       
       <div class="signups-section">
         <h3>Volunteers ({{ selectedShift.signups?.length || 0 }})</h3>
         <div *ngIf="!selectedShift.signups || selectedShift.signups.length === 0" class="no-signups">
           No volunteers have signed up yet
         </div>
-        <mat-list *ngIf="selectedShift.signups && selectedShift.signups.length > 0">
-          <mat-list-item *ngFor="let signup of selectedShift.signups">
-            <div class="signup-item">
-              <p><strong>{{ signup.Name }}</strong></p>
-              <p>Email: {{ signup.Email }}</p>
-              <p>Phone: {{ signup.PhoneNumber }}</p>
-              <p>People: {{ signup.NumPeople }}</p>
+        <div *ngIf="selectedShift.signups && selectedShift.signups.length > 0" class="signup-list">
+          <div *ngFor="let signup of selectedShift.signups" class="signup-card">
+            <div class="signup-header">
+              <strong>{{ signup.Name }}</strong>
             </div>
-          </mat-list-item>
-        </mat-list>
+            <div class="signup-details">
+              <p><mat-icon>email</mat-icon> {{ signup.Email }}</p>
+              <p><mat-icon>phone</mat-icon> {{ signup.PhoneNumber }}</p>
+              <p><mat-icon>group</mat-icon> {{ signup.NumPeople }} {{ signup.NumPeople === 1 ? 'person' : 'people' }}</p>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div class="modal-actions">

@@ -74,10 +74,13 @@ export class CalendarComponent implements OnInit {
                shiftDate.getFullYear() === date.getFullYear();
       });
       
-      this.calendarDays.push({
-        date: date,
-        shifts: dayShifts
-      });
+      // Only add days that have shifts
+      if (dayShifts.length > 0) {
+        this.calendarDays.push({
+          date: date,
+          shifts: dayShifts
+        });
+      }
     }
   }
   
@@ -168,5 +171,11 @@ export class CalendarComponent implements OnInit {
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  // Add this method to calculate filled slots
+  getFilledSlots(shift: VolunteerShift): number {
+    if (!shift.signups) return 0;
+    return shift.signups.reduce((total, signup) => total + (signup.NumPeople || 1), 0);
   }
 }
