@@ -451,6 +451,13 @@ export class CalendarComponent implements OnInit {
     }
     
     try {
+
+      // Delete all signups for this shift first (if any)
+      const signups = await this.getSignUpsForShift(shiftId);
+      for (const signup of signups) {
+        await this.deleteSignup(signup.SignUpID, shiftId);
+      }
+
       const endpoint = `/data-api/rest/VolunteerShifts/ShiftID`;
       const response = await fetch(`${endpoint}/${shiftId}`, {
         method: 'DELETE',
