@@ -2,29 +2,43 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { FormsModule } from '@angular/forms';
 import {
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { VolunteerShift } from '../../models/volunteer.model';
+import { SignUp, VolunteerShift } from '../../models/volunteer.model';
 
 @Component({
   selector: 'app-shift-modal',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    MatButtonModule, 
+    MatIconModule, 
+    ReactiveFormsModule,
+    MatMenuModule,
+    FormsModule
+  ],
   templateUrl: './shift-modal.component.html',
   styleUrls: ['./shift-modal.component.scss'],
 })
 export class ShiftModalComponent implements OnChanges {
   @Input() shift!: VolunteerShift;
   @Input() showSignupForm = false;
+  @Input() isAdminMode = false;
 
   @Output() close = new EventEmitter<void>();
   @Output() showSignupFormChange = new EventEmitter<boolean>();
   @Output() submitSignup = new EventEmitter<any>();
-
+  @Output() deleteSignup = new EventEmitter<{signupId: number, shiftId: number}>();
+  @Output() updateSignup = new EventEmitter<{signupId: number, shiftId: number, data: Partial<SignUp>}>();
+  @Output() deleteShift = new EventEmitter<number>();
+  @Output() updateShift = new EventEmitter<{shiftId: number, data: Partial<VolunteerShift>}>();
+  
   signupForm: FormGroup;
   formSubmitted = false;
 
@@ -33,8 +47,26 @@ export class ShiftModalComponent implements OnChanges {
   filledSlots = 0;
   percentFilled = 0;
 
+  editingShift = false;
+  editShiftForm: FormGroup;
+  editingSignup: number | null = null;
+  editSignupForm: FormGroup;
+
   constructor(private fb: FormBuilder) {
     this.signupForm = this.fb.group({
+      Name: ['', Validators.required],
+      Email: ['', [Validators.required, Validators.email]],
+      PhoneNumber: ['', Validators.required],
+      NumPeople: [1, [Validators.required, Validators.min(1)]],
+    });
+
+    this.editShiftForm = this.fb.group({
+      StartTime: ['', Validators.required],
+      EndTime: ['', Validators.required],
+      Capacity: [1, [Validators.required, Validators.min(1)]],
+    });
+    
+    this.editSignupForm = this.fb.group({
       Name: ['', Validators.required],
       Email: ['', [Validators.required, Validators.email]],
       PhoneNumber: ['', Validators.required],
@@ -156,5 +188,85 @@ export class ShiftModalComponent implements OnChanges {
       month: 'long',
       day: 'numeric',
     });
+  }
+
+  // Admin methods for shift management
+  startEditingShift(): void {
+    this.editingShift = true;
+    const startDate = new Date(this.shift.StartTime);
+    const endDate = new Date(this.shift.EndTime);
+    
+    this.editShiftForm.setValue({
+      StartTime: this.formatDateTimeForInput(startDate),
+      EndTime: this.formatDateTimeForInput(endDate),
+      Capacity: this.shift.Capacity
+    });
+  }
+  
+  cancelEditShift(): void {
+    this.editingShift = false;
+  }
+  
+  saveShiftChanges(): void {
+    if (this.editShiftForm.invalid) return;
+    
+    const formData = this.editShiftForm.value;
+    const data: Partial<VolunteerShift> = {
+      StartTime: new Date(formData.StartTime).toISOString(),
+      EndTime: new Date(formData.EndTime).toISOString(),
+      Capacity: formData.Capacity
+    };
+    
+    this.updateShift.emit({ shiftId: this.shift.ShiftID, data });
+    this.editingShift = false;
+  }
+  
+  removeShift(): void {
+    this.deleteShift.emit(this.shift.ShiftID);
+    this.closeModal();
+  }
+  
+  // Admin methods for signup management
+  startEditingSignup(signup: SignUp): void {
+    this.editingSignup = signup.SignUpID;
+    
+    this.editSignupForm.setValue({
+      Name: signup.Name,
+      Email: signup.Email,
+      PhoneNumber: signup.PhoneNumber,
+      NumPeople: signup.NumPeople
+    });
+  }
+  
+  cancelEditSignup(): void {
+    this.editingSignup = null;
+  }
+  
+  saveSignupChanges(signupId: number): void {
+    if (this.editSignupForm.invalid) return;
+    
+    this.updateSignup.emit({
+      signupId,
+      shiftId: this.shift.ShiftID,
+      data: this.editSignupForm.value
+    });
+    
+    this.editingSignup = null;
+  }
+  
+  removeSignup(signupId: number): void {
+    this.deleteSignup.emit({ signupId, shiftId: this.shift.ShiftID });
+  }
+  
+  // Helper for datetime-local input format
+  formatDateTimeForInput(date: Date): string {
+    // Format date as YYYY-MM-DDThh:mm
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 }

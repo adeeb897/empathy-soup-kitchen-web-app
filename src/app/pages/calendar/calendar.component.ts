@@ -2,9 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSlideToggleModule, MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
 import { ShiftModalComponent } from './components/shift-modal/shift-modal.component';
+import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
+import { AdminLoginComponent } from './components/admin-login/admin-login.component';
 import { VolunteerShift, SignUp } from './models/volunteer.model';
+import { AdminAuthService } from './services/admin-auth.service';
 
 @Component({
   selector: 'app-calendar',
@@ -13,8 +17,11 @@ import { VolunteerShift, SignUp } from './models/volunteer.model';
     CommonModule,
     MatButtonModule,
     MatIconModule,
+    MatSlideToggleModule,
     CalendarDayComponent,
     ShiftModalComponent,
+    AdminPanelComponent,
+    AdminLoginComponent,
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
@@ -27,9 +34,19 @@ export class CalendarComponent implements OnInit {
   calendarDays: { date: Date; shifts: VolunteerShift[] }[] = [];
   visibleWeeks = 2; // Start with 2 weeks visible
   maxWeeks = 8; // Allow viewing up to 8 weeks
+  isAdminMode = false;
+  showAdminPanel = false;
+  showAdminLogin = false;
+
+  constructor(private authService: AdminAuthService) {}
 
   ngOnInit(): void {
     this.fetchShifts();
+    
+    // Check for admin authentication
+    this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+      this.isAdminMode = isAuthenticated;
+    });
   }
 
   async fetchShifts(): Promise<void> {
@@ -329,5 +346,206 @@ export class CalendarComponent implements OnInit {
     }
 
     return weeks;
+  }
+
+  toggleAdminMode(event: MatSlideToggleChange): void {
+    if (event.checked) {
+      // Check if already authenticated
+      if (!this.authService.isAuthenticated()) {
+        // Show login modal
+        this.showAdminLogin = true;
+        // Revert the toggle until authenticated
+        event.source.checked = false;
+      }
+    } else {
+      // Log out
+      this.authService.logout();
+      // Close any open modals when toggling admin mode
+      this.closeModal();
+    }
+  }
+  
+  hideAdminLogin(): void {
+    this.showAdminLogin = false;
+  }
+
+  openAdminPanel(): void {
+    this.showAdminPanel = true;
+  }
+  
+  closeAdminPanel(): void {
+    this.showAdminPanel = false;
+  }
+  
+  // Admin methods for shifts
+  async createShift(shiftData: Partial<VolunteerShift>): Promise<void> {
+    try {
+      const endpoint = '/data-api/rest/VolunteerShifts';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(shiftData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const text = await response.text();
+      if (text) {
+        try {
+          const data = JSON.parse(text);
+          const newShift = data.value || data;
+          newShift.signups = [];
+          
+          // Add to shifts array and refresh calendar
+          this.shifts.push(newShift);
+          this.organizeShiftsByDate();
+          
+          alert('Shift created successfully!');
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating shift:', error);
+      alert('Failed to create shift. Please try again.');
+    }
+  }
+  
+  async updateShift(shiftId: number, shiftData: Partial<VolunteerShift>): Promise<void> {
+    try {
+      const endpoint = `/data-api/rest/VolunteerShifts(${shiftId})`;
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(shiftData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Find and update the shift in the shifts array
+      const shiftIndex = this.shifts.findIndex(s => s.ShiftID === shiftId);
+      if (shiftIndex !== -1) {
+        this.shifts[shiftIndex] = {
+          ...this.shifts[shiftIndex],
+          ...shiftData
+        };
+        
+        // Refresh the calendar
+        this.organizeShiftsByDate();
+        
+        alert('Shift updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating shift:', error);
+      alert('Failed to update shift. Please try again.');
+    }
+  }
+  
+  async deleteShift(shiftId: number): Promise<void> {
+    if (!confirm('Are you sure you want to delete this shift? This will also delete all signups for this shift.')) {
+      return;
+    }
+    
+    try {
+      const endpoint = `/data-api/rest/VolunteerShifts(${shiftId})`;
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Remove the shift from the shifts array
+      this.shifts = this.shifts.filter(s => s.ShiftID !== shiftId);
+      
+      // Refresh the calendar
+      this.organizeShiftsByDate();
+      
+      alert('Shift deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting shift:', error);
+      alert('Failed to delete shift. Please try again.');
+    }
+  }
+  
+  // Admin methods for signups
+  async deleteSignup(signupId: number, shiftId: number): Promise<void> {
+    if (!confirm('Are you sure you want to delete this signup?')) {
+      return;
+    }
+    
+    try {
+      const endpoint = `/data-api/rest/SignUps(${signupId})`;
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Find the shift and remove the signup
+      const shiftIndex = this.shifts.findIndex(s => s.ShiftID === shiftId);
+      if (shiftIndex !== -1) {
+        this.shifts[shiftIndex].signups = this.shifts[shiftIndex].signups.filter(
+          s => s.SignUpID !== signupId
+        );
+        
+        // If we're currently viewing this shift, update the selectedShift
+        if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
+          this.selectedShift = { ...this.shifts[shiftIndex] };
+        }
+        
+        alert('Signup deleted successfully!');
+      }
+    } catch (error) {
+      console.error('Error deleting signup:', error);
+      alert('Failed to delete signup. Please try again.');
+    }
+  }
+  
+  async updateSignup(signupId: number, shiftId: number, signupData: Partial<SignUp>): Promise<void> {
+    try {
+      const endpoint = `/data-api/rest/SignUps(${signupId})`;
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signupData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Find the shift and update the signup
+      const shiftIndex = this.shifts.findIndex(s => s.ShiftID === shiftId);
+      if (shiftIndex !== -1) {
+        const signupIndex = this.shifts[shiftIndex].signups.findIndex(
+          s => s.SignUpID === signupId
+        );
+        
+        if (signupIndex !== -1) {
+          this.shifts[shiftIndex].signups[signupIndex] = {
+            ...this.shifts[shiftIndex].signups[signupIndex],
+            ...signupData
+          };
+          
+          // If we're currently viewing this shift, update the selectedShift
+          if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
+            this.selectedShift = { ...this.shifts[shiftIndex] };
+          }
+          
+          alert('Signup updated successfully!');
+        }
+      }
+    } catch (error) {
+      console.error('Error updating signup:', error);
+      alert('Failed to update signup. Please try again.');
+    }
   }
 }

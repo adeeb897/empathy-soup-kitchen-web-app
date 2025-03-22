@@ -62,3 +62,41 @@
     gap: 4px;
   }
 }
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  
+  h1 {
+    margin-bottom: 0;
+  }
+}
+
+.admin-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.construction-notice {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  text-align: center;
+  
+  p {
+    margin: 0;
+    font-weight: 500;
+    
+    // Make emojis slightly larger
+    .emoji {
+      font-size: 1.2em;
+    }
+  }
+}
