@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 interface VolunteerShift {
   ShiftID: number;
@@ -33,6 +34,7 @@ interface SignUp {
     MatDialogModule,
     MatListModule,
     MatIconModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
@@ -41,9 +43,20 @@ export class CalendarComponent implements OnInit {
   shifts: VolunteerShift[] = [];
   selectedShift: VolunteerShift | null = null;
   showSignups = false;
+  showSignupForm = false;
   calendarDays: { date: Date; shifts: VolunteerShift[] }[] = [];
+  visibleWeeks = 2; // Start with 2 weeks visible
+  maxWeeks = 8; // Allow viewing up to 8 weeks
+  signupForm: FormGroup;
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, private fb: FormBuilder) {
+    this.signupForm = this.fb.group({
+      Name: ['', Validators.required],
+      Email: ['', [Validators.required, Validators.email]],
+      PhoneNumber: ['', Validators.required],
+      NumPeople: [1, [Validators.required, Validators.min(1)]],
+    });
+  }
 
   ngOnInit(): void {
     this.fetchShifts();
@@ -69,8 +82,9 @@ export class CalendarComponent implements OnInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Create calendar for the next 30 days
-    for (let i = 0; i < 30; i++) {
+    // Create calendar for the specified number of weeks
+    const daysToShow = this.visibleWeeks * 7;
+    for (let i = 0; i < daysToShow; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
@@ -84,13 +98,11 @@ export class CalendarComponent implements OnInit {
         );
       });
 
-      // Only add days that have shifts
-      if (dayShifts.length > 0) {
-        this.calendarDays.push({
-          date: date,
-          shifts: dayShifts,
-        });
-      }
+      // Include all days, even those without shifts
+      this.calendarDays.push({
+        date: date,
+        shifts: dayShifts,
+      });
     }
   }
 
@@ -194,5 +206,76 @@ export class CalendarComponent implements OnInit {
       (total, signup) => total + (signup.NumPeople || 1),
       0
     );
+  }
+
+  showSignupFormForShift(): void {
+    this.showSignupForm = true;
+  }
+
+  cancelSignup(): void {
+    this.showSignupForm = false;
+    this.signupForm.reset({ NumPeople: 1 });
+  }
+
+  async submitSignup(): Promise<void> {
+    if (this.signupForm.invalid || !this.selectedShift) {
+      return;
+    }
+
+    try {
+      const data = {
+        ...this.signupForm.value,
+        ShiftID: this.selectedShift.ShiftID,
+      };
+
+      const endpoint = `/data-api/rest/SignUps/`;
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Refresh the shift details to show updated signup information
+      this.cancelSignup();
+      await this.viewShiftDetails(this.selectedShift);
+    } catch (error) {
+      console.error('Error submitting signup:', error);
+    }
+  }
+
+  isShiftFull(shift: VolunteerShift): boolean {
+    if (!shift.signups) return false;
+    return this.getFilledSlots(shift) >= shift.Capacity;
+  }
+
+  showMoreWeeks(): void {
+    this.visibleWeeks = Math.min(this.visibleWeeks + 2, this.maxWeeks);
+    this.organizeShiftsByDate();
+  }
+
+  // Check if we can show more weeks
+  canShowMore(): boolean {
+    return this.visibleWeeks < this.maxWeeks;
+  }
+
+  // Group calendar days by week for better display
+  getCalendarWeeks(): { weekStartDate: Date; days: { date: Date; shifts: VolunteerShift[] }[] }[] {
+    const weeks: { weekStartDate: Date; days: { date: Date; shifts: VolunteerShift[] }[] }[] = [];
+    
+    for (let i = 0; i < this.calendarDays.length; i += 7) {
+      const weekDays = this.calendarDays.slice(i, i + 7);
+      if (weekDays.length > 0) {
+        weeks.push({
+          weekStartDate: weekDays[0].date,
+          days: weekDays
+        });
+      }
+    }
+    
+    return weeks;
   }
 }
