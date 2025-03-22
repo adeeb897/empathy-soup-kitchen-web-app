@@ -1,28 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
-interface VolunteerShift {
-  ShiftID: number;
-  StartTime: string;
-  EndTime: string;
-  Capacity: number;
-  signups: SignUp[];
-}
-
-interface SignUp {
-  SignUpID: number;
-  ShiftID: number;
-  Name: string;
-  Email: string;
-  PhoneNumber: string;
-  NumPeople: number;
-}
+import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
+import { ShiftModalComponent } from './components/shift-modal/shift-modal.component';
+import { VolunteerShift, SignUp } from './models/volunteer.model';
 
 @Component({
   selector: 'app-calendar',
@@ -30,11 +12,9 @@ interface SignUp {
   imports: [
     CommonModule,
     MatButtonModule,
-    MatCardModule,
-    MatDialogModule,
-    MatListModule,
     MatIconModule,
-    ReactiveFormsModule,
+    CalendarDayComponent,
+    ShiftModalComponent,
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
@@ -47,16 +27,6 @@ export class CalendarComponent implements OnInit {
   calendarDays: { date: Date; shifts: VolunteerShift[] }[] = [];
   visibleWeeks = 2; // Start with 2 weeks visible
   maxWeeks = 8; // Allow viewing up to 8 weeks
-  signupForm: FormGroup;
-
-  constructor(private dialog: MatDialog, private fb: FormBuilder) {
-    this.signupForm = this.fb.group({
-      Name: ['', Validators.required],
-      Email: ['', [Validators.required, Validators.email]],
-      PhoneNumber: ['', Validators.required],
-      NumPeople: [1, [Validators.required, Validators.min(1)]],
-    });
-  }
 
   ngOnInit(): void {
     this.fetchShifts();
@@ -169,7 +139,7 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  async viewShiftDetails(shift: VolunteerShift): Promise<void> {
+  async onShiftSelected(shift: VolunteerShift): Promise<void> {
     try {
       const signups = await this.getSignUpsForShift(shift.ShiftID);
       shift.signups = signups;
@@ -180,51 +150,22 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  closeSignupDetails(): void {
+  closeModal(): void {
     this.showSignups = false;
+    this.showSignupForm = false;
     this.selectedShift = null;
   }
 
-  formatTime(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  setShowSignupForm(show: boolean): void {
+    this.showSignupForm = show;
   }
 
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString([], {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-  }
-
-  // Add this method to calculate filled slots
-  getFilledSlots(shift: VolunteerShift): number {
-    if (!shift.signups) return 0;
-    return shift.signups.reduce(
-      (total, signup) => total + (signup.NumPeople || 1),
-      0
-    );
-  }
-
-  showSignupFormForShift(): void {
-    this.showSignupForm = true;
-  }
-
-  cancelSignup(): void {
-    this.showSignupForm = false;
-    this.signupForm.reset({ NumPeople: 1 });
-  }
-
-  async submitSignup(): Promise<void> {
-    if (this.signupForm.invalid || !this.selectedShift) {
-      return;
-    }
+  async handleSignupSubmit(formData: any): Promise<void> {
+    if (!this.selectedShift) return;
 
     try {
       const data = {
-        ...this.signupForm.value,
+        ...formData,
         ShiftID: this.selectedShift.ShiftID,
       };
 
@@ -240,16 +181,11 @@ export class CalendarComponent implements OnInit {
       }
 
       // Refresh the shift details to show updated signup information
-      this.cancelSignup();
-      await this.viewShiftDetails(this.selectedShift);
+      this.showSignupForm = false;
+      await this.onShiftSelected(this.selectedShift);
     } catch (error) {
       console.error('Error submitting signup:', error);
     }
-  }
-
-  isShiftFull(shift: VolunteerShift): boolean {
-    if (!shift.signups) return false;
-    return this.getFilledSlots(shift) >= shift.Capacity;
   }
 
   showMoreWeeks(): void {
@@ -263,19 +199,25 @@ export class CalendarComponent implements OnInit {
   }
 
   // Group calendar days by week for better display
-  getCalendarWeeks(): { weekStartDate: Date; days: { date: Date; shifts: VolunteerShift[] }[] }[] {
-    const weeks: { weekStartDate: Date; days: { date: Date; shifts: VolunteerShift[] }[] }[] = [];
-    
+  getCalendarWeeks(): {
+    weekStartDate: Date;
+    days: { date: Date; shifts: VolunteerShift[] }[];
+  }[] {
+    const weeks: {
+      weekStartDate: Date;
+      days: { date: Date; shifts: VolunteerShift[] }[];
+    }[] = [];
+
     for (let i = 0; i < this.calendarDays.length; i += 7) {
       const weekDays = this.calendarDays.slice(i, i + 7);
       if (weekDays.length > 0) {
         weeks.push({
           weekStartDate: weekDays[0].date,
-          days: weekDays
+          days: weekDays,
         });
       }
     }
-    
+
     return weeks;
   }
 }

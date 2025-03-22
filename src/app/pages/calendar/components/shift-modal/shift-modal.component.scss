@@ -1,0 +1,165 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+
+  h2 {
+    color: #3f51b5;
+    margin: 0 0 16px;
+  }
+  .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+}
+
+.capacity-summary {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+
+  strong {
+    margin-right: 10px;
+    min-width: 85px;
+  }
+  .modal-capacity {
+    width: 150px;
+    margin: 0 10px;
+    height: 8px;
+  }
+}
+
+.modal-actions {
+  margin: 15px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.signups-section {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+
+  h3 {
+    font-size: 1.1em;
+    margin-bottom: 15px;
+  }
+}
+
+.signup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.signup-card {
+  background: #f9f9f9;
+  border-radius: 6px;
+  overflow: hidden;
+
+  .signup-header {
+    background: #edf2ff;
+    padding: 8px 12px;
+    font-size: 1em;
+  }
+
+  .signup-details {
+    padding: 8px 12px;
+
+    p {
+      display: flex;
+      align-items: center;
+      margin: 6px 0;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+        color: #5c6bc0;
+      }
+    }
+  }
+}
+
+// Form styles
+.signup-form-container {
+  h2 {
+    margin-bottom: 8px;
+  }
+  p {
+    margin-bottom: 15px;
+    color: #666;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    label {
+      font-weight: 500;
+      font-size: 0.9em;
+    }
+
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+
+      &:focus {
+        outline: none;
+        border-color: #3f51b5;
+      }
+    }
+
+    small {
+      font-size: 0.8em;
+      color: #666;
+    }
+  }
+
+  .form-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.capacity-bar {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+
+  .capacity-filled {
+    height: 100%;
+    background: #3f51b5;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+}

@@ -1,63 +1,23 @@
 <div class="calendar-container">
   <h1>Volunteer Signup Calendar</h1>
   <blockquote>
-    Browse upcoming volunteer opportunities and sign up to help serve our community.
+    Browse upcoming volunteer opportunities and sign up to help serve our
+    community.
   </blockquote>
 
   <div class="calendar-wrapper">
     <div class="week-container" *ngFor="let week of getCalendarWeeks()">
       <div class="week-header">
-        <h2>Week of {{ week.weekStartDate | date: 'MMM d, y' }}</h2>
+        <h2>Week of {{ week.weekStartDate | date : "MMM d, y" }}</h2>
       </div>
-      
+
       <div class="calendar">
-        <div *ngFor="let day of week.days" class="calendar-day">
-          <div class="day-header">
-            <h3>{{ day.date | date: "EEE, MMM d" }}</h3>
-          </div>
-          <div class="day-content">
-            <div *ngIf="day.shifts.length === 0" class="no-shifts">
-              No opportunities
-            </div>
-            <mat-card
-              *ngFor="let shift of day.shifts"
-              [class.shift-card]="true"
-              [class.shift-full]="isShiftFull(shift)"
-              (click)="viewShiftDetails(shift)"
-            >
-              <mat-card-content>
-                <h4>Volunteer Opportunity</h4>
-                <p>
-                  {{ formatTime(shift.StartTime) }} -
-                  {{ formatTime(shift.EndTime) }}
-                </p>
-                <div class="capacity-indicator">
-                  <div class="capacity-bar">
-                    <div
-                      *ngIf="shift.signups"
-                      class="capacity-filled"
-                      [style.width]="
-                        (getFilledSlots(shift) / shift.Capacity) * 100 + '%'
-                      "
-                    ></div>
-                  </div>
-                  <div class="capacity-text">
-                    <span *ngIf="isShiftFull(shift)" class="full-indicator">FULL</span>
-                    <span *ngIf="!isShiftFull(shift)">
-                      <span *ngIf="shift.signups">{{ getFilledSlots(shift) }}</span>
-                      <span *ngIf="!shift.signups">0</span>
-                      /{{ shift.Capacity }} spots
-                    </span>
-                  </div>
-                </div>
-              </mat-card-content>
-              <div class="card-overlay">
-                <mat-icon>event_available</mat-icon>
-                <span>View Details</span>
-              </div>
-            </mat-card>
-          </div>
-        </div>
+        <app-calendar-day
+          *ngFor="let day of week.days"
+          [date]="day.date"
+          [shifts]="day.shifts"
+          (shiftSelected)="onShiftSelected($event)"
+        ></app-calendar-day>
       </div>
     </div>
 
@@ -68,106 +28,13 @@
     </div>
   </div>
 
-  <!-- Shift Details Modal -->
-  <div *ngIf="showSignups && selectedShift" class="modal-backdrop">
-    <div class="modal-content">
-      <button class="close-button" mat-icon-button (click)="closeSignupDetails()">
-        <mat-icon>close</mat-icon>
-      </button>
-      
-      <div *ngIf="!showSignupForm">
-        <h2>Volunteer Opportunity</h2>
-        <p><strong>Date:</strong> {{ formatDate(selectedShift.StartTime) }}</p>
-        <p>
-          <strong>Time:</strong> {{ formatTime(selectedShift.StartTime) }} -
-          {{ formatTime(selectedShift.EndTime) }}
-        </p>
-
-        <div class="capacity-summary">
-          <strong>Availability:</strong>
-          <div class="capacity-bar modal-capacity">
-            <div
-              class="capacity-filled"
-              [style.width]="
-                (getFilledSlots(selectedShift) / selectedShift.Capacity) * 100 +
-                '%'
-              "
-            ></div>
-          </div>
-          <span
-            >{{ getFilledSlots(selectedShift) }}/{{
-              selectedShift.Capacity
-            }}
-            spots filled</span
-          >
-        </div>
-
-        <div class="modal-actions">
-          <button 
-            mat-raised-button 
-            color="primary" 
-            [disabled]="isShiftFull(selectedShift)"
-            (click)="showSignupFormForShift()"
-          >
-            <mat-icon>person_add</mat-icon> Sign Up Now
-          </button>
-          <button mat-stroked-button (click)="closeSignupDetails()">
-            Cancel
-          </button>
-        </div>
-        
-        <div class="signups-section" *ngIf="selectedShift.signups && selectedShift.signups.length > 0">
-          <h3>Current Volunteers ({{ selectedShift.signups.length }})</h3>
-          <div class="signup-list">
-            <div *ngFor="let signup of selectedShift.signups" class="signup-card">
-              <div class="signup-header">
-                <strong>{{ signup.Name }}</strong>
-              </div>
-              <div class="signup-details">
-                <p><mat-icon>group</mat-icon> {{ signup.NumPeople }} {{ signup.NumPeople === 1 ? "person" : "people" }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Signup Form -->
-      <div *ngIf="showSignupForm" class="signup-form-container">
-        <h2>Sign Up for Volunteer Shift</h2>
-        <p>{{ formatDate(selectedShift.StartTime) }}, {{ formatTime(selectedShift.StartTime) }} - {{ formatTime(selectedShift.EndTime) }}</p>
-        
-        <form [formGroup]="signupForm" (ngSubmit)="submitSignup()">
-          <div class="form-field">
-            <label for="name">Your Name *</label>
-            <input id="name" type="text" formControlName="Name" placeholder="Full Name">
-          </div>
-          
-          <div class="form-field">
-            <label for="email">Email Address *</label>
-            <input id="email" type="email" formControlName="Email" placeholder="email@example.com">
-          </div>
-          
-          <div class="form-field">
-            <label for="phone">Phone Number *</label>
-            <input id="phone" type="tel" formControlName="PhoneNumber" placeholder="(123) 456-7890">
-          </div>
-          
-          <div class="form-field">
-            <label for="people">Number of People *</label>
-            <input id="people" type="number" formControlName="NumPeople" min="1">
-            <small>How many people (including yourself) are you signing up?</small>
-          </div>
-          
-          <div class="form-actions">
-            <button type="submit" mat-raised-button color="primary" [disabled]="signupForm.invalid">
-              Submit
-            </button>
-            <button type="button" mat-stroked-button (click)="cancelSignup()">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+  <!-- Shift Modal -->
+  <app-shift-modal
+    *ngIf="showSignups && selectedShift"
+    [shift]="selectedShift"
+    [showSignupForm]="showSignupForm"
+    (close)="closeModal()"
+    (showSignupFormChange)="setShowSignupForm($event)"
+    (submitSignup)="handleSignupSubmit($event)"
+  ></app-shift-modal>
 </div>

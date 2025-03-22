@@ -1,0 +1,34 @@
+<mat-card
+  [class.shift-card]="true"
+  [class.shift-full]="isShiftFull()"
+  (click)="shiftClicked.emit()"
+>
+  <mat-card-content>
+    <h4>Volunteer Opportunity</h4>
+    <p>
+      {{ formatTime(shift.StartTime) }} -
+      {{ formatTime(shift.EndTime) }}
+    </p>
+    <div class="capacity-indicator">
+      <div class="capacity-bar">
+        <div
+          *ngIf="shift.signups"
+          class="capacity-filled"
+          [style.width]="(getFilledSlots() / shift.Capacity) * 100 + '%'"
+        ></div>
+      </div>
+      <div class="capacity-text">
+        <span *ngIf="isShiftFull()" class="full-indicator">FULL</span>
+        <span *ngIf="!isShiftFull()">
+          <span *ngIf="shift.signups">{{ getFilledSlots() }}</span>
+          <span *ngIf="!shift.signups">0</span>
+          /{{ shift.Capacity }} spots
+        </span>
+      </div>
+    </div>
+  </mat-card-content>
+  <div class="card-overlay">
+    <mat-icon>event_available</mat-icon>
+    <span>View Details</span>
+  </div>
+</mat-card>
