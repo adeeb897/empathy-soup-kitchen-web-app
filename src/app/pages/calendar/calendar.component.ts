@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 
 interface VolunteerShift {
@@ -25,7 +26,14 @@ interface SignUp {
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatDialogModule, MatListModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDialogModule,
+    MatListModule,
+    MatIconModule,
+  ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
 })
@@ -34,13 +42,13 @@ export class CalendarComponent implements OnInit {
   selectedShift: VolunteerShift | null = null;
   showSignups = false;
   calendarDays: { date: Date; shifts: VolunteerShift[] }[] = [];
-  
+
   constructor(private dialog: MatDialog) {}
-  
+
   ngOnInit(): void {
     this.fetchShifts();
   }
-  
+
   async fetchShifts(): Promise<void> {
     try {
       const shifts = await this.list();
@@ -52,38 +60,40 @@ export class CalendarComponent implements OnInit {
       console.error('Error fetching shifts:', error);
     }
   }
-  
+
   organizeShiftsByDate(): void {
     // Clear the existing calendar
     this.calendarDays = [];
-    
+
     // Get current date (start of day)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Create calendar for the next 30 days
     for (let i = 0; i < 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-      
+
       // Find shifts for this date
-      const dayShifts = this.shifts.filter(shift => {
+      const dayShifts = this.shifts.filter((shift) => {
         const shiftDate = new Date(shift.StartTime);
-        return shiftDate.getDate() === date.getDate() && 
-               shiftDate.getMonth() === date.getMonth() && 
-               shiftDate.getFullYear() === date.getFullYear();
+        return (
+          shiftDate.getDate() === date.getDate() &&
+          shiftDate.getMonth() === date.getMonth() &&
+          shiftDate.getFullYear() === date.getFullYear()
+        );
       });
-      
+
       // Only add days that have shifts
       if (dayShifts.length > 0) {
         this.calendarDays.push({
           date: date,
-          shifts: dayShifts
+          shifts: dayShifts,
         });
       }
     }
   }
-  
+
   async list(): Promise<VolunteerShift[]> {
     try {
       const endpoint = '/data-api/rest/VolunteerShifts';
@@ -104,8 +114,8 @@ export class CalendarComponent implements OnInit {
         const data = JSON.parse(text);
         // Filter out past shifts
         const currentDate = new Date();
-        return data.value.filter((shift: VolunteerShift) => 
-          new Date(shift.StartTime) >= currentDate
+        return data.value.filter(
+          (shift: VolunteerShift) => new Date(shift.StartTime) >= currentDate
         );
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError);
@@ -170,12 +180,19 @@ export class CalendarComponent implements OnInit {
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString([], {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
   }
 
   // Add this method to calculate filled slots
   getFilledSlots(shift: VolunteerShift): number {
     if (!shift.signups) return 0;
-    return shift.signups.reduce((total, signup) => total + (signup.NumPeople || 1), 0);
+    return shift.signups.reduce(
+      (total, signup) => total + (signup.NumPeople || 1),
+      0
+    );
   }
 }
