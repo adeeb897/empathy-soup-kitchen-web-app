@@ -7,8 +7,60 @@
   <blockquote>
     Manage volunteer shifts and schedules
   </blockquote>
+  
   <div class="button-group">
-    <button mat-raised-button color="primary" id="list" (click)="list()">View Schedule</button>
+    <button mat-raised-button color="primary" id="list" (click)="fetchShifts()">Refresh Schedule</button>
     <button mat-raised-button color="accent" id="create" (click)="create()">Add Shift</button>
+  </div>
+
+  <div class="calendar">
+    <div *ngFor="let day of calendarDays" class="calendar-day">
+      <div class="day-header">
+        <h3>{{ day.date | date:'E, MMM d' }}</h3>
+      </div>
+      <div class="day-content">
+        <div *ngIf="day.shifts.length === 0" class="no-shifts">
+          No shifts scheduled
+        </div>
+        <mat-card *ngFor="let shift of day.shifts" class="shift-card" (click)="viewShiftDetails(shift)">
+          <mat-card-content>
+            <h4>Volunteer Shift</h4>
+            <p>{{ formatTime(shift.StartTime) }} - {{ formatTime(shift.EndTime) }}</p>
+            <p>Capacity: {{ shift.Capacity }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shift Details Modal -->
+  <div *ngIf="showSignups && selectedShift" class="modal-backdrop">
+    <div class="modal-content">
+      <h2>Shift Details</h2>
+      <p><strong>Date:</strong> {{ formatDate(selectedShift.StartTime) }}</p>
+      <p><strong>Time:</strong> {{ formatTime(selectedShift.StartTime) }} - {{ formatTime(selectedShift.EndTime) }}</p>
+      <p><strong>Capacity:</strong> {{ selectedShift.Capacity }}</p>
+      
+      <div class="signups-section">
+        <h3>Volunteers ({{ selectedShift.signups?.length || 0 }})</h3>
+        <div *ngIf="!selectedShift.signups || selectedShift.signups.length === 0" class="no-signups">
+          No volunteers have signed up yet
+        </div>
+        <mat-list *ngIf="selectedShift.signups && selectedShift.signups.length > 0">
+          <mat-list-item *ngFor="let signup of selectedShift.signups">
+            <div class="signup-item">
+              <p><strong>{{ signup.Name }}</strong></p>
+              <p>Email: {{ signup.Email }}</p>
+              <p>Phone: {{ signup.PhoneNumber }}</p>
+              <p>People: {{ signup.NumPeople }}</p>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </div>
+      
+      <div class="modal-actions">
+        <button mat-raised-button color="warn" (click)="closeSignupDetails()">Close</button>
+      </div>
+    </div>
   </div>
 </div>
