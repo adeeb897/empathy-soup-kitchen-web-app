@@ -7,6 +7,7 @@
     <app-shift-card
       *ngFor="let shift of shifts"
       [shift]="shift"
+      [isAdminMode]="isAdminMode"
       (shiftClicked)="onShiftSelect(shift)"
     ></app-shift-card>
   </div>

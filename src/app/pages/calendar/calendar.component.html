@@ -1,5 +1,30 @@
+<div class="construction-notice">
+  <p>🚧 This page is currently under construction. Please visit our <a href="https://www.signupgenius.com/go/10C0A4DAEA92EA4FFC16-50454986-soup#/" target="_blank">temporary volunteer signup page</a> to register for shifts. 🚧</p>
+</div>
+
 <div class="calendar-container">
-  <h1>Volunteer Signup Calendar</h1>
+  <div class="calendar-header">
+    <h1>Volunteer Signup Calendar</h1>
+    
+    <div class="admin-toggle">
+      <mat-slide-toggle 
+        color="primary" 
+        [checked]="isAdminMode"
+        (change)="toggleAdminMode($event)">
+        Admin Mode
+      </mat-slide-toggle>
+      
+      <button 
+        *ngIf="isAdminMode"
+        mat-raised-button 
+        color="primary"
+        (click)="openAdminPanel()">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Manage Shifts
+      </button>
+    </div>
+  </div>
+  
   <blockquote>
     Browse upcoming volunteer opportunities and sign up to help serve our
     community.
@@ -16,6 +41,7 @@
           *ngFor="let day of week.days"
           [date]="day.date"
           [shifts]="day.shifts"
+          [isAdminMode]="isAdminMode"
           (shiftSelected)="onShiftSelected($event)"
         ></app-calendar-day>
       </div>
@@ -33,8 +59,29 @@
     *ngIf="showSignups && selectedShift"
     [shift]="selectedShift"
     [showSignupForm]="showSignupForm"
+    [isAdminMode]="isAdminMode"
     (close)="closeModal()"
     (showSignupFormChange)="setShowSignupForm($event)"
     (submitSignup)="handleSignupSubmit($event)"
+    (deleteSignup)="deleteSignup($event.signupId, $event.shiftId)"
+    (updateSignup)="updateSignup($event.signupId, $event.shiftId, $event.data)"
+    (deleteShift)="deleteShift($event)"
+    (updateShift)="updateShift($event.shiftId, $event.data)"
   ></app-shift-modal>
+  
+  <!-- Admin Panel -->
+  <app-admin-panel
+    *ngIf="showAdminPanel"
+    [shifts]="shifts"
+    (close)="closeAdminPanel()"
+    (createShift)="createShift($event)"
+    (updateShift)="updateShift($event.shiftId, $event.data)"
+    (deleteShift)="deleteShift($event)"
+  ></app-admin-panel>
 </div>
+
+<!-- Admin Login Modal -->
+<app-admin-login 
+  *ngIf="showAdminLogin"
+  (loginCancelled)="hideAdminLogin()"
+></app-admin-login>

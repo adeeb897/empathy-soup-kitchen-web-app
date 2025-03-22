@@ -1,0 +1,28 @@
+<div class="login-backdrop">
+  <div class="login-modal">
+    <h2>Admin Access</h2>
+    <p>Please enter the admin password to continue</p>
+    
+    <div class="error-message" *ngIf="error">{{ error }}</div>
+    
+    <div class="password-field">
+      <input 
+        [type]="showPassword ? 'text' : 'password'" 
+        [(ngModel)]="password"
+        placeholder="Password"
+        (keyup.enter)="login()">
+      <button type="button" class="toggle-password" (click)="toggleShowPassword()">
+        <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </div>
+    
+    <div class="login-actions">
+      <button mat-raised-button color="primary" (click)="login()">
+        Login
+      </button>
+      <button mat-stroked-button (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>

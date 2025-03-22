@@ -1,0 +1,99 @@
+<div class="admin-panel-backdrop">
+  <div class="admin-panel">
+    <div class="panel-header">
+      <h2>Shift Management</h2>
+      <button mat-icon-button class="close-button" (click)="closePanel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    
+    <div class="panel-content">
+      <!-- New Shift Form -->
+      <div *ngIf="showNewShiftForm" class="new-shift-form">
+        <h3>Create New Shift</h3>
+        <form [formGroup]="newShiftForm" (ngSubmit)="submitNewShift()">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="start-time">Start Time</label>
+              <input id="start-time" type="datetime-local" formControlName="StartTime">
+            </div>
+            
+            <div class="form-field">
+              <label for="end-time">End Time</label>
+              <input id="end-time" type="datetime-local" formControlName="EndTime">
+            </div>
+            
+            <div class="form-field">
+              <label for="capacity">Capacity</label>
+              <input id="capacity" type="number" min="1" formControlName="Capacity">
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" mat-raised-button color="primary" [disabled]="newShiftForm.invalid">
+              Create Shift
+            </button>
+            <button type="button" mat-stroked-button (click)="cancelCreateShift()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Create Shift Button -->
+      <div *ngIf="!showNewShiftForm" class="action-bar">
+        <button mat-raised-button color="primary" (click)="showCreateShiftForm()">
+          <mat-icon>add</mat-icon> Create New Shift
+        </button>
+      </div>
+      
+      <!-- Shifts Table -->
+      <div class="shifts-table-container">
+        <h3>Existing Shifts</h3>
+        
+        <table mat-table [dataSource]="sortShiftsByDate()">
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let shift">{{ formatDateTime(shift.StartTime) }}</td>
+          </ng-container>
+          
+          <!-- Time Column -->
+          <ng-container matColumnDef="time">
+            <th mat-header-cell *matHeaderCellDef>Time</th>
+            <td mat-cell *matCellDef="let shift">
+              {{ formatTime(shift.StartTime) }} - {{ formatTime(shift.EndTime) }}
+            </td>
+          </ng-container>
+          
+          <!-- Capacity Column -->
+          <ng-container matColumnDef="capacity">
+            <th mat-header-cell *matHeaderCellDef>Capacity</th>
+            <td mat-cell *matCellDef="let shift">{{ shift.Capacity }}</td>
+          </ng-container>
+          
+          <!-- Signups Column -->
+          <ng-container matColumnDef="signups">
+            <th mat-header-cell *matHeaderCellDef>Signups</th>
+            <td mat-cell *matCellDef="let shift">
+              {{ getFilledSpots(shift) }}/{{ shift.Capacity }}
+            </td>
+          </ng-container>
+          
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let shift">
+              <button mat-icon-button color="warn" (click)="confirmDeleteShift(shift.ShiftID)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+          
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

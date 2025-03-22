@@ -34,6 +34,27 @@
     }
   }
 
+  &.admin-mode {
+    border-color: #ff9800;
+
+    &:hover {
+      border-color: #f57c00;
+    }
+
+    .admin-indicator {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      color: #ff9800;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
   mat-card-content {
     padding: 8px 12px;
   }
