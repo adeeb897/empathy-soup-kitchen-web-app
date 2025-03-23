@@ -15,6 +15,7 @@ import { ShiftCardComponent } from '../shift-card/shift-card.component';
 export class CalendarDayComponent {
   @Input() date: Date = new Date();
   @Input() shifts: VolunteerShift[] = [];
+  @Input() isAdminMode = false;
   @Output() shiftSelected = new EventEmitter<VolunteerShift>();
 
   onShiftSelect(shift: VolunteerShift): void {

@@ -46,6 +46,15 @@
           "role": "anonymous"
         }
       ]
+    },
+    "TextBoxes": {
+      "source": "dbo.TextBoxes",
+      "permissions": [
+        {
+          "actions": ["*"],
+          "role": "anonymous"
+        }
+      ]
     }
   }
 }

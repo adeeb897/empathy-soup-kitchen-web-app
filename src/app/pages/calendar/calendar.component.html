@@ -1,30 +1,117 @@
+<div class="construction-notice">
+  <p>
+    🚧 This page is currently under construction. Please visit our
+    <a
+      href="https://www.signupgenius.com/go/10C0A4DAEA92EA4FFC16-50454986-soup#/"
+      target="_blank"
+      >temporary volunteer signup page</a
+    >
+    to register for shifts. 🚧
+  </p>
+</div>
+
 <div class="calendar-container">
-  <h1>Volunteer Signup Calendar</h1>
-  <blockquote>
-    Browse upcoming volunteer opportunities and sign up to help serve our
-    community.
-  </blockquote>
+  <div class="calendar-header">
+    <h1>Volunteer Signup Calendar</h1>
 
-  <div class="calendar-wrapper">
-    <div class="week-container" *ngFor="let week of getCalendarWeeks()">
-      <div class="week-header">
-        <h2>Week of {{ week.weekStartDate | date : "MMM d, y" }}</h2>
-      </div>
+    <div class="admin-toggle">
+      <mat-slide-toggle
+        color="primary"
+        [checked]="isAdminMode"
+        (change)="toggleAdminMode($event)"
+      >
+        Admin Mode
+      </mat-slide-toggle>
 
-      <div class="calendar">
-        <app-calendar-day
-          *ngFor="let day of week.days"
-          [date]="day.date"
-          [shifts]="day.shifts"
-          (shiftSelected)="onShiftSelected($event)"
-        ></app-calendar-day>
+      <button
+        *ngIf="isAdminMode"
+        mat-raised-button
+        color="primary"
+        (click)="openAdminPanel()"
+      >
+        <mat-icon>admin_panel_settings</mat-icon>
+        Manage Shifts
+      </button>
+    </div>
+  </div>
+
+  <!-- Volunteer Instructions Section -->
+  <div class="volunteer-instructions">
+    <div class="instructions-header">
+      <h2>Volunteer Instructions</h2>
+      <button
+        *ngIf="isAdminMode"
+        mat-icon-button
+        color="primary"
+        (click)="toggleEditInstructions()"
+        [attr.aria-label]="
+          editingInstructions ? 'Save instructions' : 'Edit instructions'
+        "
+      >
+        <mat-icon>{{ editingInstructions ? "save" : "edit" }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- Edit mode (admin only) -->
+    <div
+      *ngIf="editingInstructions && isAdminMode"
+      class="instructions-edit-mode"
+    >
+      <mat-form-field appearance="outline" class="instructions-textarea">
+        <textarea
+          matInput
+          [(ngModel)]="instructionsText"
+          placeholder="Enter instructions for volunteers"
+          rows="4"
+        ></textarea>
+      </mat-form-field>
+      <div class="edit-actions">
+        <button mat-button color="warn" (click)="cancelEditInstructions()">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" (click)="saveInstructions()">
+          Save Instructions
+        </button>
       </div>
     </div>
 
-    <div *ngIf="canShowMore()" class="show-more-container">
-      <button mat-stroked-button color="primary" (click)="showMoreWeeks()">
-        <mat-icon>expand_more</mat-icon> Show More Weeks
-      </button>
+    <!-- Display mode -->
+    <div *ngIf="!editingInstructions" class="instructions-display-mode">
+      <div [innerHTML]="formatInstructionsForDisplay(instructionsText)"
+           class="preserve-whitespace"></div>
+    </div>
+  </div>
+
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="60"></mat-spinner>
+    <p>Loading calendar data...</p>
+  </div>
+
+  <!-- Main calendar content - only show when not loading -->
+  <div class="calendar-content" *ngIf="!loading">
+    <div class="calendar-wrapper">
+      <div class="week-container" *ngFor="let week of getCalendarWeeks()">
+        <div class="week-header">
+          <h2>Week of {{ week.weekStartDate | date : "MMM d, y" }}</h2>
+        </div>
+
+        <div class="calendar">
+          <app-calendar-day
+            *ngFor="let day of week.days"
+            [date]="day.date"
+            [shifts]="day.shifts"
+            [isAdminMode]="isAdminMode"
+            (shiftSelected)="onShiftSelected($event)"
+          ></app-calendar-day>
+        </div>
+      </div>
+
+      <div *ngIf="canShowMore()" class="show-more-container">
+        <button mat-stroked-button color="primary" (click)="showMoreWeeks()">
+          <mat-icon>expand_more</mat-icon> Show More Weeks
+        </button>
+      </div>
     </div>
   </div>
 
@@ -33,8 +120,29 @@
     *ngIf="showSignups && selectedShift"
     [shift]="selectedShift"
     [showSignupForm]="showSignupForm"
+    [isAdminMode]="isAdminMode"
     (close)="closeModal()"
     (showSignupFormChange)="setShowSignupForm($event)"
     (submitSignup)="handleSignupSubmit($event)"
+    (deleteSignup)="deleteSignup($event.signupId, $event.shiftId)"
+    (updateSignup)="updateSignup($event.signupId, $event.shiftId, $event.data)"
+    (deleteShift)="deleteShift($event)"
+    (updateShift)="updateShift($event.shiftId, $event.data)"
   ></app-shift-modal>
+
+  <!-- Admin Panel -->
+  <app-admin-panel
+    *ngIf="showAdminPanel"
+    [shifts]="shifts"
+    (close)="closeAdminPanel()"
+    (createShift)="createShift($event)"
+    (updateShift)="updateShift($event.shiftId, $event.data)"
+    (deleteShift)="deleteShift($event)"
+  ></app-admin-panel>
 </div>
+
+<!-- Admin Login Modal -->
+<app-admin-login
+  *ngIf="showAdminLogin"
+  (loginCancelled)="hideAdminLogin()"
+></app-admin-login>

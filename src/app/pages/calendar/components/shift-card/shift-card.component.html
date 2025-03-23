@@ -25,7 +25,7 @@
     </div>
   </mat-card-content>
   <div class="card-overlay">
-    <mat-icon>event_available</mat-icon>
-    <span>View Details</span>
+    <mat-icon>{{ isAdminMode ? 'edit' : 'event_available' }}</mat-icon>
+    <span>{{ isAdminMode ? 'Manage Shift' : 'View Details' }}</span>
   </div>
 </mat-card>

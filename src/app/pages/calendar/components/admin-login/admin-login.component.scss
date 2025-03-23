@@ -1,0 +1,111 @@
+.login-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.login-modal {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  
+  h2 {
+    margin-top: 0;
+    color: #3f51b5;
+    margin-bottom: 8px;
+    font-size: 1.5rem;
+  }
+  
+  p {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+  }
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  
+  &::before {
+    content: "⚠️";
+    margin-right: 8px;
+  }
+}
+
+.password-field {
+  position: relative;
+  margin-bottom: 30px;
+  max-width: 100%;
+  width: 100%; /* Ensure the field takes up the width of its container */
+  box-sizing: border-box; /* Include padding and border in the element's width */
+  
+  input {
+    width: 100%;
+    padding: 12px 40px 12px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box; /* Include padding and border in the element's width */
+    
+    &:focus {
+      outline: none;
+      border-color: #3f51b5;
+      box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+    }
+    
+    &::placeholder {
+      color: #aaa;
+    }
+  }
+  
+  .toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      color: #333;
+    }
+    
+    mat-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+.login-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  
+  button {
+    min-width: 100px;
+  }
+}

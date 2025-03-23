@@ -14,6 +14,7 @@ import { VolunteerShift } from '../../models/volunteer.model';
 })
 export class ShiftCardComponent implements OnChanges {
   @Input() shift!: VolunteerShift;
+  @Input() isAdminMode = false;
   @Output() shiftClicked = new EventEmitter<void>();
   
   filledSlots = 0;
