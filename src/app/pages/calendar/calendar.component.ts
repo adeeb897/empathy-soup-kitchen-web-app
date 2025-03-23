@@ -75,7 +75,7 @@ export class CalendarComponent implements OnInit {
   // Fetch instructions from the database
   async fetchInstructions(): Promise<void> {
     try {
-      const volunteerInstructions = await this.textBoxService.getTextByName('volunteerInstructions');
+      const volunteerInstructions = await this.textBoxService.getTextByName('VolunteerInstructions');
       if (volunteerInstructions) {
         this.instructionsText = volunteerInstructions;
       }
@@ -99,7 +99,7 @@ export class CalendarComponent implements OnInit {
   // Save the updated instructions
   async saveInstructions(): Promise<void> {
     try {
-      const success = await this.textBoxService.updateText('volunteerInstructions', this.instructionsText);
+      const success = await this.textBoxService.updateText('VolunteerInstructions', this.instructionsText);
       if (!success) {
         console.warn('Instructions were saved to localStorage but not to database');
       }
