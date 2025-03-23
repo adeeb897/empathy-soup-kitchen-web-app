@@ -77,9 +77,8 @@
 
     <!-- Display mode -->
     <div *ngIf="!editingInstructions" class="instructions-display-mode">
-      <div
-        [innerHTML]="instructionsText || 'No instructions provided yet.'"
-      ></div>
+      <div [innerHTML]="formatInstructionsForDisplay(instructionsText)"
+           class="preserve-whitespace"></div>
     </div>
   </div>
 

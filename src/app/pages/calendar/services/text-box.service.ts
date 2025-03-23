@@ -27,7 +27,7 @@ export class TextBoxService {
     const cachedText = localStorage.getItem(`textBox_${textName}`);
     if (cachedText) {
       console.log(`Retrieved "${textName}" from local cache`);
-      return cachedText;
+      return this.decodeTextContent(cachedText);
     }
 
     try {
@@ -48,9 +48,9 @@ export class TextBoxService {
       try {
         const data = JSON.parse(text);
         if (data.value && data.value.length > 0) {
-          const content = data.value[0].TextContent;
-          // Cache for future use
-          localStorage.setItem(`textBox_${textName}`, content);
+          const content = this.decodeTextContent(data.value[0].TextContent);
+          // Cache for future use (store the raw content)
+          localStorage.setItem(`textBox_${textName}`, data.value[0].TextContent);
           return content;
         }
         return this.getDefaultText(textName);
@@ -71,7 +71,7 @@ export class TextBoxService {
     // Check local storage as fallback
     const cachedText = localStorage.getItem(`textBox_${textName}`);
     if (cachedText) {
-      return cachedText;
+      return this.decodeTextContent(cachedText);
     }
     
     // Return default text if available
@@ -90,8 +90,11 @@ export class TextBoxService {
    * @returns Promise<boolean> indicating success or failure
    */
   async updateText(textName: string, textContent: string): Promise<boolean> {
+    // Encode the content to preserve whitespace and newlines
+    const encodedContent = this.encodeTextContent(textContent);
+    
     // Always update localStorage first for immediate feedback
-    localStorage.setItem(`textBox_${textName}`, textContent);
+    localStorage.setItem(`textBox_${textName}`, encodedContent);
     
     try {
       console.log(`Saving "${textName}" to API...`);
@@ -132,7 +135,7 @@ export class TextBoxService {
         const updateResponse = await fetch(updateEndpoint, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ TextContent: textContent }),
+          body: JSON.stringify({ TextContent: encodedContent }),
         });
 
         if (!updateResponse.ok) {
@@ -145,7 +148,7 @@ export class TextBoxService {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             TextName: textName,
-            TextContent: textContent,
+            TextContent: encodedContent,
           }),
         });
 
@@ -160,6 +163,35 @@ export class TextBoxService {
       console.error(`Error updating text box "${textName}" in API:`, error);
       console.log('Text was saved to localStorage as fallback');
       return false;
+    }
+  }
+
+  /**
+   * Encode text content to preserve whitespace and newlines
+   */
+  private encodeTextContent(content: string): string {
+    // Option 1: Simple JSON.stringify to preserve all whitespace and newlines
+    return JSON.stringify(content);
+    
+    // Alternative: If database has issues with quotes, use base64 encoding
+    // return btoa(unescape(encodeURIComponent(content)));
+  }
+
+  /**
+   * Decode text content that was previously encoded
+   */
+  private decodeTextContent(encodedContent: string): string {
+    try {
+      // Option 1: Parse JSON string
+      // Remove any surrounding quotes and unescape any escaped characters
+      return JSON.parse(encodedContent);
+      
+      // Alternative: If using base64 encoding
+      // return decodeURIComponent(escape(atob(encodedContent)));
+    } catch (e) {
+      console.warn('Failed to decode text content, returning as-is', e);
+      // If decoding fails, return the original text
+      return encodedContent;
     }
   }
 

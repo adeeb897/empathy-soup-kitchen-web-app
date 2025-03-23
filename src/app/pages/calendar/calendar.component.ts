@@ -638,4 +638,31 @@ export class CalendarComponent implements OnInit {
       alert('Failed to update signup. Please try again.');
     }
   }
+
+  // Format instructions text for display to preserve line breaks and make URLs clickable
+  formatInstructionsForDisplay(text: string): string {
+    if (!text) return '';
+    
+    // First, escape HTML to prevent injection
+    let safeText = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+    
+    // Turn URLs into clickable links
+    safeText = safeText.replace(
+      /(https?:\/\/[^\s]+)/g, 
+      '<a href="$1" target="_blank">$1</a>'
+    );
+    
+    // Convert email addresses to mailto links
+    safeText = safeText.replace(
+      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+      '<a href="mailto:$1">$1</a>'
+    );
+    
+    return safeText;
+  }
 }

@@ -36,7 +36,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
 
     h2 {
       font-size: 1.2rem;
@@ -61,6 +61,11 @@
   .instructions-display-mode {
     padding: 8px 0;
     line-height: 1.5;
+
+    .preserve-whitespace {
+      white-space: pre-wrap;  // Preserve line breaks and whitespace
+      word-wrap: break-word;  // Break long words to prevent overflow
+    }
 
     a {
       color: #3f51b5;
