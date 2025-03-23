@@ -12,7 +12,8 @@ interface TextBox {
 export class TextBoxService {
   private apiEndpoint = '/data-api/rest/TextBoxes';
   private defaultTexts: { [key: string]: string } = {
-    'VolunteerInstructions': 'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.'
+    VolunteerInstructions:
+      'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.',
   };
 
   constructor() {}
@@ -32,11 +33,13 @@ export class TextBoxService {
 
     try {
       console.log(`Fetching "${textName}" from API...`);
-      const endpoint = `${this.apiEndpoint}?$filter=TextName eq '${textName}'`;
+      const endpoint = `${this.apiEndpoint}?$filter=TextName eq ${textName}`;
       const response = await fetch(endpoint);
 
       if (!response.ok) {
-        console.warn(`API returned ${response.status} when fetching "${textName}"`);
+        console.warn(
+          `API returned ${response.status} when fetching "${textName}"`
+        );
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
@@ -50,7 +53,10 @@ export class TextBoxService {
         if (data.value && data.value.length > 0) {
           const content = this.decodeTextContent(data.value[0].TextContent);
           // Cache for future use (store the raw content)
-          localStorage.setItem(`textBox_${textName}`, data.value[0].TextContent);
+          localStorage.setItem(
+            `textBox_${textName}`,
+            data.value[0].TextContent
+          );
           return content;
         }
         return this.getDefaultText(textName);
@@ -73,13 +79,13 @@ export class TextBoxService {
     if (cachedText) {
       return this.decodeTextContent(cachedText);
     }
-    
+
     // Return default text if available
     if (this.defaultTexts[textName]) {
       console.log(`Using default text for "${textName}"`);
       return this.defaultTexts[textName];
     }
-    
+
     return null;
   }
 
@@ -92,26 +98,28 @@ export class TextBoxService {
   async updateText(textName: string, textContent: string): Promise<boolean> {
     // Encode the content to preserve whitespace and newlines
     const encodedContent = this.encodeTextContent(textContent);
-    
+
     // Always update localStorage first for immediate feedback
     localStorage.setItem(`textBox_${textName}`, encodedContent);
-    
+
     try {
       console.log(`Saving "${textName}" to API...`);
       // Check if database is available by making a simple GET request
-      const testResponse = await fetch(this.apiEndpoint, { 
+      const testResponse = await fetch(this.apiEndpoint, {
         method: 'HEAD',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }).catch(() => null);
-      
+
       // If we can't connect to the API, don't try further operations
       if (!testResponse || !testResponse.ok) {
-        console.warn('API appears to be unavailable, saving to localStorage only');
+        console.warn(
+          'API appears to be unavailable, saving to localStorage only'
+        );
         return false;
       }
-      
+
       // First check if the text exists
-      const existingTextEndpoint = `${this.apiEndpoint}?$filter=TextName eq '${textName}'`;
+      const existingTextEndpoint = `${this.apiEndpoint}?$filter=TextName eq ${textName}`;
       const checkResponse = await fetch(existingTextEndpoint);
 
       if (!checkResponse.ok) {
@@ -120,18 +128,21 @@ export class TextBoxService {
 
       const checkText = await checkResponse.text();
       let checkData;
-      
+
       try {
         checkData = JSON.parse(checkText);
       } catch (e) {
-        console.error('Failed to parse response when checking for existing text', e);
+        console.error(
+          'Failed to parse response when checking for existing text',
+          e
+        );
         return false;
       }
 
       if (checkData.value && checkData.value.length > 0) {
         // Text exists, update it
         const textId = checkData.value[0].ID;
-        const updateEndpoint = `${this.apiEndpoint}(${textId})`;
+        const updateEndpoint = `${this.apiEndpoint}/${textId}`;
         const updateResponse = await fetch(updateEndpoint, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -156,7 +167,7 @@ export class TextBoxService {
           throw new Error(`HTTP error! Status: ${createResponse.status}`);
         }
       }
-      
+
       console.log(`Successfully saved "${textName}" to API`);
       return true;
     } catch (error) {
@@ -172,7 +183,7 @@ export class TextBoxService {
   private encodeTextContent(content: string): string {
     // Option 1: Simple JSON.stringify to preserve all whitespace and newlines
     return JSON.stringify(content);
-    
+
     // Alternative: If database has issues with quotes, use base64 encoding
     // return btoa(unescape(encodeURIComponent(content)));
   }
@@ -185,7 +196,7 @@ export class TextBoxService {
       // Option 1: Parse JSON string
       // Remove any surrounding quotes and unescape any escaped characters
       return JSON.parse(encodedContent);
-      
+
       // Alternative: If using base64 encoding
       // return decodeURIComponent(escape(atob(encodedContent)));
     } catch (e) {
@@ -221,7 +232,7 @@ export class TextBoxService {
       }
     } catch (error) {
       console.error('Error fetching all text boxes:', error);
-      
+
       // If API fails, try to build a list from localStorage
       try {
         const textBoxes: TextBox[] = [];
@@ -233,7 +244,7 @@ export class TextBoxService {
             textBoxes.push({
               ID: i, // dummy ID
               TextName: textName,
-              TextContent: textContent
+              TextContent: textContent,
             });
           }
         }
@@ -244,7 +255,7 @@ export class TextBoxService {
       }
     }
   }
-  
+
   /**
    * Clear all cached text boxes from localStorage
    */
