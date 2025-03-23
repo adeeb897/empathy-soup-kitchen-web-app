@@ -1,30 +1,88 @@
 <div class="construction-notice">
-  <p>🚧 This page is currently under construction. Please visit our <a href="https://www.signupgenius.com/go/10C0A4DAEA92EA4FFC16-50454986-soup#/" target="_blank">temporary volunteer signup page</a> to register for shifts. 🚧</p>
+  <p>
+    🚧 This page is currently under construction. Please visit our
+    <a
+      href="https://www.signupgenius.com/go/10C0A4DAEA92EA4FFC16-50454986-soup#/"
+      target="_blank"
+      >temporary volunteer signup page</a
+    >
+    to register for shifts. 🚧
+  </p>
 </div>
 
 <div class="calendar-container">
   <div class="calendar-header">
     <h1>Volunteer Signup Calendar</h1>
-    
+
     <div class="admin-toggle">
-      <mat-slide-toggle 
-        color="primary" 
+      <mat-slide-toggle
+        color="primary"
         [checked]="isAdminMode"
-        (change)="toggleAdminMode($event)">
+        (change)="toggleAdminMode($event)"
+      >
         Admin Mode
       </mat-slide-toggle>
-      
-      <button 
+
+      <button
         *ngIf="isAdminMode"
-        mat-raised-button 
+        mat-raised-button
         color="primary"
-        (click)="openAdminPanel()">
+        (click)="openAdminPanel()"
+      >
         <mat-icon>admin_panel_settings</mat-icon>
         Manage Shifts
       </button>
     </div>
   </div>
-  
+
+  <!-- Volunteer Instructions Section -->
+  <div class="volunteer-instructions">
+    <div class="instructions-header">
+      <h2>Volunteer Instructions</h2>
+      <button
+        *ngIf="isAdminMode"
+        mat-icon-button
+        color="primary"
+        (click)="toggleEditInstructions()"
+        [attr.aria-label]="
+          editingInstructions ? 'Save instructions' : 'Edit instructions'
+        "
+      >
+        <mat-icon>{{ editingInstructions ? "save" : "edit" }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- Edit mode (admin only) -->
+    <div
+      *ngIf="editingInstructions && isAdminMode"
+      class="instructions-edit-mode"
+    >
+      <mat-form-field appearance="outline" class="instructions-textarea">
+        <textarea
+          matInput
+          [(ngModel)]="instructionsText"
+          placeholder="Enter instructions for volunteers"
+          rows="4"
+        ></textarea>
+      </mat-form-field>
+      <div class="edit-actions">
+        <button mat-button color="warn" (click)="cancelEditInstructions()">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" (click)="saveInstructions()">
+          Save Instructions
+        </button>
+      </div>
+    </div>
+
+    <!-- Display mode -->
+    <div *ngIf="!editingInstructions" class="instructions-display-mode">
+      <div
+        [innerHTML]="instructionsText || 'No instructions provided yet.'"
+      ></div>
+    </div>
+  </div>
+
   <blockquote>
     Browse upcoming volunteer opportunities and sign up to help serve our
     community.
@@ -77,7 +135,7 @@
     (deleteShift)="deleteShift($event)"
     (updateShift)="updateShift($event.shiftId, $event.data)"
   ></app-shift-modal>
-  
+
   <!-- Admin Panel -->
   <app-admin-panel
     *ngIf="showAdminPanel"
@@ -90,7 +148,7 @@
 </div>
 
 <!-- Admin Login Modal -->
-<app-admin-login 
+<app-admin-login
   *ngIf="showAdminLogin"
   (loginCancelled)="hideAdminLogin()"
 ></app-admin-login>

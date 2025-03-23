@@ -7,12 +7,16 @@ import {
   MatSlideToggleChange,
 } from '@angular/material/slide-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
 import { ShiftModalComponent } from './components/shift-modal/shift-modal.component';
 import { AdminPanelComponent } from './components/admin-panel/admin-panel.component';
 import { AdminLoginComponent } from './components/admin-login/admin-login.component';
 import { VolunteerShift, SignUp } from './models/volunteer.model';
 import { AdminAuthService } from './services/admin-auth.service';
+import { TextBoxService } from './services/text-box.service';
 
 @Component({
   selector: 'app-calendar',
@@ -23,6 +27,9 @@ import { AdminAuthService } from './services/admin-auth.service';
     MatIconModule,
     MatSlideToggleModule,
     MatProgressSpinnerModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
     CalendarDayComponent,
     ShiftModalComponent,
     AdminPanelComponent,
@@ -44,15 +51,69 @@ export class CalendarComponent implements OnInit {
   showAdminLogin = false;
   loading = true; // Add loading state
 
-  constructor(private authService: AdminAuthService) {}
+  // Volunteer instructions properties
+  instructionsText =
+    'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.';
+  editingInstructions = false;
+  tempInstructionsText = '';
+
+  constructor(
+    private authService: AdminAuthService,
+    private textBoxService: TextBoxService
+  ) {}
 
   ngOnInit(): void {
     this.fetchShifts();
+    this.fetchInstructions();
 
     // Check for admin authentication
     this.authService.isAuthenticated$.subscribe((isAuthenticated) => {
       this.isAdminMode = isAuthenticated;
     });
+  }
+
+  // Fetch instructions from the database
+  async fetchInstructions(): Promise<void> {
+    try {
+      const volunteerInstructions = await this.textBoxService.getTextByName('volunteerInstructions');
+      if (volunteerInstructions) {
+        this.instructionsText = volunteerInstructions;
+      }
+    } catch (error) {
+      console.error('Error fetching instructions:', error);
+    }
+  }
+
+  // Toggle edit mode for instructions
+  toggleEditInstructions(): void {
+    if (this.editingInstructions) {
+      // Save the changes
+      this.saveInstructions();
+    } else {
+      // Enter edit mode
+      this.tempInstructionsText = this.instructionsText;
+      this.editingInstructions = true;
+    }
+  }
+
+  // Save the updated instructions
+  async saveInstructions(): Promise<void> {
+    try {
+      const success = await this.textBoxService.updateText('volunteerInstructions', this.instructionsText);
+      if (!success) {
+        console.warn('Instructions were saved to localStorage but not to database');
+      }
+      this.editingInstructions = false;
+    } catch (error) {
+      console.error('Error saving instructions:', error);
+      alert('Failed to save instructions. Please try again.');
+    }
+  }
+
+  // Cancel editing and revert to previous instructions
+  cancelEditInstructions(): void {
+    this.instructionsText = this.tempInstructionsText;
+    this.editingInstructions = false;
   }
 
   async fetchShifts(): Promise<void> {

@@ -3,7 +3,7 @@
   background: white;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin: 2rem 0;
 
   h1 {
@@ -13,7 +13,7 @@
   }
 
   blockquote {
-    background: var(--light-bg,#f5f7fa);
+    background: var(--light-bg, #f5f7fa);
     padding: 1rem;
     border-left: 3px solid #3f51b5;
     margin: 10px 0 20px;
@@ -24,10 +24,59 @@
   }
 }
 
+// Volunteer instructions section
+.volunteer-instructions {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+
+  .instructions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 0;
+      color: #3f51b5;
+    }
+  }
+
+  .instructions-edit-mode {
+    .instructions-textarea {
+      width: 100%;
+    }
+
+    .edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+  }
+
+  .instructions-display-mode {
+    padding: 8px 0;
+    line-height: 1.5;
+
+    a {
+      color: #3f51b5;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
 // Week styling
 .week-container {
   margin-bottom: 20px;
-  
+
   .week-header h2 {
     font-size: 1.1rem;
     color: #333;
@@ -42,12 +91,18 @@
 // Calendar grid
 .calendar {
   display: grid;
-  grid-template-columns: repeat(7,1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 10px;
-  
-  @media (max-width:1200px) { grid-template-columns: repeat(4,1fr); }
-  @media (max-width:768px) { grid-template-columns: repeat(2,1fr); }
-  @media (max-width:480px) { grid-template-columns: 1fr; }
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 // Load more button
@@ -55,7 +110,7 @@
   display: flex;
   justify-content: center;
   margin: 20px 0;
-  
+
   button {
     display: flex;
     align-items: center;
@@ -69,7 +124,7 @@
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 15px;
-  
+
   h1 {
     margin-bottom: 0;
   }
@@ -89,11 +144,11 @@
   margin: 1rem 0;
   border-radius: 4px;
   text-align: center;
-  
+
   p {
     margin: 0;
     font-weight: 500;
-    
+
     // Make emojis slightly larger
     .emoji {
       font-size: 1.2em;
@@ -108,7 +163,7 @@
   justify-content: center;
   height: 300px;
   margin: 20px 0;
-  
+
   p {
     margin-top: 20px;
     font-size: 16px;
