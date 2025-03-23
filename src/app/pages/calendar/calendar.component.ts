@@ -75,12 +75,17 @@ export class CalendarComponent implements OnInit {
   // Fetch instructions from the database
   async fetchInstructions(): Promise<void> {
     try {
+      console.log('Fetching volunteer instructions...');
       const volunteerInstructions = await this.textBoxService.getTextByName('VolunteerInstructions');
       if (volunteerInstructions) {
         this.instructionsText = volunteerInstructions;
+        console.log('Instructions loaded successfully');
+      } else {
+        console.warn('No instructions found, using default');
       }
     } catch (error) {
       console.error('Error fetching instructions:', error);
+      // Keep using the default instructions that are set in the component
     }
   }
 
@@ -99,14 +104,25 @@ export class CalendarComponent implements OnInit {
   // Save the updated instructions
   async saveInstructions(): Promise<void> {
     try {
+      console.log('Saving instructions...');
       const success = await this.textBoxService.updateText('VolunteerInstructions', this.instructionsText);
+      
       if (!success) {
         console.warn('Instructions were saved to localStorage but not to database');
+        // Show a less alarming message since we still saved to localStorage
+        const saveMsg = document.createElement('div');
+        saveMsg.textContent = 'Instructions saved locally. They may not persist across devices until database connectivity is restored.';
+        saveMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#fff3cd; color:#856404; padding:10px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:9999;';
+        document.body.appendChild(saveMsg);
+        setTimeout(() => saveMsg.remove(), 5000);
       }
+      
       this.editingInstructions = false;
     } catch (error) {
       console.error('Error saving instructions:', error);
-      alert('Failed to save instructions. Please try again.');
+      alert('There was a problem saving your changes, but they have been stored locally. Please try again later.');
+      // Still exit edit mode since we saved locally
+      this.editingInstructions = false;
     }
   }
 
@@ -157,7 +173,6 @@ export class CalendarComponent implements OnInit {
     }
   }
 
-  // New method to fetch all signups at once
   async listAllSignups(): Promise<SignUp[]> {
     try {
       const endpoint = '/data-api/rest/SignUps';
@@ -232,24 +247,7 @@ export class CalendarComponent implements OnInit {
 
       if (!text) {
         console.log('Empty response received');
-        // Return test data
-        return [
-          {
-            ShiftID: 1,
-            StartTime: '2025-04-10T09:00:00Z',
-            EndTime: '2025-04-10T12:00:00Z',
-            Capacity: 5,
-            signups: [],
-          },
-          {
-            ShiftID: 2,
-            StartTime: '2025-04-11T13:00:00Z',
-            EndTime: '2025-04-11T16:00:00Z',
-            Capacity: 3,
-            signups: [],
-          },
-        ];
-        // return [];
+        return [];
       }
 
       try {
