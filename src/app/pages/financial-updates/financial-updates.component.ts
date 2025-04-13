@@ -64,17 +64,36 @@ export class FinancialUpdatesComponent implements OnInit {
   discoverPdfFiles() {
     this.loading = true;
     this.reports = []; // Reset reports before loading
+    this.error = ''; // Clear any previous errors
 
     // Generate a list of possible filenames based on patterns
     const possibleFiles = this.generatePossibleFilenames();
+    console.log('Checking for possible files:', possibleFiles);
 
-    // Check if each file exists
+    // Check if each file exists and is accessible
     const requests = possibleFiles.map((file) => {
+      // Use GET request with responseType blob to actually verify the PDF is loadable
       return this.http
-        .head(`assets/pdfs/${file}`, { observe: 'response' })
+        .get(`assets/pdfs/${file}`, { 
+          responseType: 'blob',
+          observe: 'response' 
+        })
         .pipe(
-          map(() => file), // If successful, return the filename
-          catchError(() => of(null)) // If error, return null
+          map(response => {
+            // Verify it's actually a PDF by checking content type
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/pdf')) {
+              console.log(`Found valid PDF: ${file}`);
+              return file;
+            } else {
+              console.warn(`File exists but not a PDF: ${file}`);
+              return null;
+            }
+          }),
+          catchError(err => {
+            console.warn(`File not found or error: ${file}`, err);
+            return of(null);
+          })
         );
     });
 
@@ -83,18 +102,25 @@ export class FinancialUpdatesComponent implements OnInit {
       next: (results) => {
         // Filter out null results and process found files
         const foundFiles = results.filter((file): file is string => file !== null);
-        this.processFoundFiles(foundFiles);
-        this.loading = false;
+        console.log('Found files:', foundFiles);
         
         if (foundFiles.length === 0) {
           this.error = 'No financial reports found';
+          this.loading = false;
+          return;
         }
+        
+        this.processFoundFiles(foundFiles);
+        this.loading = false;
       },
       error: (err) => {
         console.error('Error discovering PDF files:', err);
         this.error = 'Error discovering PDF files';
         this.loading = false;
       },
+      complete: () => {
+        this.loading = false;
+      }
     });
   }
 
@@ -238,6 +264,23 @@ export class FinancialUpdatesComponent implements OnInit {
   }
 
   viewReport(report: FinancialReport): void {
-    this.selectedReport = report;
+    // Make sure the report actually exists before setting it
+    this.http.get(report.pdfUrl, { responseType: 'blob' }).pipe(
+      catchError(err => {
+        console.error(`Error loading PDF ${report.pdfUrl}:`, err);
+        this.error = `Could not load report: ${report.displayName}`;
+        return of(null);
+      })
+    ).subscribe(result => {
+      if (result) {
+        this.selectedReport = report;
+        this.error = ''; // Clear any errors if successful
+      } else {
+        // If HTTP request completed but returned null from catchError
+        if (!this.error) {
+          this.error = `Could not load report: ${report.displayName}`;
+        }
+      }
+    });
   }
 }
