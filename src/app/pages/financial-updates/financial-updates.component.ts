@@ -63,6 +63,7 @@ export class FinancialUpdatesComponent implements OnInit {
 
   discoverPdfFiles() {
     this.loading = true;
+    this.reports = []; // Reset reports before loading
 
     // Generate a list of possible filenames based on patterns
     const possibleFiles = this.generatePossibleFilenames();
@@ -81,11 +82,16 @@ export class FinancialUpdatesComponent implements OnInit {
     forkJoin(requests).subscribe({
       next: (results) => {
         // Filter out null results and process found files
-        const foundFiles = results.filter(Boolean) as string[];
+        const foundFiles = results.filter((file): file is string => file !== null);
         this.processFoundFiles(foundFiles);
         this.loading = false;
+        
+        if (foundFiles.length === 0) {
+          this.error = 'No financial reports found';
+        }
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error discovering PDF files:', err);
         this.error = 'Error discovering PDF files';
         this.loading = false;
       },
@@ -124,6 +130,12 @@ export class FinancialUpdatesComponent implements OnInit {
   }
 
   processFoundFiles(files: string[]) {
+    if (!files || files.length === 0) {
+      this.reports = [];
+      this.selectedReport = null;
+      return;
+    }
+
     this.reports = files.map((file) => {
       // Determine type and extract info
       let reportType: 'quarterly' | 'annual' | 'other' = 'other';
@@ -133,7 +145,7 @@ export class FinancialUpdatesComponent implements OnInit {
       let displayName = '';
 
       // Process quarterly reports
-      const quarterlyMatch = file.match(/financial-(\d{4})-Q(\d)\.pdf/i);
+      const quarterlyMatch = file.match(/financial-(\d{4})-q(\d)\.pdf/i);
       if (quarterlyMatch) {
         reportType = 'quarterly';
         year = quarterlyMatch[1];
