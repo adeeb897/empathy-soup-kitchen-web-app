@@ -1,35 +1,27 @@
 .financial-updates-container {
   width: 100%;
-  background-color: #f9f9f9;
-  height: calc(100vh - 64px);
-  overflow-y: auto; // Keep only this main scrollbar
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
 .hero {
   background-color: var(--primary, #3f51b5);
-  padding: 2rem 1.5rem;
-  text-align: center;
+  padding: 3rem 2rem;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 120px; // Fixed height for consistency
+  min-height: 100px;
 
   .hero-content {
-    max-width: 800px;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
 
     h1 {
-      font-size: 2.2rem;
-      font-weight: 500;
-      color: white;
       margin: 0;
-      line-height: 1.2;
+      color: white;
+      font-size: 2.5rem;
     }
   }
 }
@@ -247,21 +239,37 @@
     height: auto;
     min-height: calc(100vh - 64px);
   }
-  
+
   .reports-layout {
     height: auto;
   }
-  
+
   .pdf-viewer {
     height: 500px; // Set fixed height for mobile view
   }
 
   .hero {
-    height: 100px;
+    height: auto;
+    min-height: 120px;
+    /* Slightly smaller min-height for mobile */
     padding: 1.5rem 1rem;
-    
-    .hero-content h1 {
-      font-size: 1.8rem;
+    margin: 0 0 1rem 0;
+    position: relative;
+    overflow: hidden;
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+
+      h1 {
+        font-size: 1.8rem;
+        margin: 0;
+        /* Ensure no margins on mobile too */
+      }
+
+      p {
+        font-size: 1rem;
+      }
     }
   }
 }

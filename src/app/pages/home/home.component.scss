@@ -54,20 +54,13 @@
         font-size: 4.5rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
-        text-shadow: 
-          1px 1px 0 rgba(0, 0, 0, 0.3),
-          -1px -1px 0 rgba(0, 0, 0, 0.3),
-          0 2px 5px rgba(0, 0, 0, 0.4);
       }
 
       p {
         font-size: 1.8rem;
         margin-bottom: 2rem;
         line-height: 1.6;
-        text-shadow: 
-          0.5px 0.5px 0 rgba(0, 0, 0, 0.3),
-          -0.5px -0.5px 0 rgba(0, 0, 0, 0.3),
-          0 1px 3px rgba(0, 0, 0, 0.4);
+        opacity: 0.9;
         max-width: 1000px;
         margin-left: auto;
         margin-right: auto;
@@ -84,6 +77,10 @@
         letter-spacing: 1px;
         transition: all 0.3s ease;
         text-decoration: none; // Remove underline from link
+        display: inline-flex; // Changed to inline-flex to maintain original size
+        align-items: center;  // Center vertically
+        justify-content: center; // Center horizontally
+        line-height: 1; // Reset line height
 
         &:hover {
           background-color: darken(#e74c3c, 10%);
@@ -99,10 +96,8 @@
     text-align: center;
     padding: 4rem 2rem;
     margin: 0;
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
+    width: 100%; // Changed from 100vw to 100%
+    box-sizing: border-box; // Ensure padding is included in width calculation
 
     h2 {
       color: #2c3e50;
@@ -182,7 +177,10 @@
     }
 
     .hero {
-      margin: -1rem;  // Smaller margin on mobile
+      margin: 0;  // Changed from -1rem to prevent overflow
+      width: 100%; // Constrain to container width on mobile
+      left: 0;     // Remove positioning on mobile
+      transform: none; // Remove transform on mobile
 
       .hero-content {
         h1 {
@@ -192,6 +190,28 @@
         p {
           font-size: 1.2rem;
         }
+
+        button, .donate-button {
+          padding: 0.8rem 1.5rem; // Smaller buttons on mobile
+          font-size: 1rem;        // Smaller text for buttons
+        }
+      }
+    }
+
+    .mission {
+      padding: 3rem 1rem;
+      box-sizing: border-box; // Ensure padding is included in width calculation
+      
+      h2 {
+        font-size: 2.2rem;
+      }
+      
+      p {
+        font-size: 1.1rem;
+        max-width: 95%;
+        margin: 0 auto;
+        padding-left: 0;  // Remove any left padding
+        padding-right: 0; // Remove any right padding
       }
     }
 
