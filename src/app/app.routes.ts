@@ -37,5 +37,12 @@ export const routes: Routes = [
         (m) => m.CalendarComponent
       ),
   },
+  {
+    path: 'financial-updates',
+    loadComponent: () =>
+      import('./pages/financial-updates/financial-updates.component').then(
+        (m) => m.FinancialUpdatesComponent
+      ),
+  },
   { path: '**', redirectTo: '/home' },
 ];
