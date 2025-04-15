@@ -1,0 +1,32 @@
+<div class="quarterly-update-container">
+  <div class="content">
+    <div *ngIf="loading" class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading report...</p>
+    </div>
+    
+    <div *ngIf="!loading && reportExists" class="report-container">
+      <div class="viewer-header">
+        <h2>{{ getReportName() }}</h2>
+        <a [href]="reportUrl" download mat-button color="primary">
+          <mat-icon>file_download</mat-icon> Download PDF
+        </a>
+      </div>
+      
+      <pdf-viewer
+        class="pdf-viewer"
+        [src]="reportUrl"
+        [render-text]="true"
+        [show-all]="true"
+        [fit-to-page]="true"
+      ></pdf-viewer>
+    </div>
+    
+    <div *ngIf="!loading && !reportExists" class="no-report-container">
+      <mat-icon>info</mat-icon>
+      <h3>Report Not Available</h3>
+      <p>{{ error }}</p>
+      <a [routerLink]="['/']" mat-raised-button color="primary">Back to Home</a>
+    </div>
+  </div>
+</div>
