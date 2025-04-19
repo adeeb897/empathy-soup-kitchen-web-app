@@ -38,10 +38,10 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'financial-updates',
+    path: 'financial-report/:year/:quarter',
     loadComponent: () =>
-      import('./pages/financial-updates/financial-updates.component').then(
-        (m) => m.FinancialUpdatesComponent
+      import('./pages/financial-report/financial-report.component').then(
+        (m) => m.FinancialReportComponent
       ),
   },
   { path: '**', redirectTo: '/home' },
