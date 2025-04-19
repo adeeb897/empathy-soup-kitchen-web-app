@@ -52,7 +52,7 @@
             <!-- Quarters for this year -->
             <div class="quarters-links">
               <a
-                *ngFor="let quarter of [1, 2, 3, 4]"
+                *ngFor="let quarter of year == '2024' ? [4] : [1, 2, 3, 4]"
                 [routerLink]="['/financial-report', year, quarter]"
                 routerLinkActive="active"
               >
