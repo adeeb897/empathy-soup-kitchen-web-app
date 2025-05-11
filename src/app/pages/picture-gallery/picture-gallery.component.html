@@ -1,0 +1,33 @@
+<div class="container">
+  <div class="header">
+    <h1>Picture Gallery</h1>
+    <p class="subtitle">
+      A visual journey through our kitchen and community
+    </p>
+  </div>
+
+  <div class="gallery-container">
+    <div class="gallery-grid">
+      <div class="gallery-item" *ngFor="let image of images; let i = index" [ngClass]="{'portrait': image.orientation === 'portrait', 'landscape': image.orientation === 'landscape'}">
+        <mat-card class="image-card" (click)="openImageDialog(image, i)">
+          <img [src]="image.src" class="gallery-image" [ngClass]="{'portrait-img': image.orientation === 'portrait', 'landscape-img': image.orientation === 'landscape'}">
+          <div class="overlay">
+            <mat-icon>zoom_in</mat-icon>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <h2>About Our Gallery</h2>
+    <p>
+      These images showcase our facilities, volunteers, and the impact we make in our community. 
+      Our soup kitchen is more than just a place to get food—it's a place of community, connection, and compassion.
+    </p>
+    <p>
+      If you'd like to contribute your photos to our gallery or volunteer with us, please contact us at 
+      <span class="email">info&#64;empathysoupkitchen.org</span>.
+    </p>
+  </div>
+</div>

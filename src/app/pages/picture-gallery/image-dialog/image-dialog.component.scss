@@ -1,0 +1,65 @@
+.image-dialog-container {
+  padding: 0;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  height: 90vh;
+  
+.enlarged-image {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 0;
+  }
+  
+  .nav-button {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+    
+    &.prev-button {
+      left: 10px;
+    }
+    
+    &.next-button {
+      right: 10px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .image-container {
+    height: 80vh;
+    
+    .enlarged-image {
+      max-height: 80vh;
+    }
+  }
+}

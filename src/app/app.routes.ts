@@ -44,5 +44,19 @@ export const routes: Routes = [
         (m) => m.FinancialReportComponent
       ),
   },
+  {
+    path: 'refugee-services',
+    loadComponent: () =>
+      import('./pages/refugee-services/refugee-services.component').then(
+        (m) => m.RefugeeServicesComponent
+      ),
+  },
+  {
+    path: 'picture-gallery',
+    loadComponent: () =>
+      import('./pages/picture-gallery/picture-gallery.component').then(
+        (m) => m.PictureGalleryComponent
+      ),
+  },
   { path: '**', redirectTo: '/home' },
 ];

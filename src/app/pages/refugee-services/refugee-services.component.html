@@ -1,0 +1,43 @@
+<div class="container">
+  <div class="header">
+    <h1>Refugee Services</h1>
+    <p class="subtitle">
+      Supporting refugees with compassion and practical assistance
+    </p>
+  </div>
+
+  <div class="content">
+    <p class="intro">
+      At Empathy Soup Kitchen, we're committed to providing comprehensive support to refugees in our community. Our services are designed to address immediate needs while also fostering long-term integration and self-sufficiency.
+    </p>
+
+    <div class="services-grid">
+      <mat-card class="service-card" *ngFor="let service of services">
+        <mat-card-header>
+          <mat-icon class="service-icon">{{ service.icon }}</mat-icon>
+          <mat-card-title>{{ service.title }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ service.description }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="contact-section">
+      <h2>Need Assistance?</h2>
+      <p>
+        If you or someone you know is a refugee in need of support, please contact us. Our team is ready to help connect you with the resources and services you need.
+      </p>
+      <div class="contact-info">
+        <div class="contact-item">
+          <mat-icon>email</mat-icon>
+          <span>refugee-services&#64;empathysoupkitchen.org</span>
+        </div>
+        <div class="contact-item">
+          <mat-icon>location_on</mat-icon>
+          <span>523 Sinclair Street, McKeesport, PA 15132 </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
