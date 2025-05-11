@@ -229,3 +229,36 @@ button {
 .text-center { text-align: center; }
 .mb-4 { margin-bottom: 2rem; }
 .mt-4 { margin-top: 2rem; }
+
+/* Image Dialog Styles */
+.image-dialog-panel {
+  .mat-mdc-dialog-container {
+    padding: 0;
+    border-radius: 0;
+    overflow: hidden;
+  }
+}
+
+.cdk-overlay-pane.image-dialog-panel {
+  max-width: 95vw !important;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Picture Gallery Specific Overrides */
+app-picture-gallery {
+  .mat-mdc-card {
+    border-radius: 0 !important;
+  }
+  
+  .gallery-image {
+    border-radius: 0 !important;
+  }
+  
+  .gallery-item {
+    border-radius: 0 !important;
+  }
+}

@@ -1,0 +1,17 @@
+<div class="image-dialog-container">
+  <button mat-icon-button class="close-button" (click)="closeDialog()">
+    <mat-icon>close</mat-icon>
+  </button>
+  
+  <div class="image-container">
+    <button mat-icon-button class="nav-button prev-button" (click)="previousImage()" *ngIf="!isFirstImage">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    
+    <img [src]="data.image.src" [alt]="data.image.title" class="enlarged-image">
+    
+    <button mat-icon-button class="nav-button next-button" (click)="nextImage()" *ngIf="!isLastImage">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+</div>
