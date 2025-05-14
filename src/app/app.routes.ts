@@ -38,6 +38,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'calendar/admin',
+    loadComponent: () =>
+      import('./pages/calendar/admin/admin.component').then(
+        (m) => m.AdminComponent
+      ),
+  },
+  {
     path: 'financial-report/:year/:quarter',
     loadComponent: () =>
       import('./pages/financial-report/financial-report.component').then(

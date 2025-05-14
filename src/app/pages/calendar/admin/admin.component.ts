@@ -1,23 +1,25 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
-import { ShiftModalComponent } from './components/shift-modal/shift-modal.component';
-import { VolunteerShift, SignUp } from './models/volunteer.model';
-import { TextBoxService } from './services/text-box.service';
+import { CalendarDayComponent } from '../components/calendar-day/calendar-day.component';
+import { ShiftModalComponent } from '../components/shift-modal/shift-modal.component';
+import { AdminPanelComponent } from '../components/admin-panel/admin-panel.component';
+import { AdminLoginComponent } from '../components/admin-login/admin-login.component';
+import { VolunteerShift, SignUp } from '../models/volunteer.model';
+import { AdminAuthService } from '../services/admin-auth.service';
+import { TextBoxService } from '../services/text-box.service';
 
 @Component({
-  selector: 'app-calendar',
+  selector: 'app-admin',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -26,32 +28,53 @@ import { TextBoxService } from './services/text-box.service';
     MatInputModule,
     CalendarDayComponent,
     ShiftModalComponent,
+    AdminPanelComponent,
+    AdminLoginComponent,
   ],
-  templateUrl: './calendar.component.html',
-  styleUrls: ['./calendar.component.scss'],
+  templateUrl: './admin.component.html',
+  styleUrls: ['./admin.component.scss'],
 })
-export class CalendarComponent implements OnInit {
+export class AdminComponent implements OnInit {
   shifts: VolunteerShift[] = [];
   selectedShift: VolunteerShift | null = null;
   showSignups = false;
-  showSignupForm = false;
   calendarDays: { date: Date; shifts: VolunteerShift[] }[] = [];
   visibleWeeks = 6; // Start with 6 weeks visible
-  maxWeeks = 8; // Allow viewing up to 8 weeks
+  maxWeeks = 20; // Allow viewing up to 8 weeks
+  isAuthenticated = false;
+  showAdminPanel = false;
+  showAdminLogin = true; // Show login by default
   loading = true; // Add loading state
 
   // Volunteer instructions properties
   instructionsText =
     'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.';
+  editingInstructions = false;
+  tempInstructionsText = '';
 
   constructor(
-    private textBoxService: TextBoxService
+    private authService: AdminAuthService,
+    private textBoxService: TextBoxService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.fetchShifts();
-    this.fetchInstructions();
-    this.organizeShiftsByDate();
+    // Check for admin authentication
+    this.authService.isAuthenticated$.subscribe((isAuthenticated) => {
+      this.isAuthenticated = isAuthenticated;
+      
+      // If authenticated, fetch data and show admin panel
+      if (isAuthenticated) {
+        this.fetchShifts();
+        this.fetchInstructions();
+        this.showAdminLogin = false;
+        this.showAdminPanel = true;
+        this.organizeShiftsByDate();
+      } else {
+        // If not authenticated, show login
+        this.showAdminLogin = true;
+      }
+    });
   }
 
   // Fetch instructions from the database
@@ -69,6 +92,49 @@ export class CalendarComponent implements OnInit {
       console.error('Error fetching instructions:', error);
       // Keep using the default instructions that are set in the component
     }
+  }
+
+  // Toggle edit mode for instructions
+  toggleEditInstructions(): void {
+    if (this.editingInstructions) {
+      // Save the changes
+      this.saveInstructions();
+    } else {
+      // Enter edit mode
+      this.tempInstructionsText = this.instructionsText;
+      this.editingInstructions = true;
+    }
+  }
+
+  // Save the updated instructions
+  async saveInstructions(): Promise<void> {
+    try {
+      console.log('Saving instructions...');
+      const success = await this.textBoxService.updateText('VolunteerInstructions', this.instructionsText);
+      
+      if (!success) {
+        console.warn('Instructions were saved to localStorage but not to database');
+        // Show a less alarming message since we still saved to localStorage
+        const saveMsg = document.createElement('div');
+        saveMsg.textContent = 'Instructions saved locally. They may not persist across devices until database connectivity is restored.';
+        saveMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#fff3cd; color:#856404; padding:10px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:9999;';
+        document.body.appendChild(saveMsg);
+        setTimeout(() => saveMsg.remove(), 5000);
+      }
+      
+      this.editingInstructions = false;
+    } catch (error) {
+      console.error('Error saving instructions:', error);
+      alert('There was a problem saving your changes, but they have been stored locally. Please try again later.');
+      // Still exit edit mode since we saved locally
+      this.editingInstructions = false;
+    }
+  }
+
+  // Cancel editing and revert to previous instructions
+  cancelEditInstructions(): void {
+    this.instructionsText = this.tempInstructionsText;
+    this.editingInstructions = false;
   }
 
   async fetchShifts(): Promise<void> {
@@ -240,91 +306,7 @@ export class CalendarComponent implements OnInit {
 
   closeModal(): void {
     this.showSignups = false;
-    this.showSignupForm = false;
     this.selectedShift = null;
-  }
-
-  setShowSignupForm(show: boolean): void {
-    this.showSignupForm = show;
-  }
-
-  async handleSignupSubmit(formData: any): Promise<void> {
-    if (!this.selectedShift) return;
-
-    try {
-      // Calculate remaining capacity
-      const filledSlots = this.selectedShift.signups.reduce(
-        (total, signup) => total + (signup.NumPeople || 1),
-        0
-      );
-      const remainingCapacity = this.selectedShift.Capacity - filledSlots;
-
-      // Check if there's enough capacity
-      if (formData.NumPeople > remainingCapacity) {
-        alert(
-          `Sorry, there are only ${remainingCapacity} spots remaining for this shift.`
-        );
-        return;
-      }
-
-      const data = {
-        ...formData,
-        ShiftID: this.selectedShift.ShiftID,
-      };
-
-      const endpoint = `/data-api/rest/SignUps/`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      // Get the new signup from the response
-      const text = await response.text();
-      if (text) {
-        try {
-          const newSignupResponse = JSON.parse(text);
-          const newSignup = newSignupResponse.value[0] || newSignupResponse;
-
-          // Add the new signup to the shift's signups
-          if (this.selectedShift.signups) {
-            this.selectedShift.signups.push(newSignup);
-          } else {
-            this.selectedShift.signups = [newSignup];
-          }
-
-          // Find this shift in the shifts array and update it
-          const shiftIndex = this.shifts.findIndex(
-            (s) => s.ShiftID === this.selectedShift?.ShiftID
-          );
-          if (shiftIndex !== -1) {
-            this.shifts[shiftIndex] = { ...this.selectedShift };
-
-            // Update calendar days to reflect the new signup
-            this.calendarDays.forEach((day) => {
-              const dayShiftIndex = day.shifts.findIndex(
-                (s) => s.ShiftID === this.selectedShift?.ShiftID
-              );
-              if (dayShiftIndex !== -1) {
-                day.shifts[dayShiftIndex] = { ...this.selectedShift! };
-              }
-            });
-          }
-        } catch (parseError) {
-          console.error('Failed to parse response:', parseError);
-        }
-      }
-
-      // Reset form and close it
-      this.showSignupForm = false;
-    } catch (error) {
-      console.error('Error submitting signup:', error);
-      alert('There was an error processing your signup. Please try again.');
-    }
   }
 
   showMoreWeeks(): void {
@@ -467,6 +449,221 @@ export class CalendarComponent implements OnInit {
         date: sundayDate,
         shifts: sundayShifts,
       });
+    }
+  }
+
+  hideAdminLogin(): void {
+    this.showAdminLogin = false;
+    // Navigate back to regular calendar if login is cancelled
+    this.router.navigate(['/calendar']);
+  }
+
+  openAdminPanel(): void {
+    this.showAdminPanel = true;
+  }
+
+  closeAdminPanel(): void {
+    this.showAdminPanel = false;
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/calendar']);
+  }
+
+  // Admin methods for shifts
+  async createShift(shiftData: Partial<VolunteerShift>): Promise<void> {
+    try {
+      const endpoint = '/data-api/rest/VolunteerShifts';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(shiftData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const text = await response.text();
+      if (text) {
+        try {
+          const data = JSON.parse(text);
+          const newShift = data.value || data;
+          newShift.signups = [];
+
+          // Add to shifts array and refresh calendar
+          this.shifts.push(newShift);
+          this.organizeShiftsByDate();
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating shift:', error);
+      alert('Failed to create shift. Please try again.');
+    }
+  }
+
+  async updateShift(
+    shiftId: number,
+    shiftData: Partial<VolunteerShift>
+  ): Promise<void> {
+    try {
+      const endpoint = `/data-api/rest/VolunteerShifts(${shiftId})`;
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(shiftData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Find and update the shift in the shifts array
+      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
+      if (shiftIndex !== -1) {
+        this.shifts[shiftIndex] = {
+          ...this.shifts[shiftIndex],
+          ...shiftData,
+        };
+
+        // Refresh the calendar
+        this.organizeShiftsByDate();
+      }
+    } catch (error) {
+      console.error('Error updating shift:', error);
+      alert('Failed to update shift. Please try again.');
+    }
+  }
+
+  async deleteShift(shiftId: number): Promise<void> {
+    try {
+      // Delete all signups for this shift first (if any)
+      const signups = await this.getSignUpsForShift(shiftId);
+      for (const signup of signups) {
+        await this.deleteSignup(signup.SignUpID, shiftId);
+      }
+
+      const endpoint = `/data-api/rest/VolunteerShifts/ShiftID`;
+      const response = await fetch(`${endpoint}/${shiftId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Remove the shift from the shifts array
+      this.shifts = this.shifts.filter((s) => s.ShiftID !== shiftId);
+
+      // Refresh the calendar
+      this.organizeShiftsByDate();
+    } catch (error) {
+      console.error('Error deleting shift:', error);
+      alert('Failed to delete shift. Please try again.');
+    }
+  }
+
+  async getSignUpsForShift(shiftId: number): Promise<SignUp[]> {
+    try {
+      const endpoint = `/data-api/rest/SignUps?$filter=ShiftID eq ${shiftId}`;
+      const response = await fetch(endpoint);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const text = await response.text();
+
+      if (!text) {
+        console.log('Empty response received');
+        return [];
+      }
+
+      try {
+        const data = JSON.parse(text);
+        return data.value;
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching signups:', error);
+      return [];
+    }
+  }
+
+  // Admin methods for signups
+  async deleteSignup(signupId: number, shiftId: number): Promise<void> {
+    try {
+      const endpoint = `/data-api/rest/SignUps/SignUpID`;
+      const response = await fetch(`${endpoint}/${signupId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Find the shift and remove the signup
+      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
+      if (shiftIndex !== -1) {
+        this.shifts[shiftIndex].signups = this.shifts[
+          shiftIndex
+        ].signups.filter((s) => s.SignUpID !== signupId);
+
+        // If we're currently viewing this shift, update the selectedShift
+        if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
+          this.selectedShift = { ...this.shifts[shiftIndex] };
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting signup:', error);
+      alert('Failed to delete signup. Please try again.');
+    }
+  }
+
+  async updateSignup(
+    signupId: number,
+    shiftId: number,
+    signupData: Partial<SignUp>
+  ): Promise<void> {
+    try {
+      const endpoint = `/data-api/rest/SignUps(${signupId})`;
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signupData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Find the shift and update the signup
+      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
+      if (shiftIndex !== -1) {
+        const signupIndex = this.shifts[shiftIndex].signups.findIndex(
+          (s) => s.SignUpID === signupId
+        );
+
+        if (signupIndex !== -1) {
+          this.shifts[shiftIndex].signups[signupIndex] = {
+            ...this.shifts[shiftIndex].signups[signupIndex],
+            ...signupData,
+          };
+
+          // If we're currently viewing this shift, update the selectedShift
+          if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
+            this.selectedShift = { ...this.shifts[shiftIndex] };
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error updating signup:', error);
+      alert('Failed to update signup. Please try again.');
     }
   }
 

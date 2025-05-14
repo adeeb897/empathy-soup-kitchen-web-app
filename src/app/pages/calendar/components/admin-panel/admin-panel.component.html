@@ -8,36 +8,96 @@
     </div>
     
     <div class="panel-content">
-      <!-- New Shift Form -->
+      <!-- Shift Creation Forms -->
       <div *ngIf="showNewShiftForm" class="new-shift-form">
-        <h3>Create New Shift</h3>
-        <form [formGroup]="newShiftForm" (ngSubmit)="submitNewShift()">
-          <div class="form-row">
-            <div class="form-field">
-              <label for="start-time">Start Time</label>
-              <input id="start-time" type="datetime-local" formControlName="StartTime">
+        <mat-tab-group [(selectedIndex)]="selectedTab">
+          <mat-tab label="Single Shift">
+            <div class="tab-content">
+              <h3>Create a single shift</h3>
+              <form [formGroup]="newShiftForm" (ngSubmit)="submitNewShift()">
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="start-time">Start Time</label>
+                    <input id="start-time" type="datetime-local" formControlName="StartTime">
+                  </div>
+                  
+                  <div class="form-field">
+                    <label for="end-time">End Time</label>
+                    <input id="end-time" type="datetime-local" formControlName="EndTime">
+                  </div>
+                  
+                  <div class="form-field">
+                    <label for="capacity">Capacity</label>
+                    <input id="capacity" type="number" min="1" formControlName="Capacity">
+                  </div>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="submit" mat-raised-button color="primary" [disabled]="newShiftForm.invalid">
+                    Create Shift
+                  </button>
+                  <button type="button" mat-stroked-button (click)="cancelCreateShift()">
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
-            
-            <div class="form-field">
-              <label for="end-time">End Time</label>
-              <input id="end-time" type="datetime-local" formControlName="EndTime">
-            </div>
-            
-            <div class="form-field">
-              <label for="capacity">Capacity</label>
-              <input id="capacity" type="number" min="1" formControlName="Capacity">
-            </div>
-          </div>
+          </mat-tab>
           
-          <div class="form-actions">
-            <button type="submit" mat-raised-button color="primary" [disabled]="newShiftForm.invalid">
-              Create Shift
-            </button>
-            <button type="button" mat-stroked-button (click)="cancelCreateShift()">
-              Cancel
-            </button>
-          </div>
-        </form>
+          <mat-tab label="Recurring Shifts">
+            <div class="tab-content">
+              <h3>Create multiple recurring shifts</h3>
+              <form [formGroup]="batchShiftForm" (ngSubmit)="submitBatchShifts()">
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="start-date">Start Date</label>
+                    <input id="start-date" type="date" formControlName="startDate">
+                  </div>
+                  
+                  <div class="form-field">
+                    <label for="end-date">End Date</label>
+                    <input id="end-date" type="date" formControlName="endDate">
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="start-time-batch">Start Time</label>
+                    <input id="start-time-batch" type="time" formControlName="startTime">
+                  </div>
+                  
+                  <div class="form-field">
+                    <label for="end-time-batch">End Time</label>
+                    <input id="end-time-batch" type="time" formControlName="endTime">
+                  </div>
+                  
+                  <div class="form-field">
+                    <label for="capacity-batch">Capacity</label>
+                    <input id="capacity-batch" type="number" min="1" formControlName="capacity">
+                  </div>
+                </div>
+                
+                <div class="form-row days-selection">
+                  <div class="checkbox-field">
+                    <mat-checkbox formControlName="saturday">Saturday</mat-checkbox>
+                  </div>
+                  <div class="checkbox-field">
+                    <mat-checkbox formControlName="sunday">Sunday</mat-checkbox>
+                  </div>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="submit" mat-raised-button color="primary" [disabled]="batchShiftForm.invalid">
+                    Create Shifts
+                  </button>
+                  <button type="button" mat-stroked-button (click)="cancelCreateShift()">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
       </div>
       
       <!-- Create Shift Button -->

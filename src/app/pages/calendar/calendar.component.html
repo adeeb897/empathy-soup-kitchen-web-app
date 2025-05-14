@@ -14,24 +14,11 @@
   <div class="calendar-header">
     <h1>Volunteer Signup Calendar</h1>
 
-    <div class="admin-toggle">
-      <mat-slide-toggle
-        color="primary"
-        [checked]="isAdminMode"
-        (change)="toggleAdminMode($event)"
-      >
-        Admin Mode
-      </mat-slide-toggle>
-
-      <button
-        *ngIf="isAdminMode"
-        mat-raised-button
-        color="primary"
-        (click)="openAdminPanel()"
-      >
+    <div class="admin-link">
+      <a [routerLink]="['/calendar/admin']" mat-button color="primary">
         <mat-icon>admin_panel_settings</mat-icon>
-        Manage Shifts
-      </button>
+        Admin Access
+      </a>
     </div>
   </div>
 
@@ -39,44 +26,10 @@
   <div class="volunteer-instructions">
     <div class="instructions-header">
       <h2>Volunteer Instructions</h2>
-      <button
-        *ngIf="isAdminMode"
-        mat-icon-button
-        color="primary"
-        (click)="toggleEditInstructions()"
-        [attr.aria-label]="
-          editingInstructions ? 'Save instructions' : 'Edit instructions'
-        "
-      >
-        <mat-icon>{{ editingInstructions ? "save" : "edit" }}</mat-icon>
-      </button>
-    </div>
-
-    <!-- Edit mode (admin only) -->
-    <div
-      *ngIf="editingInstructions && isAdminMode"
-      class="instructions-edit-mode"
-    >
-      <mat-form-field appearance="outline" class="instructions-textarea">
-        <textarea
-          matInput
-          [(ngModel)]="instructionsText"
-          placeholder="Enter instructions for volunteers"
-          rows="4"
-        ></textarea>
-      </mat-form-field>
-      <div class="edit-actions">
-        <button mat-button color="warn" (click)="cancelEditInstructions()">
-          Cancel
-        </button>
-        <button mat-raised-button color="primary" (click)="saveInstructions()">
-          Save Instructions
-        </button>
-      </div>
     </div>
 
     <!-- Display mode -->
-    <div *ngIf="!editingInstructions" class="instructions-display-mode">
+    <div class="instructions-display-mode">
       <div [innerHTML]="formatInstructionsForDisplay(instructionsText)"
            class="preserve-whitespace"></div>
     </div>
@@ -93,23 +46,24 @@
     <div class="calendar-wrapper">
       <div class="week-container" *ngFor="let week of getCalendarWeeks()">
         <div class="week-header">
-          <h2>Week of {{ week.weekStartDate | date : "MMM d, y" }}</h2>
+          <h2>Weekend of {{ week.weekStartDate | date : "MMMM d, yyyy" }}</h2>
         </div>
 
-        <div class="calendar">
+        <div class="weekend-calendar">
           <app-calendar-day
             *ngFor="let day of week.days"
             [date]="day.date"
             [shifts]="day.shifts"
-            [isAdminMode]="isAdminMode"
+            [isAdminMode]="false"
             (shiftSelected)="onShiftSelected($event)"
           ></app-calendar-day>
         </div>
       </div>
 
       <div *ngIf="canShowMore()" class="show-more-container">
-        <button mat-stroked-button color="primary" (click)="showMoreWeeks()">
-          <mat-icon>expand_more</mat-icon> Show More Weeks
+        <button mat-raised-button color="primary" (click)="showMoreWeeks()" class="show-more-button">
+          <mat-icon>expand_more</mat-icon> 
+          <span class="button-text">Show More Weekends</span>
         </button>
       </div>
     </div>
@@ -120,29 +74,9 @@
     *ngIf="showSignups && selectedShift"
     [shift]="selectedShift"
     [showSignupForm]="showSignupForm"
-    [isAdminMode]="isAdminMode"
+    [isAdminMode]="false"
     (close)="closeModal()"
     (showSignupFormChange)="setShowSignupForm($event)"
     (submitSignup)="handleSignupSubmit($event)"
-    (deleteSignup)="deleteSignup($event.signupId, $event.shiftId)"
-    (updateSignup)="updateSignup($event.signupId, $event.shiftId, $event.data)"
-    (deleteShift)="deleteShift($event)"
-    (updateShift)="updateShift($event.shiftId, $event.data)"
   ></app-shift-modal>
-
-  <!-- Admin Panel -->
-  <app-admin-panel
-    *ngIf="showAdminPanel"
-    [shifts]="shifts"
-    (close)="closeAdminPanel()"
-    (createShift)="createShift($event)"
-    (updateShift)="updateShift($event.shiftId, $event.data)"
-    (deleteShift)="deleteShift($event)"
-  ></app-admin-panel>
 </div>
-
-<!-- Admin Login Modal -->
-<app-admin-login
-  *ngIf="showAdminLogin"
-  (loginCancelled)="hideAdminLogin()"
-></app-admin-login>

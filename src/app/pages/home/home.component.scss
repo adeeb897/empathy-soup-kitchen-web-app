@@ -29,6 +29,7 @@
     overflow: hidden;
     left: 50%;
     transform: translateX(-50%);
+    box-sizing: border-box;
 
     &::before {
       content: '';
@@ -51,19 +52,21 @@
       z-index: 1;
 
       h1 {
-        font-size: 4.5rem;
+        font-size: clamp(2.5rem, 8vw, 4.5rem);
         font-weight: 700;
-        margin-bottom: 1.5rem;
+        margin-bottom: clamp(1rem, 3vh, 1.5rem);
+        line-height: 1.2;
       }
 
       p {
-        font-size: 1.8rem;
-        margin-bottom: 2rem;
-        line-height: 1.6;
+        font-size: clamp(1.2rem, 4vw, 1.8rem);
+        margin-bottom: clamp(1.5rem, 4vh, 2rem);
+        line-height: 1.4;
         opacity: 0.9;
         max-width: 1000px;
         margin-left: auto;
         margin-right: auto;
+        padding: 0 1rem;
       }
 
       button, .donate-button {
@@ -166,6 +169,7 @@
     display: flex;
     gap: 1rem; // Adjust spacing as needed
     justify-content: center; // Center the buttons horizontally
+    flex-wrap: wrap; // Allow buttons to wrap on very narrow screens
   }
 }
 
@@ -181,19 +185,21 @@
       width: 100%; // Constrain to container width on mobile
       left: 0;     // Remove positioning on mobile
       transform: none; // Remove transform on mobile
+      padding: 2rem 0;
+      min-height: 100vh;
+      box-sizing: border-box;
 
       .hero-content {
-        h1 {
-          font-size: 2.5rem;
-        }
-
-        p {
-          font-size: 1.2rem;
-        }
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 80vh;
+        padding: 1.5rem;
 
         button, .donate-button {
           padding: 0.8rem 1.5rem; // Smaller buttons on mobile
           font-size: 1rem;        // Smaller text for buttons
+          margin: 0.5rem;
         }
       }
     }

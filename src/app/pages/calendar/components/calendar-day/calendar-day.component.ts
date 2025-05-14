@@ -23,9 +23,10 @@ export class CalendarDayComponent {
   }
 
   formatDate(date: Date): string {
+    // Format the date to be more readable for elderly and tech-illiterate users
     return date.toLocaleDateString([], {
-      weekday: 'short',
-      month: 'short',
+      weekday: 'long', // Full weekday name (e.g., "Saturday" instead of "Sat")
+      month: 'long',   // Full month name (e.g., "January" instead of "Jan")
       day: 'numeric',
     });
   }
