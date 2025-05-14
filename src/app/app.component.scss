@@ -228,6 +228,29 @@ mat-sidenav-container {
         }
       }
     }
+    
+    .quarters-links {
+      .quarter-link {
+        display: flex;
+        justify-content: space-between;
+        padding-right: 12px;
+        
+        .report-available-icon {
+          color: #4CAF50;
+          font-size: 18px;
+          height: 18px;
+          width: 18px;
+        }
+        
+        .report-unavailable-icon {
+          color: #9E9E9E;
+          font-size: 18px;
+          height: 18px;
+          width: 18px;
+          opacity: 0.5;
+        }
+      }
+    }
   }
 
   mat-sidenav-content {

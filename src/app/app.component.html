@@ -71,8 +71,11 @@
                 *ngFor="let quarter of year == '2024' ? [4] : [1, 2, 3, 4]"
                 [routerLink]="['/financial-report', year, quarter]"
                 routerLinkActive="active"
+                class="quarter-link"
               >
-                Quarter {{ quarter }}
+                <span>Quarter {{ quarter }}</span>
+                <mat-icon *ngIf="isReportAvailable(year, quarter)" class="report-available-icon">description</mat-icon>
+                <mat-icon *ngIf="!isReportAvailable(year, quarter)" class="report-unavailable-icon">block</mat-icon>
               </a>
             </div>
           </mat-expansion-panel>

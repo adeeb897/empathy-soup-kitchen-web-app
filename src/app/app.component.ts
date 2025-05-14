@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +20,8 @@ import { CommonModule } from '@angular/common';
     MatToolbarModule,
     MatIconModule,
     MatButtonModule,
-    MatExpansionModule
+    MatExpansionModule,
+    HttpClientModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -29,9 +31,13 @@ export class AppComponent implements OnInit {
   opened = false;
   currentYear = new Date().getFullYear();
   financialYears: string[] = [];
+  availableReports: { [key: string]: boolean } = {};
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.generateFinancialYears();
+    this.checkAvailableReports();
   }
 
   toggleSidenav() {
@@ -46,5 +52,34 @@ export class AppComponent implements OnInit {
     for (let year = startYear; year >= 2024; year--) {
       this.financialYears.push(year.toString());
     }
+  }
+
+  checkAvailableReports() {
+    // Check all possible reports for availability
+    this.financialYears.forEach(year => {
+      const quarters = year === '2024' ? [4] : [1, 2, 3, 4];
+      
+      quarters.forEach(quarter => {
+        const reportKey = `${year}-q${quarter}`;
+        const reportUrl = `assets/pdfs/financial-${reportKey}.pdf`;
+        
+        this.http.head(reportUrl)
+          .subscribe({
+            next: () => {
+              // Report exists
+              this.availableReports[reportKey] = true;
+            },
+            error: () => {
+              // Report doesn't exist
+              this.availableReports[reportKey] = false;
+            }
+          });
+      });
+    });
+  }
+
+  isReportAvailable(year: string, quarter: number): boolean {
+    const reportKey = `${year}-q${quarter}`;
+    return this.availableReports[reportKey] === true;
   }
 }
