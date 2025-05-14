@@ -13,10 +13,30 @@
         <mat-icon>home</mat-icon>
         <span>Home</span>
       </a>
-      <a routerLink="/calendar" routerLinkActive="active">
-        <mat-icon>calendar_today</mat-icon>
-        <span>Volunteer</span>
-      </a>
+      <!-- Volunteer with nested expansion panels -->
+      <mat-expansion-panel class="sidenav-expansion-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <div class="nav-link-header">
+              <mat-icon>calendar_today</mat-icon>
+              <span>Volunteer</span>
+            </div>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <!-- Volunteer sub-links -->
+        <div class="volunteer-links">
+          <a routerLink="/calendar" routerLinkActive="active">
+            <span>Volunteer Sign-up</span>
+          </a>
+          <a routerLink="/soup-kitchen-tasks" routerLinkActive="active">
+            <span>Soup Kitchen Task List</span>
+          </a>
+          <a routerLink="/refugee-tasks" routerLinkActive="active">
+            <span>Refugee Task List</span>
+          </a>
+        </div>
+      </mat-expansion-panel>
       <a routerLink="/donations" routerLinkActive="active">
         <mat-icon>volunteer_activism</mat-icon>
         <span>Donations</span>

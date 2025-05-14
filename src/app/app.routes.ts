@@ -52,6 +52,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'soup-kitchen-tasks',
+    loadComponent: () =>
+      import('./pages/soup-kitchen-tasks/soup-kitchen-tasks.component').then(
+        (m) => m.SoupKitchenTasksComponent
+      ),
+  },
+  {
+    path: 'refugee-tasks',
+    loadComponent: () =>
+      import('./pages/refugee-tasks/refugee-tasks.component').then(
+        (m) => m.RefugeeTasksComponent
+      ),
+  },
+  {
     path: 'picture-gallery',
     loadComponent: () =>
       import('./pages/picture-gallery/picture-gallery.component').then(
