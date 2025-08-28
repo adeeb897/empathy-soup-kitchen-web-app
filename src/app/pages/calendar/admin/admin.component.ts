@@ -285,9 +285,10 @@ export class AdminComponent implements OnInit {
         const data = JSON.parse(text);
         // Filter out past shifts
         const currentDate = new Date();
-        return data.value.filter(
-          (shift: VolunteerShift) => new Date(shift.StartTime) >= currentDate
-        );
+        return data.value
+          .filter(
+            (shift: VolunteerShift) => shift.StartTime >= currentDate
+          );
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError);
         console.log('Raw response:', text);

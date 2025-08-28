@@ -44,8 +44,7 @@ export class ShiftCardComponent implements OnChanges {
     return this.getFilledSlots() >= this.shift.Capacity;
   }
 
-  formatTime(dateString: string): string {
-    const date = new Date(dateString);
+  formatTime(date: Date): string {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 }

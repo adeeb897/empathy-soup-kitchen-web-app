@@ -167,21 +167,19 @@ export class CalendarComponent implements OnInit {
       
       // Find shifts for Saturday
       const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
+          shift.StartTime.getDate() === saturdayDate.getDate() &&
+          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
+          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
         );
       });
       
       // Find shifts for Sunday
       const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
+          shift.StartTime.getDate() === sundayDate.getDate() &&
+          shift.StartTime.getMonth() === sundayDate.getMonth() &&
+          shift.StartTime.getFullYear() === sundayDate.getFullYear()
         );
       });
       
@@ -217,11 +215,16 @@ export class CalendarComponent implements OnInit {
 
       try {
         const data = JSON.parse(text);
-        // Filter out past shifts
         const currentDate = new Date();
-        return data.value.filter(
-          (shift: VolunteerShift) => new Date(shift.StartTime) >= currentDate
-        );
+        return data.value
+          .map((shift: VolunteerShift) => ({
+            ...shift,
+            StartTime: shift.StartTime,
+            EndTime: shift.EndTime,
+          }))
+          .filter(
+            (shift: VolunteerShift) => shift.StartTime >= currentDate
+          );
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError);
         console.log('Raw response:', text);
@@ -383,21 +386,19 @@ export class CalendarComponent implements OnInit {
       
       // Find shifts for Saturday
       const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
+          shift.StartTime.getDate() === saturdayDate.getDate() &&
+          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
+          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
         );
       });
       
       // Find shifts for Sunday
       const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
+          shift.StartTime.getDate() === sundayDate.getDate() &&
+          shift.StartTime.getMonth() === sundayDate.getMonth() &&
+          shift.StartTime.getFullYear() === sundayDate.getFullYear()
         );
       });
       
@@ -438,21 +439,19 @@ export class CalendarComponent implements OnInit {
       
       // Find shifts for Saturday
       const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
+          shift.StartTime.getDate() === saturdayDate.getDate() &&
+          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
+          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
         );
       });
       
       // Find shifts for Sunday
       const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
+          shift.StartTime.getDate() === sundayDate.getDate() &&
+          shift.StartTime.getMonth() === sundayDate.getMonth() &&
+          shift.StartTime.getFullYear() === sundayDate.getFullYear()
         );
       });
       

@@ -176,13 +176,11 @@ export class ShiftModalComponent implements OnChanges {
     return this.getFilledSlots() >= this.shift.Capacity;
   }
 
-  formatTime(dateString: string): string {
-    const date = new Date(dateString);
+  formatTime(date: Date): string {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
+  formatDate(date: Date): string {
     return date.toLocaleDateString([], {
       weekday: 'long',
       month: 'long',
@@ -212,8 +210,8 @@ export class ShiftModalComponent implements OnChanges {
     
     const formData = this.editShiftForm.value;
     const data: Partial<VolunteerShift> = {
-      StartTime: new Date(formData.StartTime).toISOString(),
-      EndTime: new Date(formData.EndTime).toISOString(),
+      StartTime: formData.StartTime,
+      EndTime: formData.EndTime,
       Capacity: formData.Capacity
     };
     

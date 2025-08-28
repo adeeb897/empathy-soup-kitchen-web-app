@@ -1,7 +1,7 @@
 export interface VolunteerShift {
   ShiftID: number;
-  StartTime: string;
-  EndTime: string;
+  StartTime: Date;
+  EndTime: Date;
   Capacity: number;
   signups: SignUp[];
 }
