@@ -286,6 +286,11 @@ export class AdminComponent implements OnInit {
         // Filter out past shifts
         const currentDate = new Date();
         return data.value
+          .map((shift: any) => ({
+            ...shift,
+            StartTime: new Date(shift.StartTime + "Z"),
+            EndTime: new Date(shift.EndTime + "Z"),
+          }))
           .filter(
             (shift: VolunteerShift) => shift.StartTime >= currentDate
           );
