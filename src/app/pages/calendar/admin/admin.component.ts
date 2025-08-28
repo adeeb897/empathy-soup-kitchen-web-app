@@ -286,11 +286,6 @@ export class AdminComponent implements OnInit {
         // Filter out past shifts
         const currentDate = new Date();
         return data.value
-          .map((shift: VolunteerShift) => ({
-            ...shift,
-            StartTime: shift.StartTime,
-            EndTime: shift.EndTime,
-          }))
           .filter(
             (shift: VolunteerShift) => shift.StartTime >= currentDate
           );
@@ -481,6 +476,10 @@ export class AdminComponent implements OnInit {
   async createShift(shiftData: Partial<VolunteerShift>): Promise<void> {
     try {
       const endpoint = '/data-api/rest/VolunteerShifts';
+      Date.prototype.toJSON = function(){
+          // Format date as a string in local timezone
+          return `${this.getFullYear()}-${(this.getMonth() + 1).toString().padStart(2, '0')}-${this.getDate().toString().padStart(2, '0')}T${this.getHours().toString().padStart(2, '0')}:${this.getMinutes().toString().padStart(2, '0')}:${this.getSeconds().toString().padStart(2, '0')}`;
+      };
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
