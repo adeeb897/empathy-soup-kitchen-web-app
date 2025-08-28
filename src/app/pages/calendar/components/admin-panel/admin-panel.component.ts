@@ -110,8 +110,8 @@ export class AdminPanelComponent {
 
     const formData = this.newShiftForm.value;
     const newShift: Partial<VolunteerShift> = {
-      StartTime: new Date(formData.StartTime).toISOString(),
-      EndTime: new Date(formData.EndTime).toISOString(),
+      StartTime: new Date(formData.StartTime),
+      EndTime: new Date(formData.EndTime),
       Capacity: formData.Capacity,
     };
 
@@ -213,8 +213,8 @@ export class AdminPanelComponent {
         
         // Create the shift
         shifts.push({
-          StartTime: shiftStart.toISOString(),
-          EndTime: shiftEnd.toISOString(),
+          StartTime: shiftStart,
+          EndTime: shiftEnd,
           Capacity: formData.capacity
         });
       }

@@ -167,21 +167,19 @@ export class CalendarComponent implements OnInit {
       
       // Find shifts for Saturday
       const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
+          shift.StartTime.getDate() === saturdayDate.getDate() &&
+          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
+          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
         );
       });
       
       // Find shifts for Sunday
       const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
+          shift.StartTime.getDate() === sundayDate.getDate() &&
+          shift.StartTime.getMonth() === sundayDate.getMonth() &&
+          shift.StartTime.getFullYear() === sundayDate.getFullYear()
         );
       });
       
@@ -197,14 +195,6 @@ export class CalendarComponent implements OnInit {
         shifts: sundayShifts,
       });
     }
-  }
-
-  // Utility to parse UTC date strings safely
-  parseUtcDate(dateStr: string): Date {
-    if (dateStr.endsWith('Z')) {
-      return new Date(dateStr);
-    }
-    return new Date(dateStr + 'Z');
   }
 
   async list(): Promise<VolunteerShift[]> {
@@ -229,11 +219,11 @@ export class CalendarComponent implements OnInit {
         return data.value
           .map((shift: VolunteerShift) => ({
             ...shift,
-            StartTime: this.parseUtcDate(shift.StartTime),
-            EndTime: shift.EndTime ? this.parseUtcDate(shift.EndTime) : undefined,
+            StartTime: shift.StartTime,
+            EndTime: shift.EndTime,
           }))
           .filter(
-            (shift: VolunteerShift) => this.parseUtcDate(shift.StartTime) >= currentDate
+            (shift: VolunteerShift) => shift.StartTime >= currentDate
           );
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError);
@@ -396,21 +386,19 @@ export class CalendarComponent implements OnInit {
       
       // Find shifts for Saturday
       const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
+          shift.StartTime.getDate() === saturdayDate.getDate() &&
+          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
+          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
         );
       });
       
       // Find shifts for Sunday
       const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
+          shift.StartTime.getDate() === sundayDate.getDate() &&
+          shift.StartTime.getMonth() === sundayDate.getMonth() &&
+          shift.StartTime.getFullYear() === sundayDate.getFullYear()
         );
       });
       
@@ -451,21 +439,19 @@ export class CalendarComponent implements OnInit {
       
       // Find shifts for Saturday
       const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
+          shift.StartTime.getDate() === saturdayDate.getDate() &&
+          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
+          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
         );
       });
       
       // Find shifts for Sunday
       const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
         return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
+          shift.StartTime.getDate() === sundayDate.getDate() &&
+          shift.StartTime.getMonth() === sundayDate.getMonth() &&
+          shift.StartTime.getFullYear() === sundayDate.getFullYear()
         );
       });
       

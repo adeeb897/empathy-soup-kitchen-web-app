@@ -265,16 +265,6 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  // Utility to parse UTC date strings safely
-  parseUtcDate(dateStr: string): Date {
-    // If already ends with 'Z', it's UTC
-    if (dateStr.endsWith('Z')) {
-      return new Date(dateStr);
-    }
-    // If not, append 'Z' to treat as UTC
-    return new Date(dateStr + 'Z');
-  }
-
   async list(): Promise<VolunteerShift[]> {
     try {
       const endpoint = '/data-api/rest/VolunteerShifts';
@@ -298,11 +288,11 @@ export class AdminComponent implements OnInit {
         return data.value
           .map((shift: VolunteerShift) => ({
             ...shift,
-            StartTime: this.parseUtcDate(shift.StartTime),
-            EndTime: shift.EndTime ? this.parseUtcDate(shift.EndTime) : undefined,
+            StartTime: shift.StartTime,
+            EndTime: shift.EndTime,
           }))
           .filter(
-            (shift: VolunteerShift) => this.parseUtcDate(shift.StartTime) >= currentDate
+            (shift: VolunteerShift) => shift.StartTime >= currentDate
           );
       } catch (parseError) {
         console.error('Failed to parse JSON:', parseError);
