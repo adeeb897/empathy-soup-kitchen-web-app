@@ -288,8 +288,8 @@ export class AdminComponent implements OnInit {
         return data.value
           .map((shift: any) => ({
             ...shift,
-            StartTime: new Date(shift.StartTime + "Z"),
-            EndTime: new Date(shift.EndTime + "Z"),
+            StartTime: new Date(shift.StartTime),
+            EndTime: new Date(shift.EndTime),
           }))
           .filter(
             (shift: VolunteerShift) => shift.StartTime >= currentDate
