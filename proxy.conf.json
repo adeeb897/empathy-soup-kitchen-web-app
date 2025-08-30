@@ -1,0 +1,11 @@
+{
+  "/data-api/rest/*": {
+    "target": "http://localhost:5000/rest",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/data-api/rest": ""
+    }
+  }
+}

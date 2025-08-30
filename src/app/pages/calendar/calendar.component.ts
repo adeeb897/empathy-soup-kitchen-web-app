@@ -1,16 +1,16 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
-import { ShiftModalComponent } from './components/shift-modal/shift-modal.component';
-import { VolunteerShift, SignUp } from './models/volunteer.model';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { VolunteerShift, SignUp, CreateSignupData } from './models/volunteer.model';
+import { VolunteerShiftService } from './services/volunteer-shift.service';
 import { TextBoxService } from './services/text-box.service';
+import { SignupDialogComponent, SignupDialogData } from './components/signup-dialog.component';
 
 @Component({
   selector: 'app-calendar',
@@ -20,460 +20,350 @@ import { TextBoxService } from './services/text-box.service';
     RouterModule,
     MatButtonModule,
     MatIconModule,
+    MatCardModule,
     MatProgressSpinnerModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    CalendarDayComponent,
-    ShiftModalComponent,
+    MatSnackBarModule,
+    MatDialogModule
   ],
-  templateUrl: './calendar.component.html',
-  styleUrls: ['./calendar.component.scss'],
+  template: `
+    <div class="calendar-container">
+      <!-- Header -->
+      <div class="header">
+        <h1>Volunteer Shifts</h1>
+        <div class="header-actions">
+          <button mat-raised-button routerLink="/calendar/admin" color="primary">
+            <mat-icon>admin_panel_settings</mat-icon>
+            Admin
+          </button>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="instructions" [innerHTML]="formatInstructions(instructionsText)"></div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Loading shifts...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="error-container">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-button (click)="loadShifts()" color="primary">Retry</button>
+      </div>
+
+      <!-- Shifts -->
+      <div *ngIf="!loading && !error" class="shifts-container">
+        <div *ngIf="upcomingShifts.length === 0" class="no-shifts">
+          <mat-icon>event_busy</mat-icon>
+          <p>No upcoming shifts available</p>
+        </div>
+
+        <div *ngFor="let shift of upcomingShifts; trackBy: trackShift" class="shift-card">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>{{ formatDate(shift.StartTime) }}</mat-card-title>
+              <mat-card-subtitle>{{ formatTimeRange(shift) }}</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="capacity-info">
+                <div class="capacity-bar">
+                  <div class="capacity-fill" 
+                       [style.width.%]="getCapacityPercentage(shift)"
+                       [class.full]="isShiftFull(shift)"
+                       [class.nearly-full]="isShiftNearlyFull(shift)">
+                  </div>
+                </div>
+                <div class="capacity-text">
+                  {{ getFilledSlots(shift) }} / {{ shift.Capacity }} volunteers
+                  <span *ngIf="getRemainingSlots(shift) > 0" class="remaining">
+                    ({{ getRemainingSlots(shift) }} spots left)
+                  </span>
+                  <span *ngIf="isShiftFull(shift)" class="full-text">FULL</span>
+                </div>
+              </div>
+
+              <div *ngIf="shift.signups.length > 0" class="signups-list">
+                <h4>Signed up volunteers:</h4>
+                <div *ngFor="let signup of shift.signups" class="signup-item">
+                  {{ signup.Name }} ({{ signup.NumPeople }} {{ signup.NumPeople === 1 ? 'person' : 'people' }})
+                </div>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-raised-button 
+                      color="primary"
+                      [disabled]="isShiftFull(shift) || isShiftInPast(shift)"
+                      (click)="openSignupDialog(shift)">
+                <mat-icon>person_add</mat-icon>
+                Sign Up
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .calendar-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .instructions {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .loading-container, .error-container {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading-container p, .error-container p {
+      margin-top: 10px;
+    }
+
+    .no-shifts {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .no-shifts mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 10px;
+    }
+
+    .shifts-container {
+      display: grid;
+      gap: 20px;
+    }
+
+    .shift-card mat-card {
+      transition: box-shadow 0.3s ease;
+    }
+
+    .shift-card mat-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .capacity-info {
+      margin-bottom: 15px;
+    }
+
+    .capacity-bar {
+      width: 100%;
+      height: 8px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    .capacity-fill {
+      height: 100%;
+      background-color: #4caf50;
+      transition: width 0.3s ease;
+    }
+
+    .capacity-fill.nearly-full {
+      background-color: #ff9800;
+    }
+
+    .capacity-fill.full {
+      background-color: #f44336;
+    }
+
+    .capacity-text {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .remaining {
+      color: #4caf50;
+      font-weight: 500;
+    }
+
+    .full-text {
+      color: #f44336;
+      font-weight: bold;
+    }
+
+    .signups-list {
+      margin-top: 15px;
+    }
+
+    .signups-list h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .signup-item {
+      padding: 4px 0;
+      font-size: 14px;
+    }
+
+    mat-card-actions {
+      padding-top: 0;
+    }
+  `]
 })
 export class CalendarComponent implements OnInit {
-  shifts: VolunteerShift[] = [];
-  selectedShift: VolunteerShift | null = null;
-  showSignups = false;
-  showSignupForm = false;
-  calendarDays: { date: Date; shifts: VolunteerShift[] }[] = [];
-  visibleWeeks = 6; // Start with 6 weeks visible
-  maxWeeks = 8; // Allow viewing up to 8 weeks
-  loading = true; // Add loading state
-
-  // Volunteer instructions properties
-  instructionsText =
-    'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.';
+  upcomingShifts: VolunteerShift[] = [];
+  loading = true;
+  error: string | null = null;
+  instructionsText = 'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule.';
 
   constructor(
-    private textBoxService: TextBoxService
+    private volunteerShiftService: VolunteerShiftService,
+    private textBoxService: TextBoxService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
-  ngOnInit(): void {
-    this.fetchShifts();
-    this.fetchInstructions();
-    this.organizeShiftsByDate();
+  ngOnInit() {
+    this.loadData();
   }
 
-  // Fetch instructions from the database
-  async fetchInstructions(): Promise<void> {
-    try {
-      console.log('Fetching volunteer instructions...');
-      const volunteerInstructions = await this.textBoxService.getTextByName('VolunteerInstructions');
-      if (volunteerInstructions) {
-        this.instructionsText = volunteerInstructions;
-        console.log('Instructions loaded successfully');
-      } else {
-        console.warn('No instructions found, using default');
-      }
-    } catch (error) {
-      console.error('Error fetching instructions:', error);
-      // Keep using the default instructions that are set in the component
-    }
-  }
+  async loadData() {
+    this.loading = true;
+    this.error = null;
 
-  async fetchShifts(): Promise<void> {
-    this.loading = true; // Start loading
     try {
-      const shifts = await this.list();
-      if (shifts && shifts.length > 0) {
-        this.shifts = shifts;
-        // Fetch signups for all shifts
-        await this.fetchAllShiftSignups();
-        this.organizeShiftsByDate();
-      }
+      await Promise.all([
+        this.loadShifts(),
+        this.loadInstructions()
+      ]);
     } catch (error) {
-      console.error('Error fetching shifts:', error);
+      console.error('Error loading data:', error);
+      this.error = 'Failed to load data. Please try again.';
     } finally {
-      this.loading = false; // End loading regardless of success/failure
+      this.loading = false;
     }
   }
 
-  // New method to fetch signups for all shifts
-  async fetchAllShiftSignups(): Promise<void> {
+  async loadShifts() {
     try {
-      // Fetch all signups at once
-      const allSignups = await this.listAllSignups();
-
-      // Group signups by ShiftID
-      const signupsByShiftId: { [key: number]: SignUp[] } = {};
-      allSignups.forEach((signup) => {
-        if (!signupsByShiftId[signup.ShiftID]) {
-          signupsByShiftId[signup.ShiftID] = [];
-        }
-        signupsByShiftId[signup.ShiftID].push(signup);
-      });
-
-      // Assign signups to each shift
-      this.shifts.forEach((shift) => {
-        shift.signups = signupsByShiftId[shift.ShiftID] || [];
-      });
+      this.upcomingShifts = await this.volunteerShiftService.getShiftsWithSignups();
+      this.upcomingShifts.sort((a, b) => a.StartTime.getTime() - b.StartTime.getTime());
     } catch (error) {
-      console.error('Error fetching signups for shifts:', error);
+      console.error('Error loading shifts:', error);
+      throw error;
     }
   }
 
-  async listAllSignups(): Promise<SignUp[]> {
+  async loadInstructions() {
     try {
-      const endpoint = '/data-api/rest/SignUps';
-      const response = await fetch(endpoint);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      if (!text) {
-        console.log('Empty response received');
-        return [];
-      }
-
-      try {
-        const data = JSON.parse(text);
-        return data.value;
-      } catch (parseError) {
-        console.error('Failed to parse JSON:', parseError);
-        return [];
+      const instructions = await this.textBoxService.getTextByName('VolunteerInstructions');
+      if (instructions) {
+        this.instructionsText = instructions;
       }
     } catch (error) {
-      console.error('Error fetching all signups:', error);
-      return [];
+      console.error('Error loading instructions:', error);
     }
   }
 
-  organizeShiftsByDate(): void {
-    // Clear the existing calendar
-    this.calendarDays = [];
+  openSignupDialog(shift: VolunteerShift) {
+    const dialogData: SignupDialogData = { shift };
+    
+    const dialogRef = this.dialog.open(SignupDialogComponent, {
+      width: '500px',
+      data: dialogData
+    });
 
-    // Get current date (start of day)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Find the next Saturday from today
-    const nextSaturday = new Date(today);
-    const dayOfWeek = today.getDay(); // 0 is Sunday, 6 is Saturday
-    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7; // Days until next Saturday
-    nextSaturday.setDate(today.getDate() + daysUntilSaturday);
-
-    // Create calendar for the specified number of weeks, but only include Saturday and Sunday
-    for (let week = 0; week < this.visibleWeeks; week++) {
-      // Calculate the Saturday for this week
-      const saturdayDate = new Date(nextSaturday);
-      saturdayDate.setDate(nextSaturday.getDate() + (week * 7));
-      
-      // Calculate the Sunday for this week
-      const sundayDate = new Date(saturdayDate);
-      sundayDate.setDate(saturdayDate.getDate() + 1);
-      
-      // Find shifts for Saturday
-      const saturdayShifts = this.shifts.filter((shift) => {
-        return (
-          shift.StartTime.getDate() === saturdayDate.getDate() &&
-          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
-          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
-        );
-      });
-      
-      // Find shifts for Sunday
-      const sundayShifts = this.shifts.filter((shift) => {
-        return (
-          shift.StartTime.getDate() === sundayDate.getDate() &&
-          shift.StartTime.getMonth() === sundayDate.getMonth() &&
-          shift.StartTime.getFullYear() === sundayDate.getFullYear()
-        );
-      });
-      
-      // Add Saturday to calendar days
-      this.calendarDays.push({
-        date: saturdayDate,
-        shifts: saturdayShifts,
-      });
-      
-      // Add Sunday to calendar days
-      this.calendarDays.push({
-        date: sundayDate,
-        shifts: sundayShifts,
-      });
-    }
-  }
-
-  async list(): Promise<VolunteerShift[]> {
-    try {
-      const endpoint = '/data-api/rest/VolunteerShifts';
-      const response = await fetch(endpoint);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      if (!text) {
-        console.log('Empty response received');
-        return [];
-      }
-
-      try {
-        const data = JSON.parse(text);
-        const currentDate = new Date();
-        return data.value
-          .map((shift: VolunteerShift) => ({
-            ...shift,
-            StartTime: shift.StartTime,
-            EndTime: shift.EndTime,
-          }))
-          .filter(
-            (shift: VolunteerShift) => shift.StartTime >= currentDate
-          );
-      } catch (parseError) {
-        console.error('Failed to parse JSON:', parseError);
-        console.log('Raw response:', text);
-        return [];
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      return [];
-    }
-  }
-
-  async onShiftSelected(shift: VolunteerShift): Promise<void> {
-    this.selectedShift = shift;
-    this.showSignups = true;
-  }
-
-  closeModal(): void {
-    this.showSignups = false;
-    this.showSignupForm = false;
-    this.selectedShift = null;
-  }
-
-  setShowSignupForm(show: boolean): void {
-    this.showSignupForm = show;
-  }
-
-  async handleSignupSubmit(formData: any): Promise<void> {
-    if (!this.selectedShift) return;
-
-    try {
-      // Calculate remaining capacity
-      const filledSlots = this.selectedShift.signups.reduce(
-        (total, signup) => total + (signup.NumPeople || 1),
-        0
-      );
-      const remainingCapacity = this.selectedShift.Capacity - filledSlots;
-
-      // Check if there's enough capacity
-      if (formData.NumPeople > remainingCapacity) {
-        alert(
-          `Sorry, there are only ${remainingCapacity} spots remaining for this shift.`
-        );
-        return;
-      }
-
-      const data = {
-        ...formData,
-        ShiftID: this.selectedShift.ShiftID,
-      };
-
-      const endpoint = `/data-api/rest/SignUps/`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      // Get the new signup from the response
-      const text = await response.text();
-      if (text) {
+    dialogRef.afterClosed().subscribe(async (signupData: CreateSignupData) => {
+      if (signupData) {
         try {
-          const newSignupResponse = JSON.parse(text);
-          const newSignup = newSignupResponse.value[0] || newSignupResponse;
-
-          // Add the new signup to the shift's signups
-          if (this.selectedShift.signups) {
-            this.selectedShift.signups.push(newSignup);
-          } else {
-            this.selectedShift.signups = [newSignup];
-          }
-
-          // Find this shift in the shifts array and update it
-          const shiftIndex = this.shifts.findIndex(
-            (s) => s.ShiftID === this.selectedShift?.ShiftID
-          );
+          const newSignup = await this.volunteerShiftService.createSignup(signupData);
+          
+          const shiftIndex = this.upcomingShifts.findIndex(s => s.ShiftID === shift.ShiftID);
           if (shiftIndex !== -1) {
-            this.shifts[shiftIndex] = { ...this.selectedShift };
-
-            // Update calendar days to reflect the new signup
-            this.calendarDays.forEach((day) => {
-              const dayShiftIndex = day.shifts.findIndex(
-                (s) => s.ShiftID === this.selectedShift?.ShiftID
-              );
-              if (dayShiftIndex !== -1) {
-                day.shifts[dayShiftIndex] = { ...this.selectedShift! };
-              }
-            });
+            this.upcomingShifts[shiftIndex].signups.push(newSignup);
           }
-        } catch (parseError) {
-          console.error('Failed to parse response:', parseError);
+          
+          this.showMessage('Successfully signed up for the shift!');
+        } catch (error) {
+          console.error('Error creating signup:', error);
+          this.showMessage('Error signing up for shift. Please try again.');
         }
       }
-
-      // Reset form and close it
-      this.showSignupForm = false;
-    } catch (error) {
-      console.error('Error submitting signup:', error);
-      alert('There was an error processing your signup. Please try again.');
-    }
+    });
   }
 
-  showMoreWeeks(): void {
-    this.visibleWeeks = Math.min(this.visibleWeeks + 2, this.maxWeeks);
-    this.organizeShiftsByDate();
+  formatDate(date: Date): string {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 
-  // Check if we can show more weeks
-  canShowMore(): boolean {
-    return this.visibleWeeks < this.maxWeeks;
+  formatTimeRange(shift: VolunteerShift): string {
+    const startTime = shift.StartTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    const endTime = shift.EndTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    return `${startTime} - ${endTime}`;
   }
 
-  // Group calendar days by week for better display
-  getCalendarWeeks(): {
-    weekStartDate: Date;
-    days: { date: Date; shifts: VolunteerShift[] }[];
-  }[] {
-    const weeks: {
-      weekStartDate: Date;
-      days: { date: Date; shifts: VolunteerShift[] }[];
-    }[] = [];
-
-    for (let i = 0; i < this.calendarDays.length; i += 2) {
-      const weekDays = this.calendarDays.slice(i, i + 2);
-      if (weekDays.length > 0) {
-        weeks.push({
-          weekStartDate: weekDays[0].date,
-          days: weekDays,
-        });
-      }
-    }
-
-    return weeks;
-  }
-  
-  // Navigate to previous week
-  previousWeek(): void {
-    // Get the first date in our calendar (which should be a Saturday)
-    if (this.calendarDays.length === 0) return;
-    
-    const firstDate = new Date(this.calendarDays[0].date);
-    // Go back 7 days to get to the previous week's Saturday
-    firstDate.setDate(firstDate.getDate() - 7);
-    
-    // Clear the calendar and rebuild it starting from the new date
-    this.calendarDays = [];
-    
-    for (let week = 0; week < this.visibleWeeks; week++) {
-      // Calculate the Saturday for this week
-      const saturdayDate = new Date(firstDate);
-      saturdayDate.setDate(firstDate.getDate() + (week * 7));
-      
-      // Calculate the Sunday for this week
-      const sundayDate = new Date(saturdayDate);
-      sundayDate.setDate(saturdayDate.getDate() + 1);
-      
-      // Find shifts for Saturday
-      const saturdayShifts = this.shifts.filter((shift) => {
-        return (
-          shift.StartTime.getDate() === saturdayDate.getDate() &&
-          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
-          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
-        );
-      });
-      
-      // Find shifts for Sunday
-      const sundayShifts = this.shifts.filter((shift) => {
-        return (
-          shift.StartTime.getDate() === sundayDate.getDate() &&
-          shift.StartTime.getMonth() === sundayDate.getMonth() &&
-          shift.StartTime.getFullYear() === sundayDate.getFullYear()
-        );
-      });
-      
-      // Add Saturday to calendar days
-      this.calendarDays.push({
-        date: saturdayDate,
-        shifts: saturdayShifts,
-      });
-      
-      // Add Sunday to calendar days
-      this.calendarDays.push({
-        date: sundayDate,
-        shifts: sundayShifts,
-      });
-    }
-  }
-  
-  // Navigate to next week
-  nextWeek(): void {
-    // Get the last date in our calendar (which should be a Sunday)
-    if (this.calendarDays.length === 0) return;
-    
-    const lastDate = new Date(this.calendarDays[this.calendarDays.length - 1].date);
-    // Go forward 6 days to get to the next week's Saturday
-    lastDate.setDate(lastDate.getDate() + 6);
-    
-    // Clear the calendar and rebuild it starting from the new date
-    this.calendarDays = [];
-    
-    for (let week = 0; week < this.visibleWeeks; week++) {
-      // Calculate the Saturday for this week
-      const saturdayDate = new Date(lastDate);
-      saturdayDate.setDate(lastDate.getDate() + (week * 7));
-      
-      // Calculate the Sunday for this week
-      const sundayDate = new Date(saturdayDate);
-      sundayDate.setDate(saturdayDate.getDate() + 1);
-      
-      // Find shifts for Saturday
-      const saturdayShifts = this.shifts.filter((shift) => {
-        return (
-          shift.StartTime.getDate() === saturdayDate.getDate() &&
-          shift.StartTime.getMonth() === saturdayDate.getMonth() &&
-          shift.StartTime.getFullYear() === saturdayDate.getFullYear()
-        );
-      });
-      
-      // Find shifts for Sunday
-      const sundayShifts = this.shifts.filter((shift) => {
-        return (
-          shift.StartTime.getDate() === sundayDate.getDate() &&
-          shift.StartTime.getMonth() === sundayDate.getMonth() &&
-          shift.StartTime.getFullYear() === sundayDate.getFullYear()
-        );
-      });
-      
-      // Add Saturday to calendar days
-      this.calendarDays.push({
-        date: saturdayDate,
-        shifts: saturdayShifts,
-      });
-      
-      // Add Sunday to calendar days
-      this.calendarDays.push({
-        date: sundayDate,
-        shifts: sundayShifts,
-      });
-    }
+  getFilledSlots(shift: VolunteerShift): number {
+    return shift.signups.reduce((total, signup) => total + (signup.NumPeople || 1), 0);
   }
 
-  // Format instructions text for display to preserve line breaks and make URLs clickable
-  formatInstructionsForDisplay(text: string): string {
+  getRemainingSlots(shift: VolunteerShift): number {
+    return shift.Capacity - this.getFilledSlots(shift);
+  }
+
+  getCapacityPercentage(shift: VolunteerShift): number {
+    return (this.getFilledSlots(shift) / shift.Capacity) * 100;
+  }
+
+  isShiftFull(shift: VolunteerShift): boolean {
+    return this.getFilledSlots(shift) >= shift.Capacity;
+  }
+
+  isShiftNearlyFull(shift: VolunteerShift): boolean {
+    return this.getCapacityPercentage(shift) >= 80 && !this.isShiftFull(shift);
+  }
+
+  isShiftInPast(shift: VolunteerShift): boolean {
+    return shift.StartTime < new Date();
+  }
+
+  formatInstructions(text: string): string {
     if (!text) return '';
     
-    // First, escape HTML to prevent injection
     let safeText = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -481,18 +371,24 @@ export class CalendarComponent implements OnInit {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
     
-    // Turn URLs into clickable links
     safeText = safeText.replace(
       /(https?:\/\/[^\s]+)/g, 
       '<a href="$1" target="_blank">$1</a>'
     );
     
-    // Convert email addresses to mailto links
     safeText = safeText.replace(
       /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
       '<a href="mailto:$1">$1</a>'
     );
     
     return safeText;
+  }
+
+  trackShift(index: number, shift: VolunteerShift): number {
+    return shift.ShiftID;
+  }
+
+  private showMessage(message: string) {
+    this.snackBar.open(message, 'Close', { duration: 3000 });
   }
 }

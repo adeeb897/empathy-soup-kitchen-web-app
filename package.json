@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "db:start": "docker-compose up -d",
+    "db:stop": "docker-compose down",
+    "db:reset": "docker-compose down -v && docker-compose up -d",
+    "db:init": "bash docker/init-database.sh",
+    "db:logs": "docker-compose logs -f",
+    "dev": "npm run db:start && sleep 30 && npm run db:init && ng serve --proxy-config proxy.conf.json"
   },
   "dependencies": {
     "@angular/animations": "^18.2.0",

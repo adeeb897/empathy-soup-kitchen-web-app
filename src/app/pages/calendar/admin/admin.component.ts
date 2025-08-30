@@ -1,702 +1,745 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { CalendarDayComponent } from '../components/calendar-day/calendar-day.component';
-import { ShiftModalComponent } from '../components/shift-modal/shift-modal.component';
-import { AdminPanelComponent } from '../components/admin-panel/admin-panel.component';
-import { AdminLoginComponent } from '../components/admin-login/admin-login.component';
-import { VolunteerShift, SignUp } from '../models/volunteer.model';
-import { AdminAuthService } from '../services/admin-auth.service';
-import { TextBoxService } from '../services/text-box.service';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { VolunteerShift, SignUp, CreateShiftData } from '../models/volunteer.model';
+import { VolunteerShiftService } from '../services/volunteer-shift.service';
+import { VolunteerDetailsDialogComponent, VolunteerDetailsDialogData } from '../components/volunteer-details-dialog.component';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
+    ReactiveFormsModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
-    FormsModule,
+    MatCardModule,
+    MatTableModule,
     MatFormFieldModule,
     MatInputModule,
-    CalendarDayComponent,
-    ShiftModalComponent,
-    AdminPanelComponent,
-    AdminLoginComponent,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatDialogModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatTooltipModule
   ],
-  templateUrl: './admin.component.html',
-  styleUrls: ['./admin.component.scss'],
+  template: `
+    <div class="admin-container">
+      <!-- Header -->
+      <div class="header">
+        <h1>Shift Administration</h1>
+        <div class="header-actions">
+          <button mat-raised-button routerLink="/calendar" color="primary">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Calendar
+          </button>
+        </div>
+      </div>
+
+      <!-- Add New Shift Form -->
+      <mat-card class="add-shift-card">
+        <mat-card-header>
+          <mat-card-title>Add New Shift</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="shiftForm" (ngSubmit)="createShift()" class="shift-form">
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Date</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="date" required>
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                <mat-error *ngIf="shiftForm.get('date')?.hasError('required')">
+                  Date is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Start Time</mat-label>
+                <input matInput type="time" formControlName="startTime" required>
+                <mat-error *ngIf="shiftForm.get('startTime')?.hasError('required')">
+                  Start time is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>End Time</mat-label>
+                <input matInput type="time" formControlName="endTime" required>
+                <mat-error *ngIf="shiftForm.get('endTime')?.hasError('required')">
+                  End time is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Capacity</mat-label>
+                <input matInput type="number" formControlName="capacity" min="1" max="100" required>
+                <mat-error *ngIf="shiftForm.get('capacity')?.hasError('required')">
+                  Capacity is required
+                </mat-error>
+                <mat-error *ngIf="shiftForm.get('capacity')?.hasError('min')">
+                  Capacity must be at least 1
+                </mat-error>
+                <mat-error *ngIf="shiftForm.get('capacity')?.hasError('max')">
+                  Capacity cannot exceed 100
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <!-- Recurring Options -->
+            <div class="recurring-section">
+              <mat-checkbox formControlName="isRecurring">
+                Create recurring shifts
+              </mat-checkbox>
+
+              <div *ngIf="shiftForm.get('isRecurring')?.value" class="recurring-options">
+                <div class="recurring-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Repeat</mat-label>
+                    <mat-select formControlName="recurrenceType">
+                      <mat-option value="weekly">Weekly</mat-option>
+                      <mat-option value="biweekly">Bi-weekly</mat-option>
+                      <mat-option value="monthly">Monthly</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Number of weeks</mat-label>
+                    <input matInput type="number" formControlName="weekCount" min="1" max="52">
+                    <mat-hint>How many weeks to create shifts for</mat-hint>
+                  </mat-form-field>
+                </div>
+
+                <div *ngIf="shiftForm.get('recurrenceType')?.value === 'weekly'" class="days-selection">
+                  <label>Select days:</label>
+                  <div class="days-checkboxes">
+                    <mat-checkbox formControlName="sunday">Sunday</mat-checkbox>
+                    <mat-checkbox formControlName="monday">Monday</mat-checkbox>
+                    <mat-checkbox formControlName="tuesday">Tuesday</mat-checkbox>
+                    <mat-checkbox formControlName="wednesday">Wednesday</mat-checkbox>
+                    <mat-checkbox formControlName="thursday">Thursday</mat-checkbox>
+                    <mat-checkbox formControlName="friday">Friday</mat-checkbox>
+                    <mat-checkbox formControlName="saturday">Saturday</mat-checkbox>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button mat-raised-button 
+                      type="submit" 
+                      color="primary"
+                      [disabled]="shiftForm.invalid || creating">
+                <mat-icon *ngIf="creating">hourglass_empty</mat-icon>
+                <mat-icon *ngIf="!creating">add</mat-icon>
+                {{ creating ? 'Creating...' : (shiftForm.get('isRecurring')?.value ? 'Create Recurring Shifts' : 'Create Shift') }}
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Existing Shifts -->
+      <mat-card class="shifts-card">
+        <mat-card-header>
+          <mat-card-title>Existing Shifts</mat-card-title>
+          <div class="refresh-button">
+            <button mat-icon-button (click)="loadShifts()" [disabled]="loading">
+              <mat-icon [class.spinning]="loading">refresh</mat-icon>
+            </button>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngIf="loading" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading shifts...</p>
+          </div>
+
+          <div *ngIf="error" class="error-container">
+            <mat-icon color="warn">error</mat-icon>
+            <p>{{ error }}</p>
+            <button mat-button (click)="loadShifts()" color="primary">Retry</button>
+          </div>
+
+          <div *ngIf="!loading && !error && shifts.length === 0" class="no-shifts">
+            <mat-icon>event_busy</mat-icon>
+            <p>No shifts found</p>
+          </div>
+
+          <div *ngIf="!loading && !error && shifts.length > 0" class="shifts-table-container">
+            <table mat-table [dataSource]="shifts" class="shifts-table">
+              <!-- Date Column -->
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let shift">{{ formatDate(shift.StartTime) }}</td>
+              </ng-container>
+
+              <!-- Time Column -->
+              <ng-container matColumnDef="time">
+                <th mat-header-cell *matHeaderCellDef>Time</th>
+                <td mat-cell *matCellDef="let shift">{{ formatTimeRange(shift) }}</td>
+              </ng-container>
+
+              <!-- Capacity Column -->
+              <ng-container matColumnDef="capacity">
+                <th mat-header-cell *matHeaderCellDef>Capacity</th>
+                <td mat-cell *matCellDef="let shift">
+                  <div class="capacity-display">
+                    {{ getFilledSlots(shift) }} / {{ shift.Capacity }}
+                    <div class="capacity-bar-small">
+                      <div class="capacity-fill-small" 
+                           [style.width.%]="getCapacityPercentage(shift)"
+                           [class.full]="isShiftFull(shift)"
+                           [class.nearly-full]="isShiftNearlyFull(shift)">
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Signups Column -->
+              <ng-container matColumnDef="signups">
+                <th mat-header-cell *matHeaderCellDef>Volunteers</th>
+                <td mat-cell *matCellDef="let shift">
+                  <div *ngIf="shift.signups.length === 0" class="no-signups">No signups</div>
+                  <button *ngIf="shift.signups.length > 0" 
+                          mat-stroked-button 
+                          class="volunteers-button"
+                          (click)="showVolunteerDetails(shift)">
+                    <mat-icon>people</mat-icon>
+                    <span class="volunteer-summary">
+                      {{ shift.signups.length }} volunteer{{ shift.signups.length === 1 ? '' : 's' }}
+                      ({{ getFilledSlots(shift) }} people)
+                    </span>
+                  </button>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let shift">
+                  <div class="action-buttons">
+                    <button mat-icon-button 
+                            (click)="deleteShift(shift)"
+                            [disabled]="deleting.has(shift.ShiftID)"
+                            [matTooltip]="shift.signups.length > 0 ? 'Delete shift and all signups' : 'Delete shift'"
+                            color="warn">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  `,
+  styles: [`
+    .admin-container {
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .add-shift-card, .shifts-card {
+      margin-bottom: 20px;
+    }
+
+    .shift-form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .recurring-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+
+    .recurring-options {
+      margin-top: 15px;
+      padding-left: 20px;
+    }
+
+    .recurring-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .days-selection {
+      margin-top: 15px;
+    }
+
+    .days-selection label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .days-checkboxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .loading-container, .error-container, .no-shifts {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading-container p, .error-container p {
+      margin-top: 10px;
+    }
+
+    .no-shifts mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .refresh-button {
+      margin-left: auto;
+    }
+
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .shifts-table-container {
+      overflow-x: auto;
+    }
+
+    .shifts-table {
+      width: 100%;
+    }
+
+    .capacity-display {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .capacity-bar-small {
+      width: 60px;
+      height: 4px;
+      background-color: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .capacity-fill-small {
+      height: 100%;
+      background-color: #4caf50;
+      transition: width 0.3s ease;
+    }
+
+    .capacity-fill-small.nearly-full {
+      background-color: #ff9800;
+    }
+
+    .capacity-fill-small.full {
+      background-color: #f44336;
+    }
+
+    .no-signups {
+      color: #666;
+      font-style: italic;
+    }
+
+    .volunteers-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-color: #1976d2;
+      color: #1976d2;
+      transition: all 0.3s ease;
+    }
+
+    .volunteers-button:hover {
+      background-color: #1976d2;
+      color: white;
+    }
+
+    .volunteers-button mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .volunteer-summary {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    mat-card-header {
+      display: flex;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  `]
 })
 export class AdminComponent implements OnInit {
+  shiftForm: FormGroup;
   shifts: VolunteerShift[] = [];
-  selectedShift: VolunteerShift | null = null;
-  showSignups = false;
-  calendarDays: { date: Date; shifts: VolunteerShift[] }[] = [];
-  visibleWeeks = 6; // Start with 6 weeks visible
-  maxWeeks = 20; // Allow viewing up to 8 weeks
-  isAuthenticated = false;
-  showAdminPanel = false;
-  showAdminLogin = true; // Show login by default
-  loading = true; // Add loading state
-
-  // Volunteer instructions properties
-  instructionsText =
-    'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.';
-  editingInstructions = false;
-  tempInstructionsText = '';
+  loading = false;
+  creating = false;
+  error: string | null = null;
+  deleting = new Set<number>();
+  displayedColumns = ['date', 'time', 'capacity', 'signups', 'actions'];
 
   constructor(
-    private authService: AdminAuthService,
-    private textBoxService: TextBoxService,
-    private router: Router
-  ) {}
-
-  ngOnInit(): void {
-    // Check for admin authentication
-    this.authService.isAuthenticated$.subscribe((isAuthenticated) => {
-      this.isAuthenticated = isAuthenticated;
-      
-      // If authenticated, fetch data and show admin panel
-      if (isAuthenticated) {
-        this.fetchShifts();
-        this.fetchInstructions();
-        this.showAdminLogin = false;
-        this.showAdminPanel = true;
-        this.organizeShiftsByDate();
-      } else {
-        // If not authenticated, show login
-        this.showAdminLogin = true;
-      }
+    private fb: FormBuilder,
+    private volunteerShiftService: VolunteerShiftService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {
+    this.shiftForm = this.fb.group({
+      date: ['', Validators.required],
+      startTime: ['', Validators.required],
+      endTime: ['', Validators.required],
+      capacity: ['', [Validators.required, Validators.min(1), Validators.max(100)]],
+      isRecurring: [false],
+      recurrenceType: ['weekly'],
+      weekCount: [8],
+      sunday: [false],
+      monday: [false],
+      tuesday: [false],
+      wednesday: [false],
+      thursday: [false],
+      friday: [false],
+      saturday: [false]
     });
   }
 
-  // Fetch instructions from the database
-  async fetchInstructions(): Promise<void> {
+  ngOnInit() {
+    this.loadShifts();
+  }
+
+  async loadShifts() {
+    this.loading = true;
+    this.error = null;
+
     try {
-      console.log('Fetching volunteer instructions...');
-      const volunteerInstructions = await this.textBoxService.getTextByName('VolunteerInstructions');
-      if (volunteerInstructions) {
-        this.instructionsText = volunteerInstructions;
-        console.log('Instructions loaded successfully');
-      } else {
-        console.warn('No instructions found, using default');
-      }
+      this.shifts = await this.volunteerShiftService.getShiftsWithSignups();
+      this.shifts.sort((a, b) => a.StartTime.getTime() - b.StartTime.getTime());
     } catch (error) {
-      console.error('Error fetching instructions:', error);
-      // Keep using the default instructions that are set in the component
-    }
-  }
-
-  // Toggle edit mode for instructions
-  toggleEditInstructions(): void {
-    if (this.editingInstructions) {
-      // Save the changes
-      this.saveInstructions();
-    } else {
-      // Enter edit mode
-      this.tempInstructionsText = this.instructionsText;
-      this.editingInstructions = true;
-    }
-  }
-
-  // Save the updated instructions
-  async saveInstructions(): Promise<void> {
-    try {
-      console.log('Saving instructions...');
-      const success = await this.textBoxService.updateText('VolunteerInstructions', this.instructionsText);
-      
-      if (!success) {
-        console.warn('Instructions were saved to localStorage but not to database');
-        // Show a less alarming message since we still saved to localStorage
-        const saveMsg = document.createElement('div');
-        saveMsg.textContent = 'Instructions saved locally. They may not persist across devices until database connectivity is restored.';
-        saveMsg.style.cssText = 'position:fixed; top:20px; right:20px; background:#fff3cd; color:#856404; padding:10px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1); z-index:9999;';
-        document.body.appendChild(saveMsg);
-        setTimeout(() => saveMsg.remove(), 5000);
-      }
-      
-      this.editingInstructions = false;
-    } catch (error) {
-      console.error('Error saving instructions:', error);
-      alert('There was a problem saving your changes, but they have been stored locally. Please try again later.');
-      // Still exit edit mode since we saved locally
-      this.editingInstructions = false;
-    }
-  }
-
-  // Cancel editing and revert to previous instructions
-  cancelEditInstructions(): void {
-    this.instructionsText = this.tempInstructionsText;
-    this.editingInstructions = false;
-  }
-
-  async fetchShifts(): Promise<void> {
-    this.loading = true; // Start loading
-    try {
-      const shifts = await this.list();
-      if (shifts && shifts.length > 0) {
-        this.shifts = shifts;
-        // Fetch signups for all shifts
-        await this.fetchAllShiftSignups();
-        this.organizeShiftsByDate();
-      }
-    } catch (error) {
-      console.error('Error fetching shifts:', error);
+      console.error('Error loading shifts:', error);
+      this.error = 'Failed to load shifts. Please try again.';
     } finally {
-      this.loading = false; // End loading regardless of success/failure
+      this.loading = false;
     }
   }
 
-  // New method to fetch signups for all shifts
-  async fetchAllShiftSignups(): Promise<void> {
-    try {
-      // Fetch all signups at once
-      const allSignups = await this.listAllSignups();
+  async createShift() {
+    if (this.shiftForm.invalid) return;
 
-      // Group signups by ShiftID
-      const signupsByShiftId: { [key: number]: SignUp[] } = {};
-      allSignups.forEach((signup) => {
-        if (!signupsByShiftId[signup.ShiftID]) {
-          signupsByShiftId[signup.ShiftID] = [];
+    this.creating = true;
+
+    try {
+      const formValue = this.shiftForm.value;
+      const baseDate = new Date(formValue.date);
+      
+      const [startHours, startMinutes] = formValue.startTime.split(':').map(Number);
+      const [endHours, endMinutes] = formValue.endTime.split(':').map(Number);
+
+      if (endHours < startHours || (endHours === startHours && endMinutes <= startMinutes)) {
+        this.showError('End time must be after start time');
+        return;
+      }
+
+      if (formValue.isRecurring) {
+        await this.createRecurringShifts(formValue, startHours, startMinutes, endHours, endMinutes);
+      } else {
+        await this.createSingleShift(baseDate, startHours, startMinutes, endHours, endMinutes, formValue.capacity);
+      }
+      
+      await this.loadShifts(); // Reload to get fresh data
+      this.shiftForm.reset();
+      this.resetFormDefaults();
+      this.showSuccess(formValue.isRecurring ? 'Recurring shifts created successfully!' : 'Shift created successfully!');
+    } catch (error) {
+      console.error('Error creating shift:', error);
+      this.showError('Failed to create shift. Please try again.');
+    } finally {
+      this.creating = false;
+    }
+  }
+
+  private async createSingleShift(date: Date, startHours: number, startMinutes: number, endHours: number, endMinutes: number, capacity: number) {
+    const startTime = new Date(date);
+    startTime.setHours(startHours, startMinutes, 0, 0);
+
+    const endTime = new Date(date);
+    endTime.setHours(endHours, endMinutes, 0, 0);
+
+    const shiftData: CreateShiftData = {
+      StartTime: startTime,
+      EndTime: endTime,
+      Capacity: capacity
+    };
+
+    await this.volunteerShiftService.createShift(shiftData);
+  }
+
+  private async createRecurringShifts(formValue: any, startHours: number, startMinutes: number, endHours: number, endMinutes: number) {
+    const baseDate = new Date(formValue.date);
+    const weekCount = formValue.weekCount || 8;
+    const shiftsToCreate: CreateShiftData[] = [];
+
+    if (formValue.recurrenceType === 'weekly') {
+      const selectedDays = [
+        { day: 0, selected: formValue.sunday },    // Sunday = 0
+        { day: 1, selected: formValue.monday },    // Monday = 1
+        { day: 2, selected: formValue.tuesday },   // Tuesday = 2
+        { day: 3, selected: formValue.wednesday }, // Wednesday = 3
+        { day: 4, selected: formValue.thursday },  // Thursday = 4
+        { day: 5, selected: formValue.friday },    // Friday = 5
+        { day: 6, selected: formValue.saturday }   // Saturday = 6
+      ];
+
+      const activeDays = selectedDays.filter(d => d.selected);
+      
+      if (activeDays.length === 0) {
+        throw new Error('Please select at least one day for weekly recurring shifts');
+      }
+
+      for (let week = 0; week < weekCount; week++) {
+        for (const dayInfo of activeDays) {
+          const shiftDate = new Date(baseDate);
+          shiftDate.setDate(baseDate.getDate() + (week * 7) + (dayInfo.day - baseDate.getDay()));
+          
+          // Skip dates in the past
+          if (shiftDate < new Date()) continue;
+
+          const startTime = new Date(shiftDate);
+          startTime.setHours(startHours, startMinutes, 0, 0);
+
+          const endTime = new Date(shiftDate);
+          endTime.setHours(endHours, endMinutes, 0, 0);
+
+          shiftsToCreate.push({
+            StartTime: startTime,
+            EndTime: endTime,
+            Capacity: formValue.capacity
+          });
         }
-        signupsByShiftId[signup.ShiftID].push(signup);
-      });
-
-      // Assign signups to each shift
-      this.shifts.forEach((shift) => {
-        shift.signups = signupsByShiftId[shift.ShiftID] || [];
-      });
-    } catch (error) {
-      console.error('Error fetching signups for shifts:', error);
-    }
-  }
-
-  async listAllSignups(): Promise<SignUp[]> {
-    try {
-      const endpoint = '/data-api/rest/SignUps';
-      const response = await fetch(endpoint);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
       }
+    } else if (formValue.recurrenceType === 'biweekly') {
+      for (let week = 0; week < weekCount; week += 2) {
+        const shiftDate = new Date(baseDate);
+        shiftDate.setDate(baseDate.getDate() + (week * 7));
+        
+        if (shiftDate < new Date()) continue;
 
-      const text = await response.text();
+        const startTime = new Date(shiftDate);
+        startTime.setHours(startHours, startMinutes, 0, 0);
 
-      if (!text) {
-        console.log('Empty response received');
-        return [];
+        const endTime = new Date(shiftDate);
+        endTime.setHours(endHours, endMinutes, 0, 0);
+
+        shiftsToCreate.push({
+          StartTime: startTime,
+          EndTime: endTime,
+          Capacity: formValue.capacity
+        });
       }
+    } else if (formValue.recurrenceType === 'monthly') {
+      for (let month = 0; month < Math.ceil(weekCount / 4); month++) {
+        const shiftDate = new Date(baseDate);
+        shiftDate.setMonth(baseDate.getMonth() + month);
+        
+        if (shiftDate < new Date()) continue;
 
-      try {
-        const data = JSON.parse(text);
-        return data.value;
-      } catch (parseError) {
-        console.error('Failed to parse JSON:', parseError);
-        return [];
-      }
-    } catch (error) {
-      console.error('Error fetching all signups:', error);
-      return [];
-    }
-  }
+        const startTime = new Date(shiftDate);
+        startTime.setHours(startHours, startMinutes, 0, 0);
 
-  organizeShiftsByDate(): void {
-    // Clear the existing calendar
-    this.calendarDays = [];
+        const endTime = new Date(shiftDate);
+        endTime.setHours(endHours, endMinutes, 0, 0);
 
-    // Get current date (start of day)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Find the next Saturday from today
-    const nextSaturday = new Date(today);
-    const dayOfWeek = today.getDay(); // 0 is Sunday, 6 is Saturday
-    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7; // Days until next Saturday
-    nextSaturday.setDate(today.getDate() + daysUntilSaturday);
-
-    // Create calendar for the specified number of weeks, but only include Saturday and Sunday
-    for (let week = 0; week < this.visibleWeeks; week++) {
-      // Calculate the Saturday for this week
-      const saturdayDate = new Date(nextSaturday);
-      saturdayDate.setDate(nextSaturday.getDate() + (week * 7));
-      
-      // Calculate the Sunday for this week
-      const sundayDate = new Date(saturdayDate);
-      sundayDate.setDate(saturdayDate.getDate() + 1);
-      
-      // Find shifts for Saturday
-      const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
-        return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
-        );
-      });
-      
-      // Find shifts for Sunday
-      const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
-        return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
-        );
-      });
-      
-      // Add Saturday to calendar days
-      this.calendarDays.push({
-        date: saturdayDate,
-        shifts: saturdayShifts,
-      });
-      
-      // Add Sunday to calendar days
-      this.calendarDays.push({
-        date: sundayDate,
-        shifts: sundayShifts,
-      });
-    }
-  }
-
-  async list(): Promise<VolunteerShift[]> {
-    try {
-      const endpoint = '/data-api/rest/VolunteerShifts';
-      const response = await fetch(endpoint);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      if (!text) {
-        console.log('Empty response received');
-        return [];
-      }
-
-      try {
-        const data = JSON.parse(text);
-        // Filter out past shifts
-        const currentDate = new Date();
-        return data.value
-          .map((shift: any) => ({
-            ...shift,
-            StartTime: new Date(shift.StartTime),
-            EndTime: new Date(shift.EndTime),
-          }))
-          .filter(
-            (shift: VolunteerShift) => shift.StartTime >= currentDate
-          );
-      } catch (parseError) {
-        console.error('Failed to parse JSON:', parseError);
-        console.log('Raw response:', text);
-        return [];
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      return [];
-    }
-  }
-
-  async onShiftSelected(shift: VolunteerShift): Promise<void> {
-    this.selectedShift = shift;
-    this.showSignups = true;
-  }
-
-  closeModal(): void {
-    this.showSignups = false;
-    this.selectedShift = null;
-  }
-
-  showMoreWeeks(): void {
-    this.visibleWeeks = Math.min(this.visibleWeeks + 2, this.maxWeeks);
-    this.organizeShiftsByDate();
-  }
-
-  // Check if we can show more weeks
-  canShowMore(): boolean {
-    return this.visibleWeeks < this.maxWeeks;
-  }
-
-  // Group calendar days by week for better display
-  getCalendarWeeks(): {
-    weekStartDate: Date;
-    days: { date: Date; shifts: VolunteerShift[] }[];
-  }[] {
-    const weeks: {
-      weekStartDate: Date;
-      days: { date: Date; shifts: VolunteerShift[] }[];
-    }[] = [];
-
-    for (let i = 0; i < this.calendarDays.length; i += 2) {
-      const weekDays = this.calendarDays.slice(i, i + 2);
-      if (weekDays.length > 0) {
-        weeks.push({
-          weekStartDate: weekDays[0].date,
-          days: weekDays,
+        shiftsToCreate.push({
+          StartTime: startTime,
+          EndTime: endTime,
+          Capacity: formValue.capacity
         });
       }
     }
 
-    return weeks;
-  }
-  
-  // Navigate to previous week
-  previousWeek(): void {
-    // Get the first date in our calendar (which should be a Saturday)
-    if (this.calendarDays.length === 0) return;
-    
-    const firstDate = new Date(this.calendarDays[0].date);
-    // Go back 7 days to get to the previous week's Saturday
-    firstDate.setDate(firstDate.getDate() - 7);
-    
-    // Clear the calendar and rebuild it starting from the new date
-    this.calendarDays = [];
-    
-    for (let week = 0; week < this.visibleWeeks; week++) {
-      // Calculate the Saturday for this week
-      const saturdayDate = new Date(firstDate);
-      saturdayDate.setDate(firstDate.getDate() + (week * 7));
-      
-      // Calculate the Sunday for this week
-      const sundayDate = new Date(saturdayDate);
-      sundayDate.setDate(saturdayDate.getDate() + 1);
-      
-      // Find shifts for Saturday
-      const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
-        return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
-        );
-      });
-      
-      // Find shifts for Sunday
-      const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
-        return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
-        );
-      });
-      
-      // Add Saturday to calendar days
-      this.calendarDays.push({
-        date: saturdayDate,
-        shifts: saturdayShifts,
-      });
-      
-      // Add Sunday to calendar days
-      this.calendarDays.push({
-        date: sundayDate,
-        shifts: sundayShifts,
-      });
-    }
-  }
-  
-  // Navigate to next week
-  nextWeek(): void {
-    // Get the last date in our calendar (which should be a Sunday)
-    if (this.calendarDays.length === 0) return;
-    
-    const lastDate = new Date(this.calendarDays[this.calendarDays.length - 1].date);
-    // Go forward 6 days to get to the next week's Saturday
-    lastDate.setDate(lastDate.getDate() + 6);
-    
-    // Clear the calendar and rebuild it starting from the new date
-    this.calendarDays = [];
-    
-    for (let week = 0; week < this.visibleWeeks; week++) {
-      // Calculate the Saturday for this week
-      const saturdayDate = new Date(lastDate);
-      saturdayDate.setDate(lastDate.getDate() + (week * 7));
-      
-      // Calculate the Sunday for this week
-      const sundayDate = new Date(saturdayDate);
-      sundayDate.setDate(saturdayDate.getDate() + 1);
-      
-      // Find shifts for Saturday
-      const saturdayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
-        return (
-          shiftDate.getDate() === saturdayDate.getDate() &&
-          shiftDate.getMonth() === saturdayDate.getMonth() &&
-          shiftDate.getFullYear() === saturdayDate.getFullYear()
-        );
-      });
-      
-      // Find shifts for Sunday
-      const sundayShifts = this.shifts.filter((shift) => {
-        const shiftDate = new Date(shift.StartTime);
-        return (
-          shiftDate.getDate() === sundayDate.getDate() &&
-          shiftDate.getMonth() === sundayDate.getMonth() &&
-          shiftDate.getFullYear() === sundayDate.getFullYear()
-        );
-      });
-      
-      // Add Saturday to calendar days
-      this.calendarDays.push({
-        date: saturdayDate,
-        shifts: saturdayShifts,
-      });
-      
-      // Add Sunday to calendar days
-      this.calendarDays.push({
-        date: sundayDate,
-        shifts: sundayShifts,
-      });
+    // Create all shifts
+    for (const shiftData of shiftsToCreate) {
+      await this.volunteerShiftService.createShift(shiftData);
     }
   }
 
-  hideAdminLogin(): void {
-    this.showAdminLogin = false;
-    // Navigate back to regular calendar if login is cancelled
-    this.router.navigate(['/calendar']);
+  private resetFormDefaults() {
+    this.shiftForm.patchValue({
+      isRecurring: false,
+      recurrenceType: 'weekly',
+      weekCount: 8,
+      sunday: false,
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false
+    });
   }
 
-  openAdminPanel(): void {
-    this.showAdminPanel = true;
+  showVolunteerDetails(shift: VolunteerShift) {
+    const dialogData: VolunteerDetailsDialogData = { shift };
+    
+    this.dialog.open(VolunteerDetailsDialogComponent, {
+      width: '800px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      data: dialogData
+    });
   }
 
-  closeAdminPanel(): void {
-    this.showAdminPanel = false;
-  }
+  async deleteShift(shift: VolunteerShift) {
+    const confirmMessage = shift.signups.length > 0 
+      ? `Are you sure you want to delete this shift? This will also delete ${shift.signups.length} signup(s) from volunteers.`
+      : 'Are you sure you want to delete this shift?';
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/calendar']);
-  }
+    this.deleting.add(shift.ShiftID);
 
-  // Admin methods for shifts
-  async createShift(shiftData: Partial<VolunteerShift>): Promise<void> {
     try {
-      const endpoint = '/data-api/rest/VolunteerShifts';
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(shiftData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const text = await response.text();
-      if (text) {
-        try {
-          const data = JSON.parse(text);
-          const newShift = data.value || data;
-          newShift.signups = [];
-
-          // Add to shifts array and refresh calendar
-          this.shifts.push(newShift);
-          this.organizeShiftsByDate();
-        } catch (parseError) {
-          console.error('Failed to parse response:', parseError);
-        }
-      }
-    } catch (error) {
-      console.error('Error creating shift:', error);
-      alert('Failed to create shift. Please try again.');
-    }
-  }
-
-  async updateShift(
-    shiftId: number,
-    shiftData: Partial<VolunteerShift>
-  ): Promise<void> {
-    try {
-      const endpoint = `/data-api/rest/VolunteerShifts(${shiftId})`;
-      const response = await fetch(endpoint, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(shiftData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      // Find and update the shift in the shifts array
-      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
-      if (shiftIndex !== -1) {
-        this.shifts[shiftIndex] = {
-          ...this.shifts[shiftIndex],
-          ...shiftData,
-        };
-
-        // Refresh the calendar
-        this.organizeShiftsByDate();
-      }
-    } catch (error) {
-      console.error('Error updating shift:', error);
-      alert('Failed to update shift. Please try again.');
-    }
-  }
-
-  async deleteShift(shiftId: number): Promise<void> {
-    try {
-      // Delete all signups for this shift first (if any)
-      const signups = await this.getSignUpsForShift(shiftId);
-      for (const signup of signups) {
-        await this.deleteSignup(signup.SignUpID, shiftId);
-      }
-
-      const endpoint = `/data-api/rest/VolunteerShifts/ShiftID`;
-      const response = await fetch(`${endpoint}/${shiftId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      // Remove the shift from the shifts array
-      this.shifts = this.shifts.filter((s) => s.ShiftID !== shiftId);
-
-      // Refresh the calendar
-      this.organizeShiftsByDate();
+      await this.volunteerShiftService.deleteShift(shift.ShiftID);
+      this.shifts = this.shifts.filter(s => s.ShiftID !== shift.ShiftID);
+      const message = shift.signups.length > 0 
+        ? `Shift and ${shift.signups.length} signup(s) deleted successfully!`
+        : 'Shift deleted successfully!';
+      this.showSuccess(message);
     } catch (error) {
       console.error('Error deleting shift:', error);
-      alert('Failed to delete shift. Please try again.');
+      this.showError('Failed to delete shift. Please try again.');
+    } finally {
+      this.deleting.delete(shift.ShiftID);
     }
   }
 
-  async getSignUpsForShift(shiftId: number): Promise<SignUp[]> {
-    try {
-      const endpoint = `/data-api/rest/SignUps?$filter=ShiftID eq ${shiftId}`;
-      const response = await fetch(endpoint);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      if (!text) {
-        console.log('Empty response received');
-        return [];
-      }
-
-      try {
-        const data = JSON.parse(text);
-        return data.value;
-      } catch (parseError) {
-        console.error('Failed to parse JSON:', parseError);
-        return [];
-      }
-    } catch (error) {
-      console.error('Error fetching signups:', error);
-      return [];
-    }
+  formatDate(date: Date): string {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
   }
 
-  // Admin methods for signups
-  async deleteSignup(signupId: number, shiftId: number): Promise<void> {
-    try {
-      const endpoint = `/data-api/rest/SignUps/SignUpID`;
-      const response = await fetch(`${endpoint}/${signupId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      // Find the shift and remove the signup
-      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
-      if (shiftIndex !== -1) {
-        this.shifts[shiftIndex].signups = this.shifts[
-          shiftIndex
-        ].signups.filter((s) => s.SignUpID !== signupId);
-
-        // If we're currently viewing this shift, update the selectedShift
-        if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
-          this.selectedShift = { ...this.shifts[shiftIndex] };
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting signup:', error);
-      alert('Failed to delete signup. Please try again.');
-    }
+  formatTimeRange(shift: VolunteerShift): string {
+    const startTime = shift.StartTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    const endTime = shift.EndTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    return `${startTime} - ${endTime}`;
   }
 
-  async updateSignup(
-    signupId: number,
-    shiftId: number,
-    signupData: Partial<SignUp>
-  ): Promise<void> {
-    try {
-      const endpoint = `/data-api/rest/SignUps(${signupId})`;
-      const response = await fetch(endpoint, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(signupData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      // Find the shift and update the signup
-      const shiftIndex = this.shifts.findIndex((s) => s.ShiftID === shiftId);
-      if (shiftIndex !== -1) {
-        const signupIndex = this.shifts[shiftIndex].signups.findIndex(
-          (s) => s.SignUpID === signupId
-        );
-
-        if (signupIndex !== -1) {
-          this.shifts[shiftIndex].signups[signupIndex] = {
-            ...this.shifts[shiftIndex].signups[signupIndex],
-            ...signupData,
-          };
-
-          // If we're currently viewing this shift, update the selectedShift
-          if (this.selectedShift && this.selectedShift.ShiftID === shiftId) {
-            this.selectedShift = { ...this.shifts[shiftIndex] };
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error updating signup:', error);
-      alert('Failed to update signup. Please try again.');
-    }
+  getFilledSlots(shift: VolunteerShift): number {
+    return shift.signups.reduce((total, signup) => total + (signup.NumPeople || 1), 0);
   }
 
-  // Format instructions text for display to preserve line breaks and make URLs clickable
-  formatInstructionsForDisplay(text: string): string {
-    if (!text) return '';
-    
-    // First, escape HTML to prevent injection
-    let safeText = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-    
-    // Turn URLs into clickable links
-    safeText = safeText.replace(
-      /(https?:\/\/[^\s]+)/g, 
-      '<a href="$1" target="_blank">$1</a>'
-    );
-    
-    // Convert email addresses to mailto links
-    safeText = safeText.replace(
-      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-      '<a href="mailto:$1">$1</a>'
-    );
-    
-    return safeText;
+  getCapacityPercentage(shift: VolunteerShift): number {
+    return (this.getFilledSlots(shift) / shift.Capacity) * 100;
+  }
+
+  isShiftFull(shift: VolunteerShift): boolean {
+    return this.getFilledSlots(shift) >= shift.Capacity;
+  }
+
+  isShiftNearlyFull(shift: VolunteerShift): boolean {
+    return this.getCapacityPercentage(shift) >= 80 && !this.isShiftFull(shift);
+  }
+
+  private showSuccess(message: string) {
+    this.snackBar.open(message, 'Close', { 
+      duration: 3000,
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showError(message: string) {
+    this.snackBar.open(message, 'Close', { 
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
   }
 }
