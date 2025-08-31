@@ -208,7 +208,8 @@ export class VolunteerShiftService {
 
   async getShiftById(shiftId: number): Promise<VolunteerShift | null> {
     try {
-      const response = await fetch(`${this.shiftsEndpoint}/${shiftId}`);
+      // Use filter query format for Data API Builder
+      const response = await fetch(`${this.shiftsEndpoint}?$filter=ShiftID eq ${shiftId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -223,8 +224,13 @@ export class VolunteerShiftService {
       }
 
       const data = JSON.parse(text);
-      const shift = Array.isArray(data.value) ? data.value[0] : data;
-      return shift ? this.parseShiftDates(shift) : null;
+      const shifts = data.value || [];
+      
+      if (shifts.length === 0) {
+        return null;
+      }
+      
+      return this.parseShiftDates(shifts[0]);
     } catch (error) {
       console.error('Error fetching shift:', error);
       throw error;
