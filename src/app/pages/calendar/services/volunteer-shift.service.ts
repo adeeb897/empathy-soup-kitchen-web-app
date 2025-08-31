@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { VolunteerShift, SignUp } from '../models/volunteer.model';
+import { EmailService } from './email.service';
+import { ReminderService } from './reminder.service';
 
 export interface VolunteerShiftAPIResponse {
   value: VolunteerShift[];
@@ -16,7 +18,10 @@ export class VolunteerShiftService {
   private shiftsEndpoint = '/data-api/rest/VolunteerShifts';
   private signupsEndpoint = '/data-api/rest/SignUps';
 
-  constructor() {}
+  constructor(
+    private emailService: EmailService,
+    private reminderService: ReminderService
+  ) {}
 
   async getAllShifts(): Promise<VolunteerShift[]> {
     try {
@@ -112,7 +117,17 @@ export class VolunteerShiftService {
 
       const data = JSON.parse(text);
       const newShift = Array.isArray(data.value) ? data.value[0] : data;
-      return this.parseShiftDates(newShift);
+      const parsedShift = this.parseShiftDates(newShift);
+
+      // Send email notification to admins about new shift creation
+      try {
+        await this.emailService.sendShiftCreationNotification(parsedShift);
+      } catch (emailError) {
+        console.warn('Failed to send shift creation notification email:', emailError);
+        // Don't fail the shift creation if email fails
+      }
+
+      return parsedShift;
     } catch (error) {
       console.error('Error creating shift:', error);
       throw error;
@@ -177,6 +192,14 @@ export class VolunteerShiftService {
         const errorText = await response.text();
         throw new Error(`Failed to delete shift: ${response.status} ${response.statusText} - ${errorText}`);
       }
+
+      // Remove all reminders for this shift
+      try {
+        this.reminderService.removeRemindersForShift(shiftId);
+      } catch (reminderError) {
+        console.warn('Failed to remove reminders for deleted shift:', reminderError);
+        // Don't fail the shift deletion if reminder cleanup fails
+      }
     } catch (error) {
       console.error('Error deleting shift:', error);
       throw error;
@@ -226,7 +249,47 @@ export class VolunteerShiftService {
       }
 
       const data = JSON.parse(text);
-      return Array.isArray(data.value) ? data.value[0] : data;
+      const newSignup = Array.isArray(data.value) ? data.value[0] : data;
+
+      // Get the shift details to include in email notifications
+      try {
+        const shift = await this.getShiftById(signupData.ShiftID);
+        if (shift) {
+          // Send confirmation email to volunteer
+          try {
+            await this.emailService.sendShiftSignupConfirmation(shift, newSignup);
+          } catch (emailError) {
+            console.warn('Failed to send signup confirmation email:', emailError);
+            // Don't fail the signup if email fails
+          }
+
+          // Send notification email to admins
+          try {
+            await this.emailService.sendShiftSignupAdminNotification(shift, newSignup);
+          } catch (emailError) {
+            console.warn('Failed to send admin notification email:', emailError);
+            // Don't fail the signup if email fails
+          }
+
+          // Schedule reminder email
+          try {
+            this.reminderService.addReminderForSignup(
+              shift.ShiftID,
+              newSignup.Email,
+              newSignup.Name,
+              shift.StartTime
+            );
+          } catch (reminderError) {
+            console.warn('Failed to schedule reminder:', reminderError);
+            // Don't fail the signup if reminder scheduling fails
+          }
+        }
+      } catch (shiftError) {
+        console.warn('Failed to fetch shift for email notifications:', shiftError);
+        // Continue even if we can't send emails
+      }
+
+      return newSignup;
     } catch (error) {
       console.error('Error creating signup:', error);
       throw error;
@@ -261,6 +324,15 @@ export class VolunteerShiftService {
 
   async deleteSignup(signupId: number): Promise<void> {
     try {
+      // First get the signup details for reminder cleanup
+      let signupInfo: SignUp | null = null;
+      try {
+        const allSignups = await this.getAllSignups();
+        signupInfo = allSignups.find(s => s.SignUpID === signupId) || null;
+      } catch (fetchError) {
+        console.warn('Could not fetch signup for reminder cleanup:', fetchError);
+      }
+
       const response = await fetch(`${this.signupsEndpoint}/SignUpID/${signupId}`, {
         method: 'DELETE'
       });
@@ -268,6 +340,16 @@ export class VolunteerShiftService {
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to delete signup: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      // Remove reminders for this signup
+      if (signupInfo) {
+        try {
+          this.reminderService.removeRemindersForSignup(signupInfo.ShiftID, signupInfo.Email);
+        } catch (reminderError) {
+          console.warn('Failed to remove reminders for deleted signup:', reminderError);
+          // Don't fail the signup deletion if reminder cleanup fails
+        }
       }
     } catch (error) {
       console.error('Error deleting signup:', error);
