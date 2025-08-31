@@ -184,7 +184,7 @@ export class VolunteerShiftService {
       }
 
       // Then delete the shift
-      const response = await fetch(`${this.shiftsEndpoint}/${shiftId}`, {
+      const response = await fetch(`${this.shiftsEndpoint}/ShiftID/${shiftId}`, {
         method: 'DELETE'
       });
 
