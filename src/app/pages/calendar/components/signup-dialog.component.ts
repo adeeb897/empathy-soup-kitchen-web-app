@@ -118,18 +118,19 @@ export interface SignupDialogData {
       margin: 16px auto;
       padding: 20px;
       box-sizing: border-box;
-      border-radius: 12px;
+      border-radius: 12px; /* outer modal rounded */
       background: #fff;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      overflow: hidden;
+      /* remove overflow hidden to avoid clipping/overlap */
     }
 
-    /* Shift details: compact, matching rounded corners inside */
+    /* Shift details: square inside panel (no rounded corners) */
     .shift-details {
       background: #f7f8fa;
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 0; /* ensure inner block is not rounded */
       margin-bottom: 18px;
+      border: 1px solid rgba(0,0,0,0.04);
     }
 
     .detail-row {
@@ -169,17 +170,26 @@ export interface SignupDialogData {
       border-radius: 8px;
     }
     .mat-form-field .mat-form-field-infix {
-      padding: 0; /* avoid extra nesting padding that causes overflow */
+      padding: 0;
       box-sizing: border-box;
     }
 
-    /* Dialog actions: align to end on desktop */
+    /* Ensure content doesn't get overlapped by actions */
+    mat-dialog-content {
+      padding-bottom: 16px;
+      display: block;
+    }
+
+    /* Dialog actions: flow normally, separated from content */
     mat-dialog-actions {
       display: flex;
       flex-direction: row;
       justify-content: flex-end;
       gap: 10px;
-      padding: 18px 0 0 0;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid transparent; /* visual separation if needed */
+      position: static;
     }
 
     /* Buttons: full width on small screens, normal on larger */
@@ -209,6 +219,7 @@ export interface SignupDialogData {
       mat-dialog-actions button {
         width: 100%;
         justify-content: center;
+        min-height: 44px;
       }
     }
 
