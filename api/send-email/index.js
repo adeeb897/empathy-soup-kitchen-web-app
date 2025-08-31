@@ -65,7 +65,7 @@ module.exports = async function (context, req) {
         }
 
         // Create SMTP transporter
-        const transporter = nodemailer.createTransporter({
+        const transporter = nodemailer.createTransport({
             host: process.env.EMAIL_SMTP_HOST,
             port: parseInt(process.env.EMAIL_SMTP_PORT),
             secure: process.env.EMAIL_SMTP_SECURE === 'true',
