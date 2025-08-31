@@ -1,0 +1,19 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "EMAIL_SMTP_HOST": "smtp.gmail.com",
+    "EMAIL_SMTP_PORT": "587",
+    "EMAIL_SMTP_SECURE": "false",
+    "EMAIL_SMTP_USERNAME": "empathysoupkitchen@gmail.com",
+    "EMAIL_SMTP_PASSWORD": "your-app-specific-password-here",
+    "EMAIL_SENDER_NAME": "Empathy Soup Kitchen",
+    "EMAIL_SENDER_EMAIL": "noreply@empathysoupkitchen.org",
+    "EMAIL_ADMIN_EMAIL": "admin@empathysoupkitchen.org"
+  },
+  "Host": {
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}
