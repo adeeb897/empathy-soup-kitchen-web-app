@@ -274,39 +274,62 @@ export class EmailService {
   }
 
   /**
-   * Core email sending functionality
+   * Core email sending functionality using Azure Functions serverless endpoint
    */
   private async sendEmail(emailData: EmailData): Promise<EmailResult> {
     try {
       const endpoints = this.configService.getEndpoints();
       
-      this.logger.debug('EmailService', 'Attempting to send email', { 
+      this.logger.debug('EmailService', 'Attempting to send email via serverless function', { 
         to: emailData.to, 
         subject: emailData.subject,
         endpoint: endpoints.sendEmail
       });
       
+      // Format data for Azure Functions endpoint
+      const requestBody = {
+        to: emailData.to,
+        subject: emailData.subject,
+        html: emailData.htmlContent,
+        text: emailData.textContent,
+        type: this.getEmailType(emailData.subject)
+      };
+      
       const response = await fetch(endpoints.sendEmail, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify(emailData)
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => 'No error details');
-        const errorMessage = `Email service responded with status: ${response.status} - ${errorText}`;
+        let errorDetails = 'No error details';
+        try {
+          const errorData = await response.json();
+          errorDetails = errorData.error || errorData.message || 'Unknown server error';
+        } catch {
+          errorDetails = await response.text().catch(() => 'Unable to read error response');
+        }
+        
+        const errorMessage = `Email service responded with status: ${response.status} - ${errorDetails}`;
         this.logger.error('EmailService', errorMessage);
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Email sending failed');
+      }
+      
       const messageId = result.messageId || 'unknown';
       
-      this.logger.debug('EmailService', 'Email sent successfully', { 
+      this.logger.debug('EmailService', 'Email sent successfully via serverless function', { 
         to: emailData.to,
-        messageId 
+        messageId,
+        type: result.type
       });
       
       return { 
@@ -315,7 +338,7 @@ export class EmailService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.logger.error('EmailService', 'Failed to send email', error instanceof Error ? error : new Error(errorMessage), {
+      this.logger.error('EmailService', 'Failed to send email via serverless function', error instanceof Error ? error : new Error(errorMessage), {
         to: emailData.to,
         subject: emailData.subject
       });
@@ -325,6 +348,17 @@ export class EmailService {
         error: errorMessage
       };
     }
+  }
+
+  /**
+   * Determine email type based on subject line for tracking purposes
+   */
+  private getEmailType(subject: string): string {
+    if (subject.includes('Confirmation')) return 'confirmation';
+    if (subject.includes('Reminder')) return 'reminder';
+    if (subject.includes('New Volunteer')) return 'admin_signup_notification';
+    if (subject.includes('New Volunteer Shift')) return 'admin_shift_notification';
+    return 'general';
   }
 
   /**
