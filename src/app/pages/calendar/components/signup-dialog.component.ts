@@ -111,17 +111,25 @@ export interface SignupDialogData {
     </div>
   `,
   styles: [`
+    /* Container: responsive, centered, rounded, subtle shadow */
     .signup-dialog {
-      min-width: 400px;
-      padding: 24px 24px 0 24px;
+      width: 100%;
+      max-width: 480px;
+      margin: 16px auto;
+      padding: 20px;
       box-sizing: border-box;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
     }
 
+    /* Shift details: compact, matching rounded corners inside */
     .shift-details {
-      background: #f5f5f5;
-      padding: 15px;
+      background: #f7f8fa;
+      padding: 12px;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .detail-row {
@@ -129,7 +137,8 @@ export interface SignupDialogData {
       align-items: center;
       gap: 10px;
       margin-bottom: 8px;
-      font-size: 1rem;
+      font-size: 0.98rem;
+      color: #333;
     }
 
     .detail-row:last-child {
@@ -143,32 +152,50 @@ export interface SignupDialogData {
       height: 18px;
     }
 
+    /* Form layout: compact spacing */
     .signup-form {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 14px;
     }
 
     .full-width {
       width: 100%;
     }
 
+    /* Give Material fill fields a slightly rounded, padded look */
+    .mat-form-field-appearance-fill .mat-form-field-flex {
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+    .mat-form-field .mat-form-field-infix {
+      padding: 0; /* avoid extra nesting padding that causes overflow */
+      box-sizing: border-box;
+    }
+
+    /* Dialog actions: align to end on desktop */
     mat-dialog-actions {
       display: flex;
       flex-direction: row;
       justify-content: flex-end;
       gap: 10px;
-      padding: 20px 0 0 0;
+      padding: 18px 0 0 0;
     }
 
-    @media (max-width: 600px) {
+    /* Buttons: full width on small screens, normal on larger */
+    @media (max-width: 480px) {
       .signup-dialog {
-        min-width: 100vw;
-        padding: 12px 8px 0 8px;
+        margin: 12px;
+        padding: 14px;
+        border-radius: 10px;
+      }
+      h2[mat-dialog-title] {
+        font-size: 1.05rem;
+        margin: 0 0 8px 0;
       }
       .shift-details {
         padding: 10px;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
       }
       .signup-form {
         gap: 12px;
@@ -177,21 +204,18 @@ export interface SignupDialogData {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
-        padding-top: 16px;
+        padding-top: 14px;
+      }
+      mat-dialog-actions button {
+        width: 100%;
+        justify-content: center;
       }
     }
 
-    @media (max-width: 480px) {
-      .signup-dialog {
-        min-width: 100vw;
-        padding: 8px 4px 0 4px;
-      }
-      h2[mat-dialog-title] {
-        font-size: 1.1rem;
-      }
-      .shift-details {
-        font-size: 0.9rem;
-      }
+    /* Small polish to avoid any accidental horizontal overflow */
+    input, textarea, .mat-form-field {
+      max-width: 100%;
+      box-sizing: border-box;
     }
   `]
 })
