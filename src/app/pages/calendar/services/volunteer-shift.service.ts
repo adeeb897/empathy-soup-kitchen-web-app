@@ -273,12 +273,7 @@ export class VolunteerShiftService {
 
           // Schedule reminder email
           try {
-            this.reminderService.addReminderForSignup(
-              shift.ShiftID,
-              newSignup.Email,
-              newSignup.Name,
-              shift.StartTime
-            );
+            this.reminderService.scheduleReminderForSignup(shift, newSignup);
           } catch (reminderError) {
             console.warn('Failed to schedule reminder:', reminderError);
             // Don't fail the signup if reminder scheduling fails

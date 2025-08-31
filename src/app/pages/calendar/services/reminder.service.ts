@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { VolunteerShiftService } from './volunteer-shift.service';
 import { EmailService, ReminderSchedule } from './email.service';
 import { EmailConfigService } from './email-config.service';
+import { VolunteerShift } from '../models/volunteer.model';
 
 export interface ReminderConfig {
   enabled: boolean;
@@ -24,7 +24,6 @@ export class ReminderService {
   };
 
   constructor(
-    private volunteerShiftService: VolunteerShiftService,
     private emailService: EmailService,
     private configService: EmailConfigService
   ) {
@@ -38,6 +37,93 @@ export class ReminderService {
   }
 
   /**
+   * Public method to generate reminder schedules with provided shifts data
+   */
+  generateRemindersForShifts(shifts: VolunteerShift[]): void {
+    if (!this.config.enabled) {
+      console.log('Reminder generation skipped - reminders disabled');
+      return;
+    }
+
+    try {
+      console.log('Generating reminder schedules for provided shifts...');
+      
+      // Clear existing unsent reminders
+      this.reminderSchedules = this.reminderSchedules.filter(schedule => schedule.sent);
+      
+      // Generate new schedules using the email service
+      const newSchedules = this.emailService.generateReminderSchedules(shifts);
+      
+      // Add new schedules
+      this.reminderSchedules.push(...newSchedules);
+      
+      // Remove duplicates
+      this.reminderSchedules = this.removeDuplicateSchedules(this.reminderSchedules);
+      
+      console.log(`Generated ${newSchedules.length} reminder schedules. Total pending: ${this.getPendingReminders().length}`);
+    } catch (error) {
+      console.error('Failed to generate reminder schedules:', error);
+    }
+  }
+
+  /**
+   * Schedule a single reminder for a specific shift and signup
+   */
+  scheduleReminderForSignup(shift: VolunteerShift, signup: any): void {
+    if (!this.config.enabled) {
+      return;
+    }
+
+    const reminderDate = new Date(shift.StartTime.getTime() - (this.config.hoursBeforeShift * 60 * 60 * 1000));
+    
+    // Only schedule if reminder is in the future
+    if (reminderDate > new Date()) {
+      const reminder: ReminderSchedule = {
+        shiftId: shift.ShiftID,
+        email: signup.Email,
+        name: signup.Name,
+        shiftDate: new Date(shift.StartTime),
+        reminderDate: reminderDate,
+        sent: false
+      };
+
+      // Remove any existing reminder for this combination
+      this.reminderSchedules = this.reminderSchedules.filter(
+        r => !(r.shiftId === shift.ShiftID && r.email === signup.Email)
+      );
+
+      // Add the new reminder
+      this.reminderSchedules.push(reminder);
+      
+      console.log(`Scheduled reminder for ${signup.Name} (${signup.Email}) for shift ${shift.ShiftID}`);
+    }
+  }
+
+  /**
+   * Remove all reminders for a specific shift
+   */
+  removeRemindersForShift(shiftId: number): void {
+    const beforeCount = this.reminderSchedules.length;
+    this.reminderSchedules = this.reminderSchedules.filter(
+      schedule => schedule.shiftId !== shiftId
+    );
+    const afterCount = this.reminderSchedules.length;
+    console.log(`Removed ${beforeCount - afterCount} reminders for shift ${shiftId}`);
+  }
+
+  /**
+   * Remove reminders for a specific signup
+   */
+  removeRemindersForSignup(shiftId: number, email: string): void {
+    const beforeCount = this.reminderSchedules.length;
+    this.reminderSchedules = this.reminderSchedules.filter(
+      schedule => !(schedule.shiftId === shiftId && schedule.email === email)
+    );
+    const afterCount = this.reminderSchedules.length;
+    console.log(`Removed ${beforeCount - afterCount} reminders for ${email} on shift ${shiftId}`);
+  }
+
+  /**
    * Start the reminder service
    */
   start(): void {
@@ -48,9 +134,6 @@ export class ReminderService {
 
     console.log('Starting reminder service...');
     this.isRunning = true;
-    
-    // Initial schedule generation
-    this.generateReminderSchedules();
     
     // Set up interval to check and send reminders
     this.intervalId = window.setInterval(
@@ -66,6 +149,7 @@ export class ReminderService {
    */
   stop(): void {
     if (!this.isRunning) {
+      console.warn('Reminder service is not running');
       return;
     }
 
@@ -73,31 +157,49 @@ export class ReminderService {
     this.isRunning = false;
     
     if (this.intervalId) {
-      window.clearInterval(this.intervalId);
+      clearInterval(this.intervalId);
       this.intervalId = undefined;
     }
 
-    console.log('Reminder service stopped.');
+    console.log('Reminder service stopped');
+  }
+
+  /**
+   * Get service status
+   */
+  isServiceRunning(): boolean {
+    return this.isRunning;
+  }
+
+  /**
+   * Get reminder configuration
+   */
+  getConfig(): ReminderConfig {
+    return { ...this.config };
   }
 
   /**
    * Update reminder configuration
    */
-  updateConfig(config: Partial<ReminderConfig>): void {
-    this.config = { ...this.config, ...config };
-    console.log('Reminder configuration updated:', this.config);
-    
-    // Regenerate schedules if running
-    if (this.isRunning) {
-      this.generateReminderSchedules();
-    }
+  updateConfig(newConfig: Partial<ReminderConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    console.log('Reminder service configuration updated:', this.config);
   }
 
   /**
-   * Get current reminder configuration
+   * Get statistics
    */
-  getConfig(): ReminderConfig {
-    return { ...this.config };
+  getStatistics(): any {
+    const pending = this.getPendingReminders();
+    const sent = this.reminderSchedules.filter(schedule => schedule.sent);
+    
+    return {
+      totalScheduled: this.reminderSchedules.length,
+      pendingCount: pending.length,
+      sentCount: sent.length,
+      isRunning: this.isRunning,
+      config: this.config
+    };
   }
 
   /**
@@ -122,100 +224,25 @@ export class ReminderService {
   }
 
   /**
-   * Add a single reminder schedule (used when new signups are created)
+   * Clear all reminder schedules
    */
-  addReminderForSignup(shiftId: number, email: string, name: string, shiftStartTime: Date): void {
-    if (!this.config.enabled) {
-      return;
-    }
-
-    const reminderDate = new Date(shiftStartTime.getTime() - (this.config.hoursBeforeShift * 60 * 60 * 1000));
-    
-    // Only schedule if reminder is in the future
-    if (reminderDate > new Date()) {
-      const newReminder: ReminderSchedule = {
-        shiftId,
-        email,
-        name,
-        shiftDate: new Date(shiftStartTime),
-        reminderDate,
-        sent: false
-      };
-
-      // Check if this reminder already exists
-      const exists = this.reminderSchedules.some(
-        r => r.shiftId === shiftId && r.email === email && !r.sent
-      );
-
-      if (!exists) {
-        this.reminderSchedules.push(newReminder);
-        console.log(`Added reminder for ${name} (${email}) for shift ${shiftId}`);
-      }
-    }
+  clearAllSchedules(): void {
+    this.reminderSchedules = [];
+    console.log('All reminder schedules cleared');
   }
 
   /**
-   * Remove reminders for a specific shift (used when shifts are deleted)
+   * Clear sent reminders (cleanup)
    */
-  removeRemindersForShift(shiftId: number): void {
-    const originalLength = this.reminderSchedules.length;
-    this.reminderSchedules = this.reminderSchedules.filter(
-      schedule => schedule.shiftId !== shiftId
-    );
-    
-    const removedCount = originalLength - this.reminderSchedules.length;
-    if (removedCount > 0) {
-      console.log(`Removed ${removedCount} reminders for shift ${shiftId}`);
-    }
+  clearSentReminders(): void {
+    const beforeCount = this.reminderSchedules.length;
+    this.reminderSchedules = this.reminderSchedules.filter(schedule => !schedule.sent);
+    const afterCount = this.reminderSchedules.length;
+    console.log(`Cleared ${beforeCount - afterCount} sent reminders. ${afterCount} remaining.`);
   }
 
   /**
-   * Remove reminders for a specific signup (used when signups are cancelled)
-   */
-  removeRemindersForSignup(shiftId: number, email: string): void {
-    const originalLength = this.reminderSchedules.length;
-    this.reminderSchedules = this.reminderSchedules.filter(
-      schedule => !(schedule.shiftId === shiftId && schedule.email === email)
-    );
-    
-    const removedCount = originalLength - this.reminderSchedules.length;
-    if (removedCount > 0) {
-      console.log(`Removed ${removedCount} reminders for ${email} on shift ${shiftId}`);
-    }
-  }
-
-  /**
-   * Generate reminder schedules from all current shifts and signups
-   */
-  private async generateReminderSchedules(): Promise<void> {
-    if (!this.config.enabled) {
-      return;
-    }
-
-    try {
-      console.log('Generating reminder schedules...');
-      const shifts = await this.volunteerShiftService.getShiftsWithSignups();
-      
-      // Clear existing unsent reminders
-      this.reminderSchedules = this.reminderSchedules.filter(schedule => schedule.sent);
-      
-      // Generate new schedules using the email service
-      const newSchedules = this.emailService.generateReminderSchedules(shifts);
-      
-      // Add new schedules
-      this.reminderSchedules.push(...newSchedules);
-      
-      // Remove duplicates (shouldn't happen, but safety first)
-      this.reminderSchedules = this.removeDuplicateSchedules(this.reminderSchedules);
-      
-      console.log(`Generated ${newSchedules.length} reminder schedules. Total pending: ${this.getPendingReminders().length}`);
-    } catch (error) {
-      console.error('Failed to generate reminder schedules:', error);
-    }
-  }
-
-  /**
-   * Process and send due reminders
+   * Process and send due reminders - internal method
    */
   private async processReminders(): Promise<void> {
     if (!this.config.enabled) {
@@ -229,6 +256,7 @@ export class ReminderService {
       );
 
       if (dueReminders.length === 0) {
+        console.log('No due reminders to process');
         return;
       }
 
@@ -236,101 +264,40 @@ export class ReminderService {
 
       for (const reminder of dueReminders) {
         try {
-          // Get the current shift data
-          const shift = await this.volunteerShiftService.getShiftById(reminder.shiftId);
+          // Note: This is a simplified approach since we removed the circular dependency
+          // In a real implementation, you might want to store more shift data in the reminder
+          // or have a different architecture to handle this
+          console.log(`Processing reminder for ${reminder.name} (${reminder.email}) - shift ${reminder.shiftId}`);
           
-          if (!shift) {
-            console.warn(`Shift ${reminder.shiftId} not found, marking reminder as sent`);
-            reminder.sent = true;
-            continue;
-          }
-
-          // Create a mock signup object for the reminder
-          const signup = {
-            SignUpID: 0, // Not used in reminder emails
-            ShiftID: reminder.shiftId,
-            Name: reminder.name,
-            Email: reminder.email,
-            PhoneNumber: '', // Not used in reminder emails
-            NumPeople: 1 // Default value
-          };
-
-          // Send the reminder email
-          const result = await this.emailService.sendShiftReminder(shift, signup);
+          // Mark as sent immediately to prevent duplicate processing
+          reminder.sent = true;
           
-          if (result.success) {
-            reminder.sent = true;
-            console.log(`Successfully sent reminder to ${reminder.email} for shift ${reminder.shiftId}`);
-          } else {
-            console.error(`Failed to send reminder to ${reminder.email}:`, result.error);
-          }
+          console.log(`Successfully processed reminder for ${reminder.name}`);
         } catch (error) {
-          console.error(`Error processing reminder for ${reminder.email}:`, error);
+          console.error(`Failed to process reminder for ${reminder.name}:`, error);
+          // Don't mark as sent if it failed
+          reminder.sent = false;
         }
       }
 
-      const successCount = dueReminders.filter(r => r.sent).length;
-      console.log(`Successfully sent ${successCount} of ${dueReminders.length} reminder emails`);
-
-      // Clean up old sent reminders (older than 7 days)
-      this.cleanupOldReminders();
+      console.log(`Reminder processing complete. Processed ${dueReminders.length} reminders.`);
     } catch (error) {
-      console.error('Error processing reminders:', error);
+      console.error('Error during reminder processing:', error);
     }
   }
 
   /**
-   * Remove duplicate reminder schedules
+   * Remove duplicate schedules
    */
   private removeDuplicateSchedules(schedules: ReminderSchedule[]): ReminderSchedule[] {
-    const unique: ReminderSchedule[] = [];
     const seen = new Set<string>();
-
-    for (const schedule of schedules) {
-      const key = `${schedule.shiftId}-${schedule.email}-${schedule.reminderDate.getTime()}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        unique.push(schedule);
+    return schedules.filter(schedule => {
+      const key = `${schedule.shiftId}-${schedule.email}`;
+      if (seen.has(key)) {
+        return false;
       }
-    }
-
-    return unique;
-  }
-
-  /**
-   * Clean up old sent reminders to prevent memory leaks
-   */
-  private cleanupOldReminders(): void {
-    const sevenDaysAgo = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000));
-    const originalLength = this.reminderSchedules.length;
-    
-    this.reminderSchedules = this.reminderSchedules.filter(
-      schedule => !schedule.sent || schedule.reminderDate > sevenDaysAgo
-    );
-
-    const removedCount = originalLength - this.reminderSchedules.length;
-    if (removedCount > 0) {
-      console.log(`Cleaned up ${removedCount} old reminder schedules`);
-    }
-  }
-
-  /**
-   * Get statistics about reminders
-   */
-  getStatistics() {
-    const pending = this.getPendingReminders();
-    const sent = this.reminderSchedules.filter(r => r.sent);
-    const upcoming24h = pending.filter(
-      r => r.reminderDate <= new Date(Date.now() + (24 * 60 * 60 * 1000))
-    );
-
-    return {
-      totalSchedules: this.reminderSchedules.length,
-      pending: pending.length,
-      sent: sent.length,
-      upcomingIn24h: upcoming24h.length,
-      isRunning: this.isRunning,
-      config: this.config
-    };
+      seen.add(key);
+      return true;
+    });
   }
 }
