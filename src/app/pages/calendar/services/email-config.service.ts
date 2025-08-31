@@ -107,8 +107,8 @@ export class EmailConfigService {
       },
       sender: {
         name: this.getEnvVar('EMAIL_SENDER_NAME', 'Empathy Soup Kitchen'),
-        email: this.getEnvVar('EMAIL_SENDER_EMAIL', 'noreply@empathy-soup-kitchen.org'),
-        adminEmail: this.getEnvVar('EMAIL_ADMIN_EMAIL', 'admin@empathy-soup-kitchen.org')
+        email: this.getEnvVar('EMAIL_SENDER_EMAIL', 'noreply@empathysoupkitchen.org'),
+        adminEmail: this.getEnvVar('EMAIL_ADMIN_EMAIL', 'admin@empathysoupkitchen.org')
       },
       endpoints: {
         sendEmail: this.getEnvVar('EMAIL_API_ENDPOINT', '/api/email/send')

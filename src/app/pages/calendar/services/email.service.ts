@@ -451,14 +451,14 @@ export class EmailService {
               <h3>Location</h3>
               <p>
                 Empathy Soup Kitchen<br>
-                [Address will be provided separately]
+                523 Sinclair Street<br>
+                McKeesport, PA 15132
               </p>
             </div>
 
             <div class="card">
               <h3>Need to Make Changes?</h3>
-              <p>If you need to cancel or modify your volunteer slot, please contact us as soon as possible at <strong>${senderConfig.adminEmail}</strong> or call us at [Phone Number].</p>
-              
+              <p>If you need to cancel or modify your volunteer slot, please contact us as soon as possible at <strong>${senderConfig.adminEmail}</strong>.</p>
               <p>We understand that things come up, but advance notice helps us ensure we have adequate coverage for our guests.</p>
             </div>
 
@@ -677,7 +677,7 @@ This is an automated notification
       hour12: true
     })}`;
 
-    const currentSignups = shift.signups?.reduce((total, s) => total + (s.NumPeople || 1), 0) || 0;
+    const currentSignups = shift.signups?.reduce((total, s) => total + s.NumPeople, 0) + signup.NumPeople;
     const remainingCapacity = shift.Capacity - currentSignups;
 
     const subject = `New Volunteer Signup - ${signup.Name} (${shiftDate})`;
