@@ -45,7 +45,7 @@ export interface SignupDialogData {
 
       <mat-dialog-content>
         <form [formGroup]="signupForm" class="signup-form">
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="fill" class="full-width">
             <mat-label>Full Name</mat-label>
             <input matInput formControlName="name" placeholder="Enter your full name">
             <mat-icon matSuffix>person</mat-icon>
@@ -57,7 +57,7 @@ export interface SignupDialogData {
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="fill" class="full-width">
             <mat-label>Email Address</mat-label>
             <input matInput type="email" formControlName="email" placeholder="your.email@example.com">
             <mat-icon matSuffix>email</mat-icon>
@@ -69,7 +69,7 @@ export interface SignupDialogData {
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="fill" class="full-width">
             <mat-label>Phone Number</mat-label>
             <input matInput type="tel" formControlName="phoneNumber" placeholder="(555) 123-4567">
             <mat-icon matSuffix>phone</mat-icon>
@@ -81,7 +81,7 @@ export interface SignupDialogData {
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="fill" class="full-width">
             <mat-label>Number of People</mat-label>
             <input matInput type="number" formControlName="numPeople" min="1" [max]="getRemainingSlots()">
             <mat-icon matSuffix>group</mat-icon>
@@ -113,6 +113,8 @@ export interface SignupDialogData {
   styles: [`
     .signup-dialog {
       min-width: 400px;
+      padding: 24px 24px 0 24px;
+      box-sizing: border-box;
     }
 
     .shift-details {
@@ -127,6 +129,7 @@ export interface SignupDialogData {
       align-items: center;
       gap: 10px;
       margin-bottom: 8px;
+      font-size: 1rem;
     }
 
     .detail-row:last-child {
@@ -143,7 +146,7 @@ export interface SignupDialogData {
     .signup-form {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 18px;
     }
 
     .full-width {
@@ -152,14 +155,42 @@ export interface SignupDialogData {
 
     mat-dialog-actions {
       display: flex;
+      flex-direction: row;
       justify-content: flex-end;
       gap: 10px;
       padding: 20px 0 0 0;
     }
 
+    @media (max-width: 600px) {
+      .signup-dialog {
+        min-width: 100vw;
+        padding: 12px 8px 0 8px;
+      }
+      .shift-details {
+        padding: 10px;
+        font-size: 0.95rem;
+      }
+      .signup-form {
+        gap: 12px;
+      }
+      mat-dialog-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding-top: 16px;
+      }
+    }
+
     @media (max-width: 480px) {
       .signup-dialog {
-        min-width: 300px;
+        min-width: 100vw;
+        padding: 8px 4px 0 4px;
+      }
+      h2[mat-dialog-title] {
+        font-size: 1.1rem;
+      }
+      .shift-details {
+        font-size: 0.9rem;
       }
     }
   `]
