@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: empathy-sqlserver
+    restart: unless-stopped
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "Password123!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./docker/sql-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - empathy-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P Password123! -Q 'SELECT 1'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  data-api-builder:
+    image: mcr.microsoft.com/azure-databases/data-api-builder:latest
+    container_name: empathy-dab
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_CONNECTION_STRING=Server=sqlserver,1433;Database=EmpathySoupKitchen;User Id=sa;Password=Password123!;TrustServerCertificate=true;
+    volumes:
+      - ./swa-db-connections/dab-config.json:/App/dab-config.json
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - empathy-network
+    command: ["--config-file", "/App/dab-config.json", "--host", "0.0.0.0"]
+
+volumes:
+  sqlserver_data:
+
+networks:
+  empathy-network:
+    driver: bridge
