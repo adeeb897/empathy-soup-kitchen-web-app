@@ -2,16 +2,28 @@
 
 (function(window) {
   window.env = window.env || {};
+  
+  // Helper function to get environment variable or default
+  function getEnvVar(templateValue, defaultValue) {
+    // If template wasn't replaced (contains ${...}), use default
+    if (templateValue.includes('${') && templateValue.includes('}')) {
+      return defaultValue;
+    }
+    // If it was replaced, use the actual value
+    return templateValue;
+  }
+  
   // Environment variables - these will be injected during build/deployment
-  window.env.ADMIN_PASSWORD = '${ADMIN_PASSWORD}' || 'admin123'; // Default for development
+  window.env.ADMIN_PASSWORD = getEnvVar('${ADMIN_PASSWORD}', 'admin123');
   
   // OAuth configuration for debugging/development
-  window.env.GOOGLE_OAUTH_CLIENT_ID = '${GOOGLE_OAUTH_CLIENT_ID}' || 'debug-client-id';
-  window.env.ADMIN_EMAILS = '${ADMIN_EMAILS}' || 'test@gmail.com,admin@gmail.com';
+  window.env.GOOGLE_OAUTH_CLIENT_ID = getEnvVar('${GOOGLE_OAUTH_CLIENT_ID}', 'debug-client-id');
+  window.env.ADMIN_EMAILS = getEnvVar('${ADMIN_EMAILS}', 'test@gmail.com,admin@gmail.com');
   
   console.log('[env.js] Environment configured:', {
     hasOAuthClientId: !!window.env.GOOGLE_OAUTH_CLIENT_ID,
     adminEmails: window.env.ADMIN_EMAILS,
-    isDebugMode: window.env.GOOGLE_OAUTH_CLIENT_ID === 'debug-client-id'
+    isDebugMode: window.env.GOOGLE_OAUTH_CLIENT_ID === 'debug-client-id',
+    clientId: window.env.GOOGLE_OAUTH_CLIENT_ID
   });
 })(this);

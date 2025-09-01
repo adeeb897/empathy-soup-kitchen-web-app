@@ -480,16 +480,24 @@ export class AdminOAuthService {
    * @returns Environment variable value or default
    */
   private getEnvironmentVariable(key: string, defaultValue: string = ''): string {
+    console.log('[AdminOAuthService] Getting environment variable:', key);
+    
     if (typeof window !== 'undefined') {
       // Check if there's a global env object (like window.env)
       const windowWithEnv = window as WindowWithEnv;
+      console.log('[AdminOAuthService] window.env:', windowWithEnv.env);
+      
       if (windowWithEnv.env && windowWithEnv.env[key]) {
+        console.log('[AdminOAuthService] Found in window.env:', key, '=', windowWithEnv.env[key]);
         return windowWithEnv.env[key];
       }
 
       // Check if there's a global config object
       const globalConfig = (window as any).OAUTH_CONFIG;
+      console.log('[AdminOAuthService] window.OAUTH_CONFIG:', globalConfig);
+      
       if (globalConfig && globalConfig[key]) {
+        console.log('[AdminOAuthService] Found in OAUTH_CONFIG:', key, '=', globalConfig[key]);
         return globalConfig[key];
       }
     }
@@ -498,10 +506,12 @@ export class AdminOAuthService {
     if (typeof localStorage !== 'undefined') {
       const stored = localStorage.getItem(`OAUTH_${key}`);
       if (stored) {
+        console.log('[AdminOAuthService] Found in localStorage:', key, '=', stored);
         return stored;
       }
     }
 
+    console.log('[AdminOAuthService] Using default value for', key, '=', defaultValue);
     return defaultValue;
   }
 
