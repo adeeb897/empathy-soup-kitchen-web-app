@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { VolunteerShift, SignUp } from '../models/volunteer.model';
 import { EmailService } from './email.service';
 import { ReminderService } from './reminder.service';
+import { RetryService } from '../../../shared/utils/retry.service';
 
 export interface VolunteerShiftAPIResponse {
   value: VolunteerShift[];
@@ -20,12 +21,13 @@ export class VolunteerShiftService {
 
   constructor(
     private emailService: EmailService,
-    private reminderService: ReminderService
+    private reminderService: ReminderService,
+    private retryService: RetryService
   ) {}
 
   async getAllShifts(): Promise<VolunteerShift[]> {
     try {
-      const response = await fetch(this.shiftsEndpoint);
+      const response = await this.retryService.fetchWithRetry(this.shiftsEndpoint);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch shifts: ${response.status} ${response.statusText}`);
@@ -34,6 +36,18 @@ export class VolunteerShiftService {
       const text = await response.text();
       if (!text) {
         return [];
+      }
+
+      // Validate that the response is actually JSON
+      if (!this.isValidJSON(text)) {
+        const preview = text.substring(0, 200);
+        console.error('Invalid JSON response for shifts:', preview);
+        
+        if (text.includes('<!doctype html>')) {
+          throw new Error('API server returned HTML instead of JSON - check if Data API Builder is running');
+        }
+        
+        throw new Error('Invalid JSON response from server');
       }
 
       const data: VolunteerShiftAPIResponse = JSON.parse(text);
@@ -46,7 +60,7 @@ export class VolunteerShiftService {
 
   async getAllSignups(): Promise<SignUp[]> {
     try {
-      const response = await fetch(this.signupsEndpoint);
+      const response = await this.retryService.fetchWithRetry(this.signupsEndpoint);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch signups: ${response.status} ${response.statusText}`);
@@ -55,6 +69,18 @@ export class VolunteerShiftService {
       const text = await response.text();
       if (!text) {
         return [];
+      }
+
+      // Validate that the response is actually JSON
+      if (!this.isValidJSON(text)) {
+        const preview = text.substring(0, 200);
+        console.error('Invalid JSON response for signups:', preview);
+        
+        if (text.includes('<!doctype html>')) {
+          throw new Error('API server returned HTML instead of JSON - check if Data API Builder is running');
+        }
+        
+        throw new Error('Invalid JSON response from server');
       }
 
       const data: SignUpAPIResponse = JSON.parse(text);
@@ -100,7 +126,7 @@ export class VolunteerShiftService {
         Capacity: shiftData.Capacity
       };
 
-      const response = await fetch(this.shiftsEndpoint, {
+      const response = await this.retryService.fetchWithRetry(this.shiftsEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -113,6 +139,11 @@ export class VolunteerShiftService {
       const text = await response.text();
       if (!text) {
         throw new Error('Empty response when creating shift');
+      }
+
+      if (!this.isValidJSON(text)) {
+        console.error('Invalid JSON response when creating shift:', text.substring(0, 200));
+        throw new Error('Invalid JSON response from server');
       }
 
       const data = JSON.parse(text);
@@ -148,7 +179,7 @@ export class VolunteerShiftService {
         payload.Capacity = updates.Capacity;
       }
 
-      const response = await fetch(`${this.shiftsEndpoint}/ShiftID/${shiftId}`, {
+      const response = await this.retryService.fetchWithRetry(`${this.shiftsEndpoint}/ShiftID/${shiftId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -162,6 +193,11 @@ export class VolunteerShiftService {
       const text = await response.text();
       if (!text) {
         throw new Error('Empty response when updating shift');
+      }
+
+      if (!this.isValidJSON(text)) {
+        console.error('Invalid JSON response when updating shift:', text.substring(0, 200));
+        throw new Error('Invalid JSON response from server');
       }
 
       const data = JSON.parse(text);
@@ -185,7 +221,7 @@ export class VolunteerShiftService {
       }
 
       // Then delete the shift
-      const response = await fetch(`${this.shiftsEndpoint}/ShiftID/${shiftId}`, {
+      const response = await this.retryService.fetchWithRetry(`${this.shiftsEndpoint}/ShiftID/${shiftId}`, {
         method: 'DELETE'
       });
 
@@ -210,7 +246,7 @@ export class VolunteerShiftService {
   async getShiftById(shiftId: number): Promise<VolunteerShift | null> {
     try {
       // Use filter query format for Data API Builder
-      const response = await fetch(`${this.shiftsEndpoint}?$filter=ShiftID eq ${shiftId}`);
+      const response = await this.retryService.fetchWithRetry(`${this.shiftsEndpoint}?$filter=ShiftID eq ${shiftId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -222,6 +258,11 @@ export class VolunteerShiftService {
       const text = await response.text();
       if (!text) {
         return null;
+      }
+
+      if (!this.isValidJSON(text)) {
+        console.error('Invalid JSON response for shift by ID:', text.substring(0, 200));
+        throw new Error('Invalid JSON response from server');
       }
 
       const data = JSON.parse(text);
@@ -240,7 +281,7 @@ export class VolunteerShiftService {
 
   async createSignup(signupData: Omit<SignUp, 'SignUpID'>): Promise<SignUp> {
     try {
-      const response = await fetch(this.signupsEndpoint, {
+      const response = await this.retryService.fetchWithRetry(this.signupsEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(signupData)
@@ -253,6 +294,11 @@ export class VolunteerShiftService {
       const text = await response.text();
       if (!text) {
         throw new Error('Empty response when creating signup');
+      }
+
+      if (!this.isValidJSON(text)) {
+        console.error('Invalid JSON response when creating signup:', text.substring(0, 200));
+        throw new Error('Invalid JSON response from server');
       }
 
       const data = JSON.parse(text);
@@ -300,7 +346,7 @@ export class VolunteerShiftService {
 
   async updateSignup(signupId: number, updates: Partial<Omit<SignUp, 'SignUpID'>>): Promise<SignUp> {
     try {
-      const response = await fetch(`${this.signupsEndpoint}/SignUpID/${signupId}`, {
+      const response = await this.retryService.fetchWithRetry(`${this.signupsEndpoint}/SignUpID/${signupId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
@@ -314,6 +360,11 @@ export class VolunteerShiftService {
       const text = await response.text();
       if (!text) {
         throw new Error('Empty response when updating signup');
+      }
+
+      if (!this.isValidJSON(text)) {
+        console.error('Invalid JSON response when updating signup:', text.substring(0, 200));
+        throw new Error('Invalid JSON response from server');
       }
 
       const data = JSON.parse(text);
@@ -335,7 +386,7 @@ export class VolunteerShiftService {
         console.warn('Could not fetch signup for reminder cleanup:', fetchError);
       }
 
-      const response = await fetch(`${this.signupsEndpoint}/SignUpID/${signupId}`, {
+      const response = await this.retryService.fetchWithRetry(`${this.signupsEndpoint}/SignUpID/${signupId}`, {
         method: 'DELETE'
       });
 
@@ -425,6 +476,15 @@ export class VolunteerShiftService {
     const now = new Date();
     return shift.StartTime >= now;
   };
+
+  private isValidJSON(text: string): boolean {
+    try {
+      JSON.parse(text);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   organizeShiftsByWeekend(shifts: VolunteerShift[], weeksToShow: number = 6): Array<{
     weekStartDate: Date;

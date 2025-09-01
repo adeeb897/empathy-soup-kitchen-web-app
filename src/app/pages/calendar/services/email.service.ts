@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { VolunteerShift, SignUp } from '../models/volunteer.model';
 import { EmailConfigService } from './email-config.service';
 import { EmailLoggerService } from './email-logger.service';
+import { RetryService } from '../../../shared/utils/retry.service';
 
 export interface EmailTemplate {
   subject: string;
@@ -39,7 +40,8 @@ export interface ReminderSchedule {
 export class EmailService {
   constructor(
     private configService: EmailConfigService,
-    private logger: EmailLoggerService
+    private logger: EmailLoggerService,
+    private retryService: RetryService
   ) {}
 
   /**
@@ -295,13 +297,20 @@ export class EmailService {
         type: this.getEmailType(emailData.subject)
       };
       
-      const response = await fetch(endpoints.sendEmail, {
+      const response = await this.retryService.fetchWithRetry(endpoints.sendEmail, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify(requestBody)
+      }, {
+        maxAttempts: 3,
+        baseDelay: 2000,
+        retryCondition: (error: any) => {
+          // Retry on network errors and 5xx status codes, but not 4xx client errors
+          return !error.status || error.status >= 500;
+        }
       });
 
       if (!response.ok) {

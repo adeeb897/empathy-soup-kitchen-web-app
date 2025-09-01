@@ -137,8 +137,12 @@ import { AdminLoginDialogComponent } from './components/admin-login-dialog.compo
     }
 
     .loading-container, .error-container {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       padding: 40px;
+      text-align: center;
     }
 
     .loading-container p, .error-container p {

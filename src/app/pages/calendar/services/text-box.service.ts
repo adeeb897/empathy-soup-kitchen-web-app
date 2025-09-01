@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { RetryService } from '../../../shared/utils/retry.service';
 
 interface TextBox {
   ID: number;
@@ -16,7 +17,7 @@ export class TextBoxService {
       'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.',
   };
 
-  constructor() {}
+  constructor(private retryService: RetryService) {}
 
   /**
    * Get a text box by its name
@@ -34,7 +35,7 @@ export class TextBoxService {
     try {
       console.log(`Fetching "${textName}" from API...`);
       const endpoint = `${this.apiEndpoint}?$filter=TextName eq ${textName}`;
-      const response = await fetch(endpoint);
+      const response = await this.retryService.fetchWithRetry(endpoint);
 
       if (!response.ok) {
         console.warn(
@@ -45,6 +46,12 @@ export class TextBoxService {
 
       const text = await response.text();
       if (!text) {
+        return this.getDefaultText(textName);
+      }
+
+      // Validate that the response is actually JSON
+      if (!this.isValidJSON(text)) {
+        console.error('Invalid JSON response for text box:', text.substring(0, 200));
         return this.getDefaultText(textName);
       }
 
@@ -105,10 +112,10 @@ export class TextBoxService {
     try {
       console.log(`Saving "${textName}" to API...`);
       // Check if database is available by making a simple GET request
-      const testResponse = await fetch(this.apiEndpoint, {
+      const testResponse = await this.retryService.fetchWithRetry(this.apiEndpoint, {
         method: 'HEAD',
         headers: { 'Content-Type': 'application/json' },
-      }).catch(() => null);
+      }, { maxAttempts: 2 }).catch(() => null);
 
       // If we can't connect to the API, don't try further operations
       if (!testResponse || !testResponse.ok) {
@@ -120,7 +127,7 @@ export class TextBoxService {
 
       // First check if the text exists
       const existingTextEndpoint = `${this.apiEndpoint}?$filter=TextName eq ${textName}`;
-      const checkResponse = await fetch(existingTextEndpoint);
+      const checkResponse = await this.retryService.fetchWithRetry(existingTextEndpoint);
 
       if (!checkResponse.ok) {
         throw new Error(`HTTP error! Status: ${checkResponse.status}`);
@@ -143,7 +150,7 @@ export class TextBoxService {
         // Text exists, update it
         const textId = checkData.value[0].ID;
         const updateEndpoint = `${this.apiEndpoint}/${textId}`;
-        const updateResponse = await fetch(updateEndpoint, {
+        const updateResponse = await this.retryService.fetchWithRetry(updateEndpoint, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ TextContent: encodedContent }),
@@ -154,7 +161,7 @@ export class TextBoxService {
         }
       } else {
         // Text doesn't exist, create it
-        const createResponse = await fetch(this.apiEndpoint, {
+        const createResponse = await this.retryService.fetchWithRetry(this.apiEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -212,7 +219,7 @@ export class TextBoxService {
    */
   async getAllTextBoxes(): Promise<TextBox[]> {
     try {
-      const response = await fetch(this.apiEndpoint);
+      const response = await this.retryService.fetchWithRetry(this.apiEndpoint);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -220,6 +227,12 @@ export class TextBoxService {
 
       const text = await response.text();
       if (!text) {
+        return [];
+      }
+
+      // Validate that the response is actually JSON
+      if (!this.isValidJSON(text)) {
+        console.error('Invalid JSON response for all text boxes:', text.substring(0, 200));
         return [];
       }
 
@@ -265,6 +278,15 @@ export class TextBoxService {
       if (key && key.startsWith('textBox_')) {
         localStorage.removeItem(key);
       }
+    }
+  }
+
+  private isValidJSON(text: string): boolean {
+    try {
+      JSON.parse(text);
+      return true;
+    } catch {
+      return false;
     }
   }
 }

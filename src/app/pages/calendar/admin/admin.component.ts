@@ -334,8 +334,12 @@ import { VolunteerDetailsDialogComponent, VolunteerDetailsDialogData } from '../
     }
 
     .loading-container, .error-container, .no-shifts {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       padding: 40px;
+      text-align: center;
     }
 
     .loading-container p, .error-container p {
