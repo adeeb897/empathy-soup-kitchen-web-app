@@ -249,8 +249,10 @@ export class AdminOAuthService {
    * @returns Observable that completes when login flow starts
    */
   login(): Observable<LoginResult> {
+    console.log('[AdminOAuthService] Starting login process...');
     return new Observable(observer => {
       try {
+        console.log('[AdminOAuthService] Setting loading state...');
         this.updateAuthState({
           isAuthenticated: false,
           isLoading: true,
@@ -258,20 +260,29 @@ export class AdminOAuthService {
           error: null
         });
 
+        console.log('[AdminOAuthService] Getting OAuth config...');
         const config = this.getOAuthConfig();
+        console.log('[AdminOAuthService] OAuth config:', config);
         
         if (!config.clientId) {
           throw new Error('OAuth client ID not configured');
         }
 
+        if (config.clientId === 'debug-client-id') {
+          throw new Error('Debug client ID detected - OAuth cannot proceed without real credentials');
+        }
+
+        console.log('[AdminOAuthService] Starting OAuth flow with GoogleOAuthService...');
         // Start OAuth flow - this will redirect the user
         this.googleOAuthService.startOAuthFlow(config);
         
+        console.log('[AdminOAuthService] OAuth flow initiated, should redirect soon...');
         // The observer completes here as we're redirecting
         observer.next({ success: true });
         observer.complete();
         
       } catch (error: any) {
+        console.error('[AdminOAuthService] Login error:', error);
         const errorMessage = error.message || 'Failed to start login';
         this.handleAuthenticationError(errorMessage);
         

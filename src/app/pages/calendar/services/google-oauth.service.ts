@@ -61,22 +61,34 @@ export class GoogleOAuthService {
    * @returns PKCEChallenge containing code verifier and challenge
    */
   generatePKCEChallenge(): PKCEChallenge {
-    // Generate a cryptographically random code verifier (43-128 characters)
-    const codeVerifier = this.generateRandomString(128);
-    
-    // Create SHA256 hash of the code verifier
-    const hash = CryptoJS.SHA256(codeVerifier);
-    
-    // Base64URL encode the hash to create the code challenge
-    const codeChallenge = hash.toString(CryptoJS.enc.Base64)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
+    console.log('[GoogleOAuthService] Generating PKCE challenge...');
+    try {
+      // Generate a cryptographically random code verifier (43-128 characters)
+      console.log('[GoogleOAuthService] Generating random string...');
+      const codeVerifier = this.generateRandomString(128);
+      console.log('[GoogleOAuthService] Code verifier generated, length:', codeVerifier.length);
+      
+      // Create SHA256 hash of the code verifier
+      console.log('[GoogleOAuthService] Creating SHA256 hash...');
+      const hash = CryptoJS.SHA256(codeVerifier);
+      console.log('[GoogleOAuthService] Hash created successfully');
+      
+      // Base64URL encode the hash to create the code challenge
+      console.log('[GoogleOAuthService] Encoding to Base64URL...');
+      const codeChallenge = hash.toString(CryptoJS.enc.Base64)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+      console.log('[GoogleOAuthService] Code challenge generated, length:', codeChallenge.length);
 
-    return {
-      codeVerifier,
-      codeChallenge
-    };
+      return {
+        codeVerifier,
+        codeChallenge
+      };
+    } catch (error) {
+      console.error('[GoogleOAuthService] Error generating PKCE challenge:', error);
+      throw error;
+    }
   }
 
   /**
@@ -114,14 +126,20 @@ export class GoogleOAuthService {
    * @returns Complete authorization URL
    */
   buildAuthorizationUrl(config: Partial<OAuthConfig> = {}): string {
+    console.log('[GoogleOAuthService] Building authorization URL...');
     const fullConfig = { ...this.DEFAULT_CONFIG, ...config };
+    console.log('[GoogleOAuthService] Full config:', fullConfig);
     
     if (!fullConfig.clientId) {
       throw new Error('OAuth client ID is required');
     }
 
+    console.log('[GoogleOAuthService] Generating PKCE challenge...');
     const pkce = this.generatePKCEChallenge();
+    console.log('[GoogleOAuthService] PKCE generated successfully');
+    
     const state = this.generateState();
+    console.log('[GoogleOAuthService] State generated:', state);
 
     // Store OAuth state for callback verification
     const oauthState: OAuthState = {
@@ -130,6 +148,7 @@ export class GoogleOAuthService {
       redirectUri: fullConfig.redirectUri
     };
     
+    console.log('[GoogleOAuthService] Storing OAuth state in sessionStorage...');
     sessionStorage.setItem('oauth_state', JSON.stringify(oauthState));
 
     // Build authorization URL with all required parameters
@@ -145,7 +164,9 @@ export class GoogleOAuthService {
       prompt: 'consent'
     });
 
-    return `${this.GOOGLE_AUTH_URL}?${params.toString()}`;
+    const authUrl = `${this.GOOGLE_AUTH_URL}?${params.toString()}`;
+    console.log('[GoogleOAuthService] Final authorization URL:', authUrl);
+    return authUrl;
   }
 
   /**
@@ -235,11 +256,15 @@ export class GoogleOAuthService {
    * @param config - OAuth configuration
    */
   startOAuthFlow(config: Partial<OAuthConfig> = {}): void {
+    console.log('[GoogleOAuthService] Starting OAuth flow with config:', config);
     try {
+      console.log('[GoogleOAuthService] Building authorization URL...');
       const authUrl = this.buildAuthorizationUrl(config);
+      console.log('[GoogleOAuthService] Authorization URL built:', authUrl);
+      console.log('[GoogleOAuthService] Redirecting to Google...');
       window.location.href = authUrl;
     } catch (error) {
-      console.error('Failed to start OAuth flow:', error);
+      console.error('[GoogleOAuthService] Failed to start OAuth flow:', error);
       throw error;
     }
   }

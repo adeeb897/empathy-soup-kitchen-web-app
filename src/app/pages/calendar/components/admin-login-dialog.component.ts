@@ -160,18 +160,34 @@ export class AdminLoginDialogComponent implements OnDestroy {
   }
 
   loginWithGoogle() {
+    console.log('[AdminLoginDialog] loginWithGoogle called');
     this.isLoading = true;
     this.hasError = false;
     this.errorMessage = '';
     this.loadingMessage = 'Redirecting to Google...';
 
     try {
+      console.log('[AdminLoginDialog] Calling adminOAuthService.login()...');
       // Initiate OAuth login - this will redirect to Google
-      this.adminOAuthService.login();
-      
-      // The dialog will automatically close on successful authentication
-      // via the subscription in constructor
+      this.adminOAuthService.login().subscribe({
+        next: (result) => {
+          console.log('[AdminLoginDialog] Login result:', result);
+          if (!result.success) {
+            this.isLoading = false;
+            this.hasError = true;
+            this.errorMessage = result.error || 'Login failed';
+          }
+          // If successful, we should be redirected to Google
+        },
+        error: (error) => {
+          console.error('[AdminLoginDialog] Login error:', error);
+          this.isLoading = false;
+          this.hasError = true;
+          this.errorMessage = error.message || 'Failed to start authentication process';
+        }
+      });
     } catch (error) {
+      console.error('[AdminLoginDialog] Exception in loginWithGoogle:', error);
       this.isLoading = false;
       this.hasError = true;
       this.errorMessage = error instanceof Error ? error.message : 'Failed to start authentication process';
