@@ -43,6 +43,9 @@ export const routes: Routes = [
       import('./pages/calendar/admin/admin.component').then(
         (m) => m.AdminComponent
       ),
+    canActivate: [
+      () => import('./pages/calendar/guards/admin-auth.guard').then(m => m.AdminAuthGuard)
+    ]
   },
   {
     path: 'financial-report/:year/:quarter',
