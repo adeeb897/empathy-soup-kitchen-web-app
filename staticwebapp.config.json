@@ -1,5 +1,9 @@
 {
   "routes": [
+     {
+      "route": "/calendar/auth/callback*",
+      "rewrite": "/index.html"
+    },
     {
       "route": "/*"
     }

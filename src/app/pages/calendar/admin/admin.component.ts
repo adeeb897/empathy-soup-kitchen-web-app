@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,6 +19,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { VolunteerShift, SignUp, CreateShiftData } from '../models/volunteer.model';
 import { VolunteerShiftService } from '../services/volunteer-shift.service';
 import { VolunteerDetailsDialogComponent, VolunteerDetailsDialogData } from '../components/volunteer-details-dialog.component';
+import { AdminOAuthService } from '../services/admin-oauth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin',
@@ -46,8 +49,18 @@ import { VolunteerDetailsDialogComponent, VolunteerDetailsDialogData } from '../
     <div class="admin-container">
       <!-- Header -->
       <div class="header">
-        <h1>Shift Administration</h1>
+        <div class="header-left">
+          <h1>Shift Administration</h1>
+          <div class="user-info" *ngIf="userInfo">
+            <mat-icon>account_circle</mat-icon>
+            <span>{{ userInfo.name || userInfo.email }}</span>
+          </div>
+        </div>
         <div class="header-actions">
+          <button mat-stroked-button (click)="logout()" color="warn">
+            <mat-icon>logout</mat-icon>
+            Logout
+          </button>
           <button mat-raised-button routerLink="/calendar" color="primary">
             <mat-icon>arrow_back</mat-icon>
             Back to Calendar
@@ -267,13 +280,39 @@ import { VolunteerDetailsDialogComponent, VolunteerDetailsDialogData } from '../
     .header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       margin-bottom: 20px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .header h1 {
       margin: 0;
       color: #333;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .user-info mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
     }
 
     .add-shift-card, .shifts-card {
@@ -451,7 +490,9 @@ import { VolunteerDetailsDialogComponent, VolunteerDetailsDialogData } from '../
     }
   `]
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   shiftForm: FormGroup;
   shifts: VolunteerShift[] = [];
   loading = false;
@@ -459,12 +500,15 @@ export class AdminComponent implements OnInit {
   error: string | null = null;
   deleting = new Set<number>();
   displayedColumns = ['date', 'time', 'capacity', 'signups', 'actions'];
+  userInfo: any = null;
 
   constructor(
     private fb: FormBuilder,
     private volunteerShiftService: VolunteerShiftService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private adminOAuthService: AdminOAuthService,
+    private router: Router
   ) {
     this.shiftForm = this.fb.group({
       date: ['', Validators.required],
@@ -486,6 +530,23 @@ export class AdminComponent implements OnInit {
 
   ngOnInit() {
     this.loadShifts();
+    
+    // Subscribe to user info
+    this.adminOAuthService.user$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user: any) => {
+        this.userInfo = user;
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  logout() {
+    this.adminOAuthService.logout();
+    this.router.navigate(['/calendar']);
   }
 
   async loadShifts() {
