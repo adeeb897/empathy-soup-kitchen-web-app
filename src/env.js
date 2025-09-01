@@ -17,8 +17,8 @@
   window.env.ADMIN_PASSWORD = getEnvVar('${ADMIN_PASSWORD}', 'admin123');
   
   // OAuth configuration for debugging/development
-  window.env.GOOGLE_OAUTH_CLIENT_ID = getEnvVar('${GOOGLE_OAUTH_CLIENT_ID}', 'debug-client-id');
-  window.env.ADMIN_EMAILS = getEnvVar('${ADMIN_EMAILS}', 'test@gmail.com,admin@gmail.com');
+  window.env.GOOGLE_OAUTH_CLIENT_ID = getEnvVar('${GOOGLE_OAUTH_CLIENT_ID}', 'y167606969733-lveese0cgih4gk8pechh89tj8oug76fi.apps.googleusercontent.com');
+  window.env.ADMIN_EMAILS = getEnvVar('${ADMIN_EMAILS}', 'zamanadeeb789@gmail.com,Sayed.jafri@gmail.com');
   
   console.log('[env.js] Environment configured:', {
     hasOAuthClientId: !!window.env.GOOGLE_OAUTH_CLIENT_ID,

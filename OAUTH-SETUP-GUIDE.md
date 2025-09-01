@@ -98,15 +98,42 @@ window.OAUTH_CONFIG = {
 };
 ```
 
-#### Option 3: Environment File Pattern
-Create environment-specific configurations:
+#### Option 3: Environment File Pattern (Recommended)
+The application uses `src/env.js` with template variable replacement:
 
 ```javascript
-// In window.env object (following existing email config pattern)
-window.env = {
-  GOOGLE_OAUTH_CLIENT_ID: 'your-client-id.apps.googleusercontent.com',
-  ADMIN_EMAILS: 'admin1@gmail.com,admin2@gmail.com'
-};
+// In src/env.js - Template variables get replaced during deployment
+(function(window) {
+  window.env = window.env || {};
+  
+  // Helper function to get environment variable or default
+  function getEnvVar(templateValue, defaultValue) {
+    if (templateValue.includes('${') && templateValue.includes('}')) {
+      return defaultValue;
+    }
+    return templateValue;
+  }
+  
+  // Environment variables - these will be injected during build/deployment
+  window.env.GOOGLE_OAUTH_CLIENT_ID = getEnvVar('${GOOGLE_OAUTH_CLIENT_ID}', 'debug-client-id');
+  window.env.ADMIN_EMAILS = getEnvVar('${ADMIN_EMAILS}', 'test@gmail.com,admin@gmail.com');
+})(this);
+```
+
+**Note:** Ensure `env.js` is included in your Angular build by adding it to `angular.json`:
+```json
+"assets": [
+  {
+    "glob": "**/*",
+    "input": "assets",
+    "output": "/assets/"
+  },
+  {
+    "glob": "env.js",
+    "input": "src",
+    "output": "/"
+  }
+]
 ```
 
 ### Step 4: Azure Static Web App Routing
@@ -160,8 +187,8 @@ Ensure your Azure Functions allow requests from your frontend domain:
 2. **Configure local environment**:
    ```bash
    # In browser console or localStorage
-   localStorage.setItem('ADMIN_GOOGLE_OAUTH_CLIENT_ID', 'your-dev-client-id');
-   localStorage.setItem('ADMIN_ADMIN_EMAILS', 'your-email@gmail.com');
+   localStorage.setItem('OAUTH_GOOGLE_OAUTH_CLIENT_ID', 'your-dev-client-id');
+   localStorage.setItem('OAUTH_ADMIN_EMAILS', 'your-email@gmail.com');
    ```
 
 3. **Test OAuth flow**:
