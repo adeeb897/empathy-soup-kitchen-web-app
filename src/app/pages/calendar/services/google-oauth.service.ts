@@ -47,7 +47,7 @@ export class GoogleOAuthService {
   private readonly GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
   private readonly DEFAULT_CONFIG: OAuthConfig = {
     clientId: '',
-    redirectUri: `${window.location.origin}/calendar/auth/callback`,
+    redirectUri: `${window.location.origin}/calendar/admin`,
     scope: 'openid email profile',
     adminEmails: []
   };

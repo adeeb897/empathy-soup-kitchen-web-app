@@ -60,6 +60,7 @@ export class AdminOAuthService {
     private googleOAuthService: GoogleOAuthService,
     private tokenService: TokenService
   ) {
+    console.log('[AdminOAuthService] Service initialized');
     // Initialize authentication state on service creation
     this.initializeAuthState();
   }
@@ -69,19 +70,31 @@ export class AdminOAuthService {
    * and handling OAuth callbacks if present.
    */
   private initializeAuthState(): void {
+    console.log('[AdminOAuthService] Initializing auth state...');
+    console.log('[AdminOAuthService] Current URL:', window.location.href);
+    
     // Check if we're returning from OAuth callback
-    if (this.googleOAuthService.isCallbackUrl()) {
+    const isCallback = this.googleOAuthService.isCallbackUrl();
+    console.log('[AdminOAuthService] Is callback URL:', isCallback);
+    
+    if (isCallback) {
+      console.log('[AdminOAuthService] Handling OAuth callback');
       this.handleOAuthCallback();
       return;
     }
 
     // Check if we have existing valid tokens
-    if (this.tokenService.hasValidToken()) {
+    const hasToken = this.tokenService.hasValidToken();
+    console.log('[AdminOAuthService] Has valid token:', hasToken);
+    
+    if (hasToken) {
+      console.log('[AdminOAuthService] Validating existing token');
       this.validateExistingToken();
       return;
     }
 
     // No existing authentication
+    console.log('[AdminOAuthService] No authentication found, setting unauthenticated state');
     this.updateAuthState({
       isAuthenticated: false,
       isLoading: false,
@@ -146,6 +159,7 @@ export class AdminOAuthService {
    * Validates existing tokens on service initialization.
    */
   private validateExistingToken(): void {
+    console.log('[AdminOAuthService] Starting token validation...');
     this.updateAuthState({
       isAuthenticated: false,
       isLoading: true,
@@ -155,10 +169,11 @@ export class AdminOAuthService {
 
     this.tokenService.validateToken().subscribe({
       next: (validationResponse) => {
+        console.log('[AdminOAuthService] Token validation successful:', validationResponse);
         this.handleSuccessfulAuthentication(validationResponse);
       },
       error: (error) => {
-        console.error('Token validation failed:', error);
+        console.error('[AdminOAuthService] Token validation failed:', error);
         this.tokenService.clearTokens();
         this.updateAuthState({
           isAuthenticated: false,
@@ -221,6 +236,10 @@ export class AdminOAuthService {
    * @param newState - New authentication state
    */
   private updateAuthState(newState: AuthState): void {
+    console.log('[AdminOAuthService] State change:', {
+      from: this.authStateSubject.value,
+      to: newState
+    });
     this.authStateSubject.next(newState);
   }
 
@@ -435,7 +454,7 @@ export class AdminOAuthService {
 
     return {
       clientId,
-      redirectUri: `${window.location.origin}/calendar/auth/callback`,
+      redirectUri: `${window.location.origin}/calendar/admin`,
       scope: 'openid email profile',
       adminEmails
     };
