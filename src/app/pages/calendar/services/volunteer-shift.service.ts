@@ -175,12 +175,13 @@ export class VolunteerShiftService {
 
   async deleteShift(shiftId: number): Promise<void> {
     try {
-      // First delete all signups for this shift
-      const shift = await this.getShiftById(shiftId);
-      if (shift && shift.signups) {
-        for (const signup of shift.signups) {
-          await this.deleteSignup(signup.SignUpID);
-        }
+      // First get all signups for this shift
+      const allSignups = await this.getAllSignups();
+      const shiftSignups = allSignups.filter(signup => signup.ShiftID === shiftId);
+      
+      // Delete all signups for this shift
+      for (const signup of shiftSignups) {
+        await this.deleteSignup(signup.SignUpID);
       }
 
       // Then delete the shift
