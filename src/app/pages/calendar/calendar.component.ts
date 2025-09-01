@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -11,6 +11,7 @@ import { VolunteerShift, SignUp, CreateSignupData } from './models/volunteer.mod
 import { VolunteerShiftService } from './services/volunteer-shift.service';
 import { TextBoxService } from './services/text-box.service';
 import { SignupDialogComponent, SignupDialogData } from './components/signup-dialog.component';
+import { AdminLoginDialogComponent } from './components/admin-login-dialog.component';
 
 @Component({
   selector: 'app-calendar',
@@ -242,11 +243,29 @@ export class CalendarComponent implements OnInit {
     private volunteerShiftService: VolunteerShiftService,
     private textBoxService: TextBoxService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.loadData();
+    this.checkForAdminLogin();
+  }
+
+  private checkForAdminLogin() {
+    this.route.queryParams.subscribe(params => {
+      if (params['adminLogin'] === 'true') {
+        this.openAdminLoginDialog();
+      }
+    });
+  }
+
+  private openAdminLoginDialog() {
+    this.dialog.open(AdminLoginDialogComponent, {
+      width: '450px',
+      disableClose: true,
+      autoFocus: true
+    });
   }
 
   async loadData() {

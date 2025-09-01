@@ -19,25 +19,39 @@ export class AdminAuthService {
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   
   constructor() {
-    // Get password from window.env or use default
-    this.adminPassword = this.getEnvironmentVariable('ADMIN_PASSWORD') || 'admin123';
+    // Get password from environment or use default
+    this.adminPassword = this.getEnvironmentVariable('ADMIN_PASSWORD', 'admin123');
     
     // Check if we have an auth token in session storage
     this.checkAuthStatus();
     console.log('Admin password is set to:', this.adminPassword);
   }
   
-  // Method to safely get environment variables from window.env
-  private getEnvironmentVariable(key: string): string | null {
-    // Cast window to our custom interface with env property
-    const windowWithEnv = window as WindowWithEnv;
-    
-    if (typeof window !== 'undefined' && 
-        windowWithEnv.env && 
-        windowWithEnv.env[key]) {
-      return windowWithEnv.env[key];
+  // Method to safely get environment variables
+  private getEnvironmentVariable(key: string, defaultValue: string = ''): string {
+    if (typeof window !== 'undefined') {
+      // Check if there's a global env object (like window.env)
+      const windowWithEnv = window as WindowWithEnv;
+      if (windowWithEnv.env && windowWithEnv.env[key]) {
+        return windowWithEnv.env[key];
+      }
+
+      // Check if there's a global config object (like EMAIL_CONFIG pattern)
+      const globalConfig = (window as any).ADMIN_CONFIG;
+      if (globalConfig && globalConfig[key]) {
+        return globalConfig[key];
+      }
     }
-    return null;
+
+    // Check localStorage for development/testing
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem(`ADMIN_${key}`);
+      if (stored) {
+        return stored;
+      }
+    }
+
+    return defaultValue;
   }
   
   checkAuthStatus(): void {
