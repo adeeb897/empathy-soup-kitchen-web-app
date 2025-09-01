@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { AdminAuthGuard } from './pages/calendar/guards/admin-auth.guard';
 import { HomeComponent } from './pages/home/home.component';
 
 export const routes: Routes = [
@@ -43,9 +44,7 @@ export const routes: Routes = [
       import('./pages/calendar/admin/admin.component').then(
         (m) => m.AdminComponent
       ),
-    canActivate: [
-      () => import('./pages/calendar/guards/admin-auth.guard').then(m => m.AdminAuthGuard)
-    ]
+    canActivate: [AdminAuthGuard]
   },
   {
     path: 'financial-report/:year/:quarter',
