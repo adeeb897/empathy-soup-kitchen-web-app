@@ -30,6 +30,11 @@
                 "glob": "**/*",
                 "input": "assets",
                 "output": "/assets/"
+              },
+              {
+                "glob": "env.js",
+                "input": "src",
+                "output": "/"
               }
             ],
             "styles": [
@@ -91,6 +96,11 @@
                 "glob": "**/*",
                 "input": "assets",
                 "output": "/assets/"
+              },
+              {
+                "glob": "env.js",
+                "input": "src",
+                "output": "/"
               }
             ],
             "styles": [
