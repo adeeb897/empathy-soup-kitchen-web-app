@@ -149,7 +149,14 @@ export class GoogleOAuthService {
     };
     
     console.log('[GoogleOAuthService] Storing OAuth state in sessionStorage...');
-    sessionStorage.setItem('oauth_state', JSON.stringify(oauthState));
+    console.log('[GoogleOAuthService] OAuth state to store:', oauthState);
+    
+    // Store in both sessionStorage and localStorage as fallback
+    const stateData = JSON.stringify(oauthState);
+    sessionStorage.setItem('oauth_state', stateData);
+    localStorage.setItem('oauth_state_backup', stateData);
+    
+    console.log('[GoogleOAuthService] OAuth state stored successfully');
 
     // Build authorization URL with all required parameters
     const params = new URLSearchParams({
@@ -200,9 +207,20 @@ export class GoogleOAuthService {
     }
 
     // Retrieve and validate stored OAuth state
-    const storedStateJson = sessionStorage.getItem('oauth_state');
+    console.log('[GoogleOAuthService] Checking for stored OAuth state...');
+    console.log('[GoogleOAuthService] SessionStorage contents:', Object.keys(sessionStorage).map(key => `${key}: ${sessionStorage.getItem(key)}`));
+    
+    let storedStateJson = sessionStorage.getItem('oauth_state');
+    console.log('[GoogleOAuthService] Stored state JSON from sessionStorage:', storedStateJson);
+    
+    // Fallback to localStorage if sessionStorage is empty
     if (!storedStateJson) {
-      throw new Error('OAuth state not found in storage');
+      storedStateJson = localStorage.getItem('oauth_state_backup');
+      console.log('[GoogleOAuthService] Fallback state JSON from localStorage:', storedStateJson);
+    }
+    
+    if (!storedStateJson) {
+      throw new Error('OAuth state not found in storage - sessionStorage may have been cleared during redirect');
     }
 
     let storedState: OAuthState;
@@ -217,8 +235,11 @@ export class GoogleOAuthService {
       throw new Error('OAuth state mismatch - possible CSRF attack');
     }
 
-    // Clean up stored state
+    // Clean up stored state from both locations
     sessionStorage.removeItem('oauth_state');
+    localStorage.removeItem('oauth_state_backup');
+    
+    console.log('[GoogleOAuthService] OAuth state validation successful, state cleaned up');
 
     return {
       code,
