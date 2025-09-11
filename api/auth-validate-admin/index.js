@@ -41,8 +41,8 @@ module.exports = async function (context, req) {
         const userInfo = await getUserInfo(token);
 
         // Check if user is in the admin list
-        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim()).filter(Boolean);
-        const isAdmin = adminEmails.includes(userInfo.email);
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean);
+        const isAdmin = adminEmails.includes(userInfo.email.toLowerCase());
 
         if (!isAdmin) {
             context.log.warn(`Unauthorized validation attempt by: ${userInfo.email}`);

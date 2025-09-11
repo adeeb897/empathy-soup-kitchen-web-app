@@ -57,8 +57,8 @@ module.exports = async function (context, req) {
         const userInfo = await getUserInfo(tokenData.access_token);
 
         // Re-validate admin access (in case admin list changed)
-        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim()).filter(Boolean);
-        const isAdmin = adminEmails.includes(userInfo.email);
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean);
+        const isAdmin = adminEmails.includes(userInfo.email.toLowerCase());
 
         if (!isAdmin) {
             context.log.warn(`Admin access revoked for: ${userInfo.email}`);

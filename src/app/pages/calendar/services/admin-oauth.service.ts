@@ -479,7 +479,7 @@ export class AdminOAuthService {
     const clientId = this.getEnvironmentVariable('GOOGLE_OAUTH_CLIENT_ID', '');
     const adminEmails = this.getEnvironmentVariable('ADMIN_EMAILS', '')
       .split(',')
-      .map(email => email.trim())
+      .map(email => email.trim().toLowerCase())
       .filter(email => email.length > 0);
 
     return {

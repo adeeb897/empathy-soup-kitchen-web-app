@@ -74,8 +74,8 @@ module.exports = async function (context, req) {
         const userInfo = await getUserInfo(tokenData.access_token);
 
         // Validate admin access
-        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim()).filter(Boolean);
-        const isAdmin = adminEmails.includes(userInfo.email);
+        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean);
+        const isAdmin = adminEmails.includes(userInfo.email.toLowerCase());
 
         if (!isAdmin) {
             context.log.warn(`Unauthorized access attempt by: ${userInfo.email}`);
