@@ -22,7 +22,23 @@ export interface TokenValidationResponse {
   valid: boolean;
   email?: string;
   name?: string;
+  picture?: string;
   isAdmin?: boolean;
+}
+
+export interface AdminValidationResponse {
+  success: boolean;
+  isAdmin: boolean;
+  user?: {
+    email: string;
+    name: string;
+    picture: string;
+  };
+  permissions?: {
+    canManageShifts: boolean;
+    canViewReports: boolean;
+    canManageVolunteers: boolean;
+  };
 }
 
 /**
@@ -194,11 +210,35 @@ export class TokenService {
       return throwError(() => new Error('No access token available'));
     }
 
-    return this.http.post<TokenValidationResponse>('/api/auth/validate-admin', {
+    return this.http.post<AdminValidationResponse>('/api/auth/validate-admin', {
       accessToken
     }).pipe(
+      switchMap(response => {
+        // Transform AdminValidationResponse to TokenValidationResponse
+        const validationResponse: TokenValidationResponse = {
+          valid: response.success && response.isAdmin,
+          email: response.user?.email,
+          name: response.user?.name,
+          picture: response.user?.picture,
+          isAdmin: response.isAdmin
+        };
+        return [validationResponse];
+      }),
       catchError(error => {
         console.error('Token validation failed:', error);
+        
+        // Handle specific error responses that might still have isAdmin info
+        if (error.error && typeof error.error === 'object') {
+          const errorResponse = error.error;
+          if ('isAdmin' in errorResponse) {
+            const validationResponse: TokenValidationResponse = {
+              valid: false,
+              isAdmin: errorResponse.isAdmin || false
+            };
+            return [validationResponse];
+          }
+        }
+        
         return throwError(() => new Error('Failed to validate token'));
       })
     );

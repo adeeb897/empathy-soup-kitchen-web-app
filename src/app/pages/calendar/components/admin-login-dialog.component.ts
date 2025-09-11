@@ -152,6 +152,18 @@ export class AdminLoginDialogComponent implements OnDestroy {
           this.router.navigate(['/calendar/admin']);
         }
       });
+
+    // Subscribe to authentication errors to reset UI state
+    this.adminOAuthService.error$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(error => {
+        if (error) {
+          console.log('[AdminLoginDialog] Authentication error received:', error);
+          this.isLoading = false;
+          this.hasError = true;
+          this.errorMessage = error;
+        }
+      });
   }
 
   ngOnDestroy() {

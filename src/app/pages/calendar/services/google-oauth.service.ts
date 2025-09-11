@@ -239,13 +239,24 @@ export class GoogleOAuthService {
     const body = {
       code,
       codeVerifier,
-      redirectUri
+      redirectUri,
+      state: 'oauth_callback'
     };
+
+    console.log('[GoogleOAuthService] Token exchange request:', {
+      ...body,
+      codeVerifier: '***' // Hide sensitive data in logs
+    });
 
     return this.http.post<TokenResponse>('/api/auth/token', body).pipe(
       catchError(error => {
-        console.error('Token exchange failed:', error);
-        return throwError(() => new Error('Failed to exchange authorization code for tokens'));
+        console.error('[GoogleOAuthService] Token exchange failed:', error);
+        console.error('[GoogleOAuthService] Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          error: error.error
+        });
+        return throwError(() => new Error(`Token exchange failed: ${error.status} ${error.statusText}`));
       })
     );
   }

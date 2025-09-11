@@ -23,13 +23,25 @@ module.exports = async function (context, req) {
     }
 
     try {
-        const { code, codeVerifier, state } = req.body;
+        const { code, codeVerifier, redirectUri, state } = req.body;
+        
+        context.log.info('Auth token request received:', {
+            hasCode: !!code,
+            hasCodeVerifier: !!codeVerifier,
+            hasRedirectUri: !!redirectUri,
+            hasState: !!state,
+            requestBody: JSON.stringify(req.body)
+        });
 
-        if (!code || !codeVerifier || !state) {
+        if (!code || !codeVerifier) {
+            context.log.error('Missing required parameters:', {
+                hasCode: !!code,
+                hasCodeVerifier: !!codeVerifier
+            });
             context.res.status = 400;
             context.res.body = { 
                 error: 'Missing required parameters',
-                message: 'code, codeVerifier, and state are required' 
+                message: 'code and codeVerifier are required' 
             };
             return;
         }
@@ -37,10 +49,16 @@ module.exports = async function (context, req) {
         // Get OAuth configuration from environment
         const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
         const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-        const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
+        const finalRedirectUri = redirectUri || process.env.GOOGLE_OAUTH_REDIRECT_URI;
 
-        if (!clientId || !clientSecret || !redirectUri) {
-            context.log.error('OAuth configuration missing');
+        if (!clientId || !clientSecret || !finalRedirectUri) {
+            context.log.error('OAuth configuration missing:', {
+                hasClientId: !!clientId,
+                hasClientSecret: !!clientSecret,
+                hasRedirectUri: !!finalRedirectUri,
+                requestRedirectUri: redirectUri,
+                envRedirectUri: process.env.GOOGLE_OAUTH_REDIRECT_URI
+            });
             context.res.status = 500;
             context.res.body = { 
                 error: 'Server configuration error',
@@ -50,7 +68,7 @@ module.exports = async function (context, req) {
         }
 
         // Exchange code for tokens
-        const tokenData = await exchangeCodeForTokens(clientId, clientSecret, redirectUri, code, codeVerifier);
+        const tokenData = await exchangeCodeForTokens(clientId, clientSecret, finalRedirectUri, code, codeVerifier);
         
         // Get user info from Google
         const userInfo = await getUserInfo(tokenData.access_token);
@@ -75,14 +93,11 @@ module.exports = async function (context, req) {
         context.res.status = 200;
         context.res.headers['Set-Cookie'] = refreshTokenCookie;
         context.res.body = {
-            success: true,
-            accessToken: tokenData.access_token,
-            expiresIn: tokenData.expires_in,
-            user: {
-                email: userInfo.email,
-                name: userInfo.name,
-                picture: userInfo.picture
-            }
+            access_token: tokenData.access_token,
+            refresh_token: tokenData.refresh_token,
+            expires_in: tokenData.expires_in,
+            token_type: tokenData.token_type || 'Bearer',
+            scope: tokenData.scope || 'openid email profile'
         };
 
     } catch (error) {
