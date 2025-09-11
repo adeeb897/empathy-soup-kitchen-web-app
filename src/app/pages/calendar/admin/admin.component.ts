@@ -412,6 +412,77 @@ import { takeUntil } from 'rxjs/operators';
 
     .shifts-table {
       width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .shifts-table th,
+    .shifts-table td {
+      white-space: nowrap;
+      padding: 8px 12px;
+    }
+
+    /* Ensure columns don't over-compress; allow horizontal scroll in container */
+    .mat-column-date { min-width: 110px; }
+    .mat-column-time { min-width: 150px; }
+    .mat-column-capacity { min-width: 120px; }
+    .mat-column-signups { min-width: 200px; }
+    .mat-column-actions { min-width: 80px; text-align: center; }
+
+    .mat-column-signups .no-signups {
+      white-space: normal;
+    }
+
+    .mat-column-signups .volunteers-button {
+      max-width: 100%;
+      display: inline-flex;
+      flex-wrap: nowrap;
+    }
+
+    .volunteers-button span.volunteer-summary {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 160px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* Medium screens tighten slightly but preserve min-widths */
+    @media (max-width: 900px) {
+      .shifts-table th,
+      .shifts-table td {
+        padding: 6px 10px;
+      }
+      .volunteers-button span.volunteer-summary {
+        max-width: 140px;
+      }
+    }
+
+    /* Small screens: slightly smaller padding; widen volunteers column to reduce wrap */
+    @media (max-width: 600px) {
+      .shifts-table th,
+      .shifts-table td {
+        padding: 6px 8px;
+      }
+      .mat-column-signups { min-width: 220px; }
+      .volunteers-button span.volunteer-summary {
+        max-width: 150px;
+      }
+    }
+
+    /* Extra small: allow wrapping summary if still too tight, but keep button full width */
+    @media (max-width: 480px) {
+      .mat-column-signups .volunteers-button {
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+      }
+      .volunteers-button span.volunteer-summary {
+        white-space: normal;
+        line-height: 1.2;
+        max-width: 100%;
+      }
     }
 
     .capacity-display {
