@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, firstValueFrom } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import * as CryptoJS from 'crypto-js';
 
@@ -336,7 +336,7 @@ export class GoogleOAuthService {
       redirectUri
     };
 
-    return this.http.post('/api/oauth-state?action=store', body).toPromise();
+    return firstValueFrom(this.http.post('/api/oauth-state?action=store', body));
   }
 
   /**
@@ -352,7 +352,7 @@ export class GoogleOAuthService {
       state
     });
 
-    return this.http.get(`/api/oauth-state?action=retrieve&${params.toString()}`).toPromise();
+    return firstValueFrom(this.http.get(`/api/oauth-state?action=retrieve&${params.toString()}`));
   }
 
   /**
@@ -366,6 +366,6 @@ export class GoogleOAuthService {
       sessionId
     });
 
-    return this.http.delete(`/api/oauth-state?action=cleanup&${params.toString()}`).toPromise();
+    return firstValueFrom(this.http.delete(`/api/oauth-state?action=cleanup&${params.toString()}`));
   }
 }

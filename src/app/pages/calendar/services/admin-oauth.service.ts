@@ -107,7 +107,7 @@ export class AdminOAuthService {
    * Handles OAuth callback processing after user returns from Google.
    * Processes the authorization code and exchanges it for tokens.
    */
-  private handleOAuthCallback(): void {
+  private async handleOAuthCallback(): Promise<void> {
     this.updateAuthState({
       isAuthenticated: false,
       isLoading: true,
