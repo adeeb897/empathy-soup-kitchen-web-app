@@ -120,12 +120,12 @@ export class GoogleOAuthService {
 
   /**
    * Constructs the Google OAuth2 authorization URL with PKCE parameters.
-   * Stores the OAuth state securely for later verification.
+   * Stores the OAuth state securely on the server for later verification.
    * 
    * @param config - OAuth configuration
-   * @returns Complete authorization URL
+   * @returns Promise resolving to complete authorization URL
    */
-  buildAuthorizationUrl(config: Partial<OAuthConfig> = {}): string {
+  async buildAuthorizationUrl(config: Partial<OAuthConfig> = {}): Promise<string> {
     console.log('[GoogleOAuthService] Building authorization URL...');
     const fullConfig = { ...this.DEFAULT_CONFIG, ...config };
     console.log('[GoogleOAuthService] Full config:', fullConfig);
@@ -141,22 +141,17 @@ export class GoogleOAuthService {
     const state = this.generateState();
     console.log('[GoogleOAuthService] State generated:', state);
 
-    // Store OAuth state for callback verification
-    const oauthState: OAuthState = {
-      state,
-      codeVerifier: pkce.codeVerifier,
-      redirectUri: fullConfig.redirectUri
-    };
-    
-    console.log('[GoogleOAuthService] Storing OAuth state in sessionStorage...');
-    console.log('[GoogleOAuthService] OAuth state to store:', oauthState);
-    
-    // Store in both sessionStorage and localStorage as fallback
-    const stateData = JSON.stringify(oauthState);
-    sessionStorage.setItem('oauth_state', stateData);
-    localStorage.setItem('oauth_state_backup', stateData);
-    
-    console.log('[GoogleOAuthService] OAuth state stored successfully');
+    // Store OAuth state on server for callback verification
+    console.log('[GoogleOAuthService] Storing OAuth state on server...');
+    const storeResponse = await this.storeOAuthStateOnServer(state, pkce.codeVerifier, fullConfig.redirectUri);
+    console.log('[GoogleOAuthService] Server-side state storage result:', storeResponse);
+
+    if (!storeResponse.success) {
+      throw new Error('Failed to store OAuth state on server');
+    }
+
+    // Store session ID in browser for retrieval
+    sessionStorage.setItem('oauth_session_id', storeResponse.sessionId);
 
     // Build authorization URL with all required parameters
     const params = new URLSearchParams({
@@ -178,13 +173,13 @@ export class GoogleOAuthService {
 
   /**
    * Processes the OAuth callback and extracts authorization code and state.
-   * Validates state parameter to prevent CSRF attacks.
+   * Validates state parameter to prevent CSRF attacks using server-side storage.
    * 
    * @param callbackUrl - The callback URL containing authorization code and state
-   * @returns Object containing authorization code and stored code verifier
+   * @returns Promise resolving to object containing authorization code and stored code verifier
    * @throws Error if state validation fails or required parameters are missing
    */
-  processCallback(callbackUrl: string): { code: string; codeVerifier: string } {
+  async processCallback(callbackUrl: string): Promise<{ code: string; codeVerifier: string }> {
     const url = new URL(callbackUrl);
     const urlParams = new URLSearchParams(url.search);
     
@@ -206,45 +201,48 @@ export class GoogleOAuthService {
       throw new Error('State parameter not found in callback');
     }
 
-    // Retrieve and validate stored OAuth state
-    console.log('[GoogleOAuthService] Checking for stored OAuth state...');
-    console.log('[GoogleOAuthService] SessionStorage contents:', Object.keys(sessionStorage).map(key => `${key}: ${sessionStorage.getItem(key)}`));
+    // Get session ID from browser storage
+    const sessionId = sessionStorage.getItem('oauth_session_id');
+    console.log('[GoogleOAuthService] Session ID from storage:', sessionId ? sessionId.substring(0, 8) + '...' : 'null');
     
-    let storedStateJson = sessionStorage.getItem('oauth_state');
-    console.log('[GoogleOAuthService] Stored state JSON from sessionStorage:', storedStateJson);
-    
-    // Fallback to localStorage if sessionStorage is empty
-    if (!storedStateJson) {
-      storedStateJson = localStorage.getItem('oauth_state_backup');
-      console.log('[GoogleOAuthService] Fallback state JSON from localStorage:', storedStateJson);
-    }
-    
-    if (!storedStateJson) {
-      throw new Error('OAuth state not found in storage - sessionStorage may have been cleared during redirect');
+    if (!sessionId) {
+      throw new Error('OAuth session ID not found - unable to retrieve server-side state');
     }
 
-    let storedState: OAuthState;
+    // Retrieve and validate stored OAuth state from server
+    console.log('[GoogleOAuthService] Retrieving OAuth state from server...');
+    
     try {
-      storedState = JSON.parse(storedStateJson);
-    } catch (e) {
-      throw new Error('Invalid OAuth state format');
+      const stateResponse = await this.retrieveOAuthStateFromServer(sessionId, state);
+      console.log('[GoogleOAuthService] Server-side state retrieval successful');
+
+      // Clean up server-side state after successful use
+      await this.cleanupOAuthStateOnServer(sessionId);
+      
+      // Clean up browser-side session ID
+      sessionStorage.removeItem('oauth_session_id');
+      
+      console.log('[GoogleOAuthService] OAuth state validation and cleanup successful');
+
+      return {
+        code,
+        codeVerifier: stateResponse.codeVerifier
+      };
+
+    } catch (error: any) {
+      // Clean up session ID even if retrieval fails
+      sessionStorage.removeItem('oauth_session_id');
+      
+      console.error('[GoogleOAuthService] Server-side state retrieval failed:', error);
+      
+      if (error.status === 404) {
+        throw new Error('OAuth state not found or expired on server');
+      } else if (error.status === 403) {
+        throw new Error('OAuth state mismatch - possible CSRF attack');
+      } else {
+        throw new Error('Failed to validate OAuth state on server');
+      }
     }
-
-    // Validate state parameter for CSRF protection
-    if (state !== storedState.state) {
-      throw new Error('OAuth state mismatch - possible CSRF attack');
-    }
-
-    // Clean up stored state from both locations
-    sessionStorage.removeItem('oauth_state');
-    localStorage.removeItem('oauth_state_backup');
-    
-    console.log('[GoogleOAuthService] OAuth state validation successful, state cleaned up');
-
-    return {
-      code,
-      codeVerifier: storedState.codeVerifier
-    };
   }
 
   /**
@@ -286,12 +284,13 @@ export class GoogleOAuthService {
    * Initiates the OAuth flow by redirecting the user to Google's authorization server.
    * 
    * @param config - OAuth configuration
+   * @returns Promise that resolves when OAuth flow is initiated
    */
-  startOAuthFlow(config: Partial<OAuthConfig> = {}): void {
+  async startOAuthFlow(config: Partial<OAuthConfig> = {}): Promise<void> {
     console.log('[GoogleOAuthService] Starting OAuth flow with config:', config);
     try {
       console.log('[GoogleOAuthService] Building authorization URL...');
-      const authUrl = this.buildAuthorizationUrl(config);
+      const authUrl = await this.buildAuthorizationUrl(config);
       console.log('[GoogleOAuthService] Authorization URL built:', authUrl);
       console.log('[GoogleOAuthService] Redirecting to Google...');
       window.location.href = authUrl;
@@ -320,5 +319,53 @@ export class GoogleOAuthService {
     // This can be extended to read from environment variables
     // For now, return default config that can be overridden
     return { ...this.DEFAULT_CONFIG };
+  }
+
+  /**
+   * Stores OAuth state securely on the server
+   * 
+   * @param state - OAuth state parameter
+   * @param codeVerifier - PKCE code verifier
+   * @param redirectUri - OAuth redirect URI
+   * @returns Promise resolving to storage response
+   */
+  private async storeOAuthStateOnServer(state: string, codeVerifier: string, redirectUri: string): Promise<any> {
+    const body = {
+      state,
+      codeVerifier,
+      redirectUri
+    };
+
+    return this.http.post('/api/oauth-state?action=store', body).toPromise();
+  }
+
+  /**
+   * Retrieves OAuth state from the server
+   * 
+   * @param sessionId - Server session ID
+   * @param state - OAuth state parameter for validation
+   * @returns Promise resolving to stored OAuth data
+   */
+  private async retrieveOAuthStateFromServer(sessionId: string, state: string): Promise<any> {
+    const params = new URLSearchParams({
+      sessionId,
+      state
+    });
+
+    return this.http.get(`/api/oauth-state?action=retrieve&${params.toString()}`).toPromise();
+  }
+
+  /**
+   * Cleans up OAuth state on the server after successful use
+   * 
+   * @param sessionId - Server session ID
+   * @returns Promise resolving to cleanup response
+   */
+  private async cleanupOAuthStateOnServer(sessionId: string): Promise<any> {
+    const params = new URLSearchParams({
+      sessionId
+    });
+
+    return this.http.delete(`/api/oauth-state?action=cleanup&${params.toString()}`).toPromise();
   }
 }

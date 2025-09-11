@@ -116,10 +116,11 @@ export class AdminOAuthService {
     });
 
     try {
-      const { code, codeVerifier } = this.googleOAuthService.processCallback(window.location.href);
+      // Process callback asynchronously with server-side state
+      const callbackData = await this.googleOAuthService.processCallback(window.location.href);
       const config = this.getOAuthConfig();
       
-      this.googleOAuthService.exchangeCodeForTokens(code, codeVerifier, config.redirectUri)
+      this.googleOAuthService.exchangeCodeForTokens(callbackData.code, callbackData.codeVerifier, config.redirectUri)
         .pipe(
           switchMap(tokenResponse => {
             // Store tokens
@@ -274,12 +275,22 @@ export class AdminOAuthService {
 
         console.log('[AdminOAuthService] Starting OAuth flow with GoogleOAuthService...');
         // Start OAuth flow - this will redirect the user
-        this.googleOAuthService.startOAuthFlow(config);
-        
-        console.log('[AdminOAuthService] OAuth flow initiated, should redirect soon...');
-        // The observer completes here as we're redirecting
-        observer.next({ success: true });
-        observer.complete();
+        this.googleOAuthService.startOAuthFlow(config).then(() => {
+          console.log('[AdminOAuthService] OAuth flow initiated, should redirect soon...');
+          // The observer completes here as we're redirecting
+          observer.next({ success: true });
+          observer.complete();
+        }).catch((error) => {
+          console.error('[AdminOAuthService] Failed to start OAuth flow:', error);
+          const errorMessage = error.message || 'Failed to start login';
+          this.handleAuthenticationError(errorMessage);
+          
+          observer.next({ 
+            success: false, 
+            error: errorMessage 
+          });
+          observer.complete();
+        });
         
       } catch (error: any) {
         console.error('[AdminOAuthService] Login error:', error);
@@ -405,43 +416,51 @@ export class AdminOAuthService {
           error: null
         });
 
-        const { code, codeVerifier } = this.googleOAuthService.processCallback(window.location.href);
-        const config = this.getOAuthConfig();
+        // Process callback asynchronously with server-side state
+        const callbackPromise = this.googleOAuthService.processCallback(window.location.href);
         
-        this.googleOAuthService.exchangeCodeForTokens(code, codeVerifier, config.redirectUri)
-          .pipe(
-            switchMap(tokenResponse => {
-              // Store tokens
-              this.tokenService.storeTokens(
-                tokenResponse.access_token,
-                tokenResponse.refresh_token,
-                tokenResponse.expires_in,
-                tokenResponse.token_type,
-                tokenResponse.scope
-              );
-              
-              // Validate the token and check admin status
-              return this.tokenService.validateToken();
-            }),
-            catchError(error => {
-              console.error('OAuth callback processing failed:', error);
-              observer.next(false);
-              observer.complete();
-              return throwError(() => new Error('Authentication failed'));
-            })
-          )
-          .subscribe({
-            next: (validationResponse) => {
-              this.handleSuccessfulAuthentication(validationResponse);
-              observer.next(true);
-              observer.complete();
-            },
-            error: (error) => {
-              this.handleAuthenticationError(error.message || 'Authentication failed');
-              observer.next(false);
-              observer.complete();
-            }
-          });
+        callbackPromise.then(({ code, codeVerifier }) => {
+          const config = this.getOAuthConfig();
+          
+          this.googleOAuthService.exchangeCodeForTokens(code, codeVerifier, config.redirectUri)
+            .pipe(
+              switchMap(tokenResponse => {
+                // Store tokens
+                this.tokenService.storeTokens(
+                  tokenResponse.access_token,
+                  tokenResponse.refresh_token,
+                  tokenResponse.expires_in,
+                  tokenResponse.token_type,
+                  tokenResponse.scope
+                );
+                
+                // Validate the token and check admin status
+                return this.tokenService.validateToken();
+              }),
+              catchError(error => {
+                console.error('OAuth callback processing failed:', error);
+                observer.next(false);
+                observer.complete();
+                return throwError(() => new Error('Authentication failed'));
+              })
+            )
+            .subscribe({
+              next: (validationResponse) => {
+                this.handleSuccessfulAuthentication(validationResponse);
+                observer.next(true);
+                observer.complete();
+              },
+              error: (error) => {
+                this.handleAuthenticationError(error.message || 'Authentication failed');
+                observer.next(false);
+                observer.complete();
+              }
+            });
+        }).catch((error) => {
+          this.handleAuthenticationError(error.message || 'Invalid OAuth callback');
+          observer.next(false);
+          observer.complete();
+        });
 
       } catch (error: any) {
         this.handleAuthenticationError(error.message || 'Invalid OAuth callback');
