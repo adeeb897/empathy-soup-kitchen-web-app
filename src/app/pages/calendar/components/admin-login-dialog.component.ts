@@ -207,6 +207,14 @@ export class AdminLoginDialogComponent implements OnDestroy {
   }
 
   cancel() {
+    // Clear any authentication errors when cancelling
+    this.adminOAuthService.clearError();
+    
+    // Clear the adminLogin query parameter from URL to allow reopening dialog
+    const currentUrl = this.router.url;
+    const urlWithoutParams = currentUrl.split('?')[0];
+    this.router.navigateByUrl(urlWithoutParams, { replaceUrl: true });
+    
     this.dialogRef.close(false);
   }
 }
