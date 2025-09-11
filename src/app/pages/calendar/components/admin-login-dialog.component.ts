@@ -128,6 +128,65 @@ import { takeUntil } from 'rxjs/operators';
     mat-dialog-actions {
       padding: 16px 24px;
     }
+
+    /* Mobile enhancements */
+    @media (max-width: 480px) {
+      .login-content {
+        min-width: 0;
+        width: 100%;
+        padding: 8px 0 4px;
+      }
+      h2[mat-dialog-title] {
+        font-size: 1.15rem;
+        margin: 0;
+        line-height: 1.2;
+        text-align: center;
+      }
+      .login-description {
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+      }
+      .google-signin-btn {
+        min-width: 0;
+        width: 100%;
+        height: 44px;
+        font-size: 14px;
+        padding: 0 12px;
+      }
+      .google-icon {
+        margin-right: 6px;
+      }
+      .loading-container {
+        margin: 16px 0;
+        gap: 12px;
+      }
+      .loading-text {
+        font-size: 12px;
+      }
+      .error-message {
+        font-size: 12px;
+        padding: 8px;
+        margin: 12px 0;
+      }
+      mat-dialog-content {
+        padding: 12px 16px 4px;
+      }
+      mat-dialog-actions {
+        padding: 8px 12px 12px;
+      }
+      button[mat-button] {
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .login-description {
+        font-size: 0.8rem;
+      }
+      .google-signin-btn {
+        font-size: 13px;
+      }
+    }
   `]
 })
 export class AdminLoginDialogComponent implements OnDestroy {

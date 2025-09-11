@@ -483,9 +483,130 @@ import { takeUntil } from 'rxjs/operators';
       align-items: center;
     }
 
+    @media (max-width: 1024px) {
+      .form-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .form-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .recurring-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .admin-container {
+        padding: 16px;
+      }
+    }
+
     @media (max-width: 768px) {
       .form-row {
         grid-template-columns: 1fr;
+      }
+      .recurring-row {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+      .header-actions {
+        order: 2;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .header-left {
+        order: 1;
+      }
+      .header h1 {
+        font-size: 1.75rem;
+      }
+      .add-shift-card, .shifts-card {
+        margin-bottom: 16px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .admin-container {
+        padding: 12px;
+      }
+      .header h1 {
+        font-size: 1.5rem;
+      }
+      .user-info {
+        font-size: 13px;
+      }
+      .volunteers-button {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .volunteer-summary {
+        font-size: 12px;
+      }
+      .capacity-bar-small {
+        width: 50px;
+      }
+      .recurring-section {
+        padding: 12px;
+      }
+      .recurring-options {
+        padding-left: 8px;
+      }
+      .days-checkboxes {
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 6px;
+      }
+      .loading-container, .error-container, .no-shifts {
+        padding: 24px 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 1.35rem;
+      }
+      .admin-container {
+        padding: 10px 10px 70px;
+      }
+      .shifts-table {
+        font-size: 12px;
+      }
+      .shifts-table th, .shifts-table td {
+        padding: 4px 6px;
+      }
+      .volunteers-button {
+        width: 100%;
+        justify-content: center;
+      }
+      .form-actions {
+        justify-content: stretch;
+      }
+      .form-actions button {
+        width: 100%;
+      }
+      .capacity-display {
+        font-size: 12px;
+      }
+      .capacity-bar-small {
+        width: 44px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .header h1 {
+        font-size: 1.2rem;
+      }
+      .shifts-table th, .shifts-table td {
+        padding: 4px 4px;
+      }
+      .volunteers-button {
+        padding: 6px 10px;
       }
     }
   `]
