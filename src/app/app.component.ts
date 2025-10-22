@@ -47,7 +47,7 @@ export class AppComponent implements OnInit {
   generateFinancialYears() {
     // Only include years from 2024 onwards
     this.financialYears = [];
-    const startYear = Math.max(2024, this.currentYear);
+    const startYear = 2024; // Change once there are reports for future years
     
     for (let year = startYear; year >= 2024; year--) {
       this.financialYears.push(year.toString());
