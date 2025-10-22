@@ -82,4 +82,13 @@ export class AppComponent implements OnInit {
     const reportKey = `${year}-q${quarter}`;
     return this.availableReports[reportKey] === true;
   }
+
+  getAvailableQuarters(year: string): number[] {
+    const allQuarters = year === '2024' ? [4] : [1, 2, 3, 4];
+    return allQuarters.filter(quarter => this.isReportAvailable(year, quarter));
+  }
+
+  hasAvailableReports(year: string): boolean {
+    return this.getAvailableQuarters(year).length > 0;
+  }
 }

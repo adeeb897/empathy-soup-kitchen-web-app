@@ -61,21 +61,19 @@
             class="year-panel"
             [expanded]="year === currentYear.toString()"
           >
-            <mat-expansion-panel-header>
+            <mat-expansion-panel-header *ngIf="hasAvailableReports(year)">
               <mat-panel-title>{{ year }}</mat-panel-title>
             </mat-expansion-panel-header>
 
             <!-- Quarters for this year -->
-            <div class="quarters-links">
+            <div class="quarters-links" *ngIf="hasAvailableReports(year)">
               <a
-                *ngFor="let quarter of year == '2024' ? [4] : [1, 2, 3, 4]"
+                *ngFor="let quarter of getAvailableQuarters(year)"
                 [routerLink]="['/financial-report', year, quarter]"
                 routerLinkActive="active"
                 class="quarter-link"
               >
                 <span>Quarter {{ quarter }}</span>
-                <mat-icon *ngIf="isReportAvailable(year, quarter)" class="report-available-icon">description</mat-icon>
-                <mat-icon *ngIf="!isReportAvailable(year, quarter)" class="report-unavailable-icon">block</mat-icon>
               </a>
             </div>
           </mat-expansion-panel>
