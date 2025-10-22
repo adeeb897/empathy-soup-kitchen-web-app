@@ -43,36 +43,21 @@ export class PictureGalleryComponent implements OnInit, AfterViewInit {
     {
       src: '/assets/food_1.jpg',
       orientation: 'landscape'
-    },
-    {
-      src: '/assets/gallery/Image-01.jpg',
-      orientation: 'landscape'
-    },
-    {
-      src: '/assets/gallery/Image-02.jpg',
-      orientation: 'landscape'
-    },
-    {
-      src: '/assets/gallery/Image-03.jpg',
-      orientation: 'landscape'
-    },
-    {
-      src: '/assets/gallery/Image-04.jpg',
-      orientation: 'landscape'
-    },
-    {
-      src: '/assets/gallery/Image-05.jpg',
-      orientation: 'landscape'
-    },
-    {
-      src: '/assets/gallery/Image-06.jpg',
-      orientation: 'landscape'
-    },
+    }
   ];
+
 
   constructor(public dialog: MatDialog) {}
 
   ngOnInit(): void {
+    // Add Images-01 to Images-70 with default orientation
+    for (let i = 1; i <= 70; i++) {
+      this.images.push({
+        src: `/assets/gallery/Image-${i.toString().padStart(2, '0')}.jpg`,
+        orientation: 'landscape'
+      });
+    }
+
     // Pre-load images to determine orientation
     this.images.forEach((image, index) => {
       const img = new Image();
