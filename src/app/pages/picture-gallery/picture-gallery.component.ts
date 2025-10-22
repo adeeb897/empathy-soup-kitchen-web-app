@@ -50,8 +50,8 @@ export class PictureGalleryComponent implements OnInit, AfterViewInit {
   constructor(public dialog: MatDialog) {}
 
   ngOnInit(): void {
-    // Add Images-01 to Images-70 with default orientation
-    for (let i = 1; i <= 70; i++) {
+    // Add Images-01 to Images-69 with default orientation
+    for (let i = 1; i <= 69; i++) {
       this.images.push({
         src: `/assets/gallery/Image-${i.toString().padStart(2, '0')}.jpg`,
         orientation: 'landscape'
