@@ -1,0 +1,211 @@
+<!-- Header -->
+<section class="gi-header section">
+  <div class="container">
+    <div class="gi-header__content" appScrollAnimate>
+      <span class="section-label">Get Involved</span>
+      <h1 class="section-title">Every contribution<br>feeds a neighbor</h1>
+      <p class="gi-header__subtitle">
+        Whether it's a financial donation, goods from the store, or time spent helping refugees —
+        there are many ways to make a difference.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Tab Navigation -->
+<div class="gi-tabs">
+  <div class="container">
+    <nav class="gi-tabs__nav" role="tablist" aria-label="Get involved sections">
+      @for (tab of tabs; track tab.id) {
+        <button
+          class="gi-tabs__btn"
+          [class.is-active]="activeTab === tab.id"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          [attr.aria-controls]="'panel-' + tab.id"
+          (click)="setTab(tab.id)">
+          <span class="material-icons">{{ tab.icon }}</span>
+          {{ tab.label }}
+        </button>
+      }
+    </nav>
+  </div>
+</div>
+
+<!-- Donate Panel -->
+@if (activeTab === 'donate') {
+  <section class="gi-panel section" id="panel-donate" role="tabpanel">
+    <div class="container">
+      <!-- Online Donation -->
+      <div class="donate-online" appScrollAnimate>
+        <div class="donate-online__content">
+          <h2>Donate Online</h2>
+          <p>
+            Your financial contribution directly funds the meals we serve every weekend.
+            Recurring donations help us plan ahead and serve more people consistently.
+          </p>
+          <a
+            href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation"
+            target="_blank"
+            rel="noopener"
+            class="btn btn--primary btn--large">
+            <span class="material-icons">favorite</span>
+            Make a Donation
+          </a>
+        </div>
+        <div class="donate-online__visual">
+          <img src="assets/food_1.jpg" alt="Prepared meal" loading="lazy">
+        </div>
+      </div>
+
+      <!-- Shopping List -->
+      <div class="donate-shop" appScrollAnimate>
+        <h2>Go Shopping for Us</h2>
+        <p class="donate-shop__desc">
+          We always need supplies. Pick up any of these items and drop them off at our location.
+        </p>
+        <div class="donate-shop__grid">
+          @for (item of shoppingList; track item) {
+            <div class="donate-shop__item">
+              <span class="material-icons">check_circle</span>
+              {{ item }}
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Drop-off -->
+      <div class="donate-dropoff" appScrollAnimate>
+        <div class="donate-dropoff__card">
+          <span class="material-icons donate-dropoff__icon">door_front</span>
+          <h3>Drop Off Donations</h3>
+          <p>
+            Our door is unlocked every weekend from <strong>9:00 AM to 4:00 PM</strong>.
+            Just walk in and place items in the refrigerator or on the shelves.
+          </p>
+          <div class="donate-dropoff__address">
+            <span class="material-icons">place</span>
+            523 Sinclair Street, McKeesport, PA 15132
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- Refugee Services Panel -->
+@if (activeTab === 'refugee') {
+  <section class="gi-panel section" id="panel-refugee" role="tabpanel">
+    <div class="container">
+      <div class="refugee-services" appScrollAnimate>
+        <div class="refugee-services__header">
+          <h2>Refugee Support Services</h2>
+          <p>
+            Beyond our weekend meals, we provide comprehensive support to refugees
+            building new lives in the McKeesport community.
+          </p>
+        </div>
+
+        <div class="refugee-services__grid">
+          <div class="refugee-services__card">
+            <span class="material-icons">restaurant</span>
+            <h3>Food Assistance</h3>
+            <p>
+              Regular food packages and access to our weekend meals. We ensure refugee families
+              have consistent access to nutritious food while they settle into their new community.
+            </p>
+          </div>
+
+          <div class="refugee-services__card">
+            <span class="material-icons">work</span>
+            <h3>Employment Help</h3>
+            <p>
+              Resume assistance, job placement support, and connections to local employers.
+              We help refugees find meaningful employment and build economic independence.
+            </p>
+          </div>
+
+          <div class="refugee-services__card">
+            <span class="material-icons">account_balance</span>
+            <h3>Financial Aid</h3>
+            <p>
+              Emergency financial assistance for housing, utilities, and essential needs.
+              We provide a safety net while refugee families establish themselves.
+            </p>
+          </div>
+        </div>
+
+        <div class="refugee-services__cta" appScrollAnimate>
+          <p>Know a refugee family that could use support?</p>
+          <a href="mailto:empathysoupkitchen&#64;gmail.com" class="btn btn--primary">
+            <span class="material-icons">email</span>
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- Financial Reports Panel -->
+@if (activeTab === 'reports') {
+  <section class="gi-panel section" id="panel-reports" role="tabpanel">
+    <div class="container">
+      <div class="reports" appScrollAnimate>
+        <div class="reports__header">
+          <h2>Financial Reports</h2>
+          <p>
+            We believe in full transparency. Below you'll find our quarterly financial reports
+            showing exactly how donations are used.
+          </p>
+        </div>
+
+        @if (!selectedReport) {
+          <div class="reports__list">
+            @for (year of uniqueYears; track year) {
+              <div class="reports__year">
+                <button
+                  class="reports__year-toggle"
+                  (click)="toggleYear(year)"
+                  [attr.aria-expanded]="isYearOpen(year)">
+                  <span>{{ year }}</span>
+                  <span class="material-icons">{{ isYearOpen(year) ? 'expand_less' : 'expand_more' }}</span>
+                </button>
+                @if (isYearOpen(year)) {
+                  <div class="reports__quarters">
+                    @for (report of getReportsForYear(year); track report.label) {
+                      <button class="reports__quarter-btn" (click)="viewReport(report)">
+                        <span class="material-icons">description</span>
+                        <span>{{ report.label }}</span>
+                        <span class="material-icons reports__quarter-arrow">arrow_forward</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="reports__viewer">
+            <div class="reports__viewer-header">
+              <button class="btn btn--ghost" (click)="closeReportViewer()">
+                <span class="material-icons">arrow_back</span>
+                Back to reports
+              </button>
+              <h3>{{ selectedReport.label }} Financial Report</h3>
+            </div>
+            <div class="reports__viewer-frame">
+              <iframe
+                [src]="selectedReport.url | safe:'resourceUrl'"
+                width="100%"
+                height="800"
+                style="border: none; border-radius: 8px;"
+                [title]="selectedReport.label + ' Financial Report'">
+              </iframe>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}

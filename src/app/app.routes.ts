@@ -1,85 +1,62 @@
 import { Routes } from '@angular/router';
 import { AdminAuthGuard } from './pages/calendar/guards/admin-auth.guard';
-import { HomeComponent } from './pages/home/home.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', component: HomeComponent },
   {
-    path: 'donations',
+    path: 'home',
     loadComponent: () =>
-      import('./pages/donations/donations.component').then(
-        (m) => m.DonationsComponent
+      import('./pages/home/home.component').then((m) => m.HomeComponent),
+  },
+  {
+    path: 'volunteer',
+    loadComponent: () =>
+      import('./pages/volunteer/volunteer.component').then(
+        (m) => m.VolunteerComponent
+      ),
+  },
+  {
+    path: 'volunteer/admin',
+    loadComponent: () =>
+      import('./pages/volunteer-admin/volunteer-admin.component').then(
+        (m) => m.VolunteerAdminComponent
+      ),
+    canActivate: [AdminAuthGuard],
+  },
+  {
+    path: 'get-involved',
+    loadComponent: () =>
+      import('./pages/get-involved/get-involved.component').then(
+        (m) => m.GetInvolvedComponent
+      ),
+  },
+  {
+    path: 'gallery',
+    loadComponent: () =>
+      import('./pages/gallery/gallery.component').then(
+        (m) => m.GalleryComponent
       ),
   },
   {
     path: 'about',
     loadComponent: () =>
-      import('./pages/who-we-are/who-we-are.component').then(
-        (m) => m.WhoWeAreComponent
-      ),
+      import('./pages/about/about.component').then((m) => m.AboutComponent),
   },
-  {
-    path: 'volunteers',
-    loadComponent: () =>
-      import('./pages/volunteers/volunteers.component').then(
-        (m) => m.VolunteersComponent
-      ),
-  },
-  {
-    path: 'faqs',
-    loadComponent: () =>
-      import('./pages/faqs/faqs.component').then((m) => m.FaqsComponent),
-  },
-  {
-    path: 'calendar',
-    loadComponent: () =>
-      import('./pages/calendar/calendar.component').then(
-        (m) => m.CalendarComponent
-      ),
-  },
-  {
-    path: 'calendar/admin',
-    loadComponent: () =>
-      import('./pages/calendar/admin/admin.component').then(
-        (m) => m.AdminComponent
-      ),
-    canActivate: [AdminAuthGuard]
-  },
-  {
-    path: 'financial-report/:year/:quarter',
-    loadComponent: () =>
-      import('./pages/financial-report/financial-report.component').then(
-        (m) => m.FinancialReportComponent
-      ),
-  },
-  {
-    path: 'refugee-services',
-    loadComponent: () =>
-      import('./pages/refugee-services/refugee-services.component').then(
-        (m) => m.RefugeeServicesComponent
-      ),
-  },
-  {
-    path: 'soup-kitchen-tasks',
-    loadComponent: () =>
-      import('./pages/soup-kitchen-tasks/soup-kitchen-tasks.component').then(
-        (m) => m.SoupKitchenTasksComponent
-      ),
-  },
-  {
-    path: 'refugee-tasks',
-    loadComponent: () =>
-      import('./pages/refugee-tasks/refugee-tasks.component').then(
-        (m) => m.RefugeeTasksComponent
-      ),
-  },
-  {
-    path: 'picture-gallery',
-    loadComponent: () =>
-      import('./pages/picture-gallery/picture-gallery.component').then(
-        (m) => m.PictureGalleryComponent
-      ),
-  },
+
+  // Legacy redirects
+  { path: 'calendar/admin', redirectTo: '/volunteer/admin', pathMatch: 'full' },
+  { path: 'calendar', redirectTo: '/volunteer', pathMatch: 'full' },
+  { path: 'donate', redirectTo: '/get-involved', pathMatch: 'full' },
+  { path: 'donations', redirectTo: '/get-involved', pathMatch: 'full' },
+  { path: 'picture-gallery', redirectTo: '/gallery', pathMatch: 'full' },
+  { path: 'who-we-are', redirectTo: '/about', pathMatch: 'full' },
+  { path: 'faqs', redirectTo: '/about', pathMatch: 'full' },
+  { path: 'refugee-services', redirectTo: '/get-involved', pathMatch: 'full' },
+  { path: 'volunteers', redirectTo: '/volunteer', pathMatch: 'full' },
+  { path: 'financial-report/:year/:quarter', redirectTo: '/get-involved', pathMatch: 'full' },
+  { path: 'soup-kitchen-tasks', redirectTo: '/volunteer', pathMatch: 'full' },
+  { path: 'refugee-tasks', redirectTo: '/get-involved', pathMatch: 'full' },
+
+  // Catch-all
   { path: '**', redirectTo: '/home' },
 ];

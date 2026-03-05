@@ -1,0 +1,78 @@
+<!-- Header -->
+<section class="gallery-header section">
+  <div class="container">
+    <div class="gallery-header__content" appScrollAnimate>
+      <span class="section-label">Gallery</span>
+      <h1 class="section-title">Moments of connection</h1>
+      <p class="gallery-header__subtitle">Every photo tells a story of community, compassion, and shared meals.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery Grid -->
+<section class="gallery-grid">
+  <div class="container">
+    <div class="gallery-grid__masonry">
+      @for (image of visibleImages; track image; let i = $index) {
+        <button
+          class="gallery-grid__item"
+          (click)="openLightbox(i)"
+          [attr.aria-label]="'View photo ' + (i + 1)"
+          type="button">
+          <img [src]="image" [alt]="'Empathy Soup Kitchen photo ' + (i + 1)" loading="lazy">
+          <div class="gallery-grid__overlay">
+            <span class="material-icons">zoom_in</span>
+          </div>
+        </button>
+      }
+    </div>
+
+    <!-- Infinite scroll sentinel -->
+    @if (hasMore) {
+      <div id="gallery-sentinel" class="gallery-grid__loading">
+        <div class="spinner"></div>
+        <span>Loading more photos...</span>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Lightbox -->
+@if (lightboxOpen) {
+  <div
+    class="lightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Image viewer"
+    (click)="closeLightbox()"
+    (touchstart)="onTouchStart($event)"
+    (touchend)="onTouchEnd($event)">
+    <div class="lightbox__content" (click)="$event.stopPropagation()">
+      <button class="lightbox__close" (click)="closeLightbox()" aria-label="Close">
+        <span class="material-icons">close</span>
+      </button>
+
+      <button class="lightbox__nav lightbox__nav--prev" (click)="lightboxPrev()" aria-label="Previous image">
+        <span class="material-icons">chevron_left</span>
+      </button>
+
+      <div class="lightbox__image-wrap">
+        @if (lightboxLoading) {
+          <div class="lightbox__spinner"><div class="spinner spinner--light"></div></div>
+        }
+        <img
+          [src]="images[lightboxIndex]"
+          [alt]="'Photo ' + (lightboxIndex + 1) + ' of ' + images.length"
+          class="lightbox__image"
+          [class.is-loaded]="!lightboxLoading"
+          (load)="onLightboxImageLoad()">
+      </div>
+
+      <button class="lightbox__nav lightbox__nav--next" (click)="lightboxNext()" aria-label="Next image">
+        <span class="material-icons">chevron_right</span>
+      </button>
+
+      <div class="lightbox__counter">{{ lightboxIndex + 1 }} / {{ images.length }}</div>
+    </div>
+  </div>
+}
