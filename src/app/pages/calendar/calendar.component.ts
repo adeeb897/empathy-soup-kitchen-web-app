@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { VolunteerShift, SignUp, CreateSignupData } from './models/volunteer.model';
 import { VolunteerShiftService } from './services/volunteer-shift.service';
 import { TextBoxService } from './services/text-box.service';
@@ -19,12 +22,15 @@ import { AdminLoginDialogComponent } from './components/admin-login-dialog.compo
   imports: [
     CommonModule,
     RouterModule,
+    ReactiveFormsModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatDialogModule
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   template: `
     <div class="calendar-container">
@@ -68,11 +74,11 @@ import { AdminLoginDialogComponent } from './components/admin-login-dialog.compo
               <mat-card-title>{{ formatDate(shift.StartTime) }}</mat-card-title>
               <mat-card-subtitle>{{ formatTimeRange(shift) }}</mat-card-subtitle>
             </mat-card-header>
-            
+
             <mat-card-content>
               <div class="capacity-info">
                 <div class="capacity-bar">
-                  <div class="capacity-fill" 
+                  <div class="capacity-fill"
                        [style.width.%]="getCapacityPercentage(shift)"
                        [class.full]="isShiftFull(shift)"
                        [class.nearly-full]="isShiftNearlyFull(shift)">
@@ -96,7 +102,7 @@ import { AdminLoginDialogComponent } from './components/admin-login-dialog.compo
             </mat-card-content>
 
             <mat-card-actions>
-              <button mat-raised-button 
+              <button mat-raised-button
                       color="primary"
                       [disabled]="isShiftFull(shift) || isShiftInPast(shift)"
                       (click)="openSignupDialog(shift)">
@@ -107,6 +113,70 @@ import { AdminLoginDialogComponent } from './components/admin-login-dialog.compo
           </mat-card>
         </div>
       </div>
+
+      <!-- Cancel My Signup Section -->
+      <mat-card class="cancel-section">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>person_remove</mat-icon>
+            Cancel My Signup
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="cancel-description">Need to cancel? Enter your email and name to find your signups.</p>
+          <form [formGroup]="cancelForm" (ngSubmit)="lookupSignups()" class="cancel-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Email Address</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="your.email@example.com">
+              <mat-error *ngIf="cancelForm.get('email')?.hasError('required')">Email is required</mat-error>
+              <mat-error *ngIf="cancelForm.get('email')?.hasError('email')">Enter a valid email</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Full Name</mat-label>
+              <input matInput formControlName="name" placeholder="Enter your full name">
+              <mat-error *ngIf="cancelForm.get('name')?.hasError('required')">Name is required</mat-error>
+            </mat-form-field>
+
+            <button mat-raised-button type="submit" [disabled]="cancelForm.invalid || lookingUp">
+              <mat-icon *ngIf="lookingUp">hourglass_empty</mat-icon>
+              <mat-icon *ngIf="!lookingUp">search</mat-icon>
+              {{ lookingUp ? 'Searching...' : 'Find My Signups' }}
+            </button>
+          </form>
+
+          <!-- Lookup Results -->
+          <div *ngIf="lookupResults !== null" class="lookup-results">
+            <div *ngIf="lookupResults.length === 0" class="no-results">
+              <p>No upcoming signups found for this email and name.</p>
+            </div>
+
+            <div *ngFor="let result of lookupResults" class="lookup-result-card">
+              <div class="result-info">
+                <div class="result-shift">
+                  <mat-icon>event</mat-icon>
+                  <span>{{ result.shift ? formatDate(result.shift.StartTime) : 'Unknown shift' }}</span>
+                </div>
+                <div *ngIf="result.shift" class="result-time">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ formatTimeRange(result.shift) }}</span>
+                </div>
+                <div class="result-people">
+                  <mat-icon>group</mat-icon>
+                  <span>{{ result.NumPeople }} {{ result.NumPeople === 1 ? 'person' : 'people' }}</span>
+                </div>
+              </div>
+              <button mat-raised-button
+                      color="warn"
+                      [disabled]="cancelling.has(result.SignUpID)"
+                      (click)="cancelSignup(result)">
+                <mat-icon>{{ cancelling.has(result.SignUpID) ? 'hourglass_empty' : 'cancel' }}</mat-icon>
+                {{ cancelling.has(result.SignUpID) ? 'Cancelling...' : 'Cancel' }}
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
   `,
   styles: [`
@@ -235,6 +305,106 @@ import { AdminLoginDialogComponent } from './components/admin-login-dialog.compo
     mat-card-actions {
       padding-top: 0;
     }
+
+    /* Cancel section */
+    .cancel-section {
+      margin-top: 40px;
+    }
+
+    .cancel-section mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cancel-description {
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .cancel-form {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .cancel-form mat-form-field {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .cancel-form button {
+      margin-top: 4px;
+    }
+
+    .lookup-results {
+      margin-top: 20px;
+    }
+
+    .no-results {
+      color: #666;
+      font-style: italic;
+    }
+
+    .lookup-result-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+
+    .result-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .result-shift, .result-time, .result-people {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .result-shift {
+      font-weight: 500;
+    }
+
+    .result-shift mat-icon, .result-time mat-icon, .result-people mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      .cancel-form {
+        flex-direction: column;
+      }
+
+      .cancel-form mat-form-field {
+        width: 100%;
+      }
+
+      .cancel-form button {
+        width: 100%;
+      }
+
+      .lookup-result-card {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+
+      .lookup-result-card button {
+        width: 100%;
+      }
+    }
   `]
 })
 export class CalendarComponent implements OnInit {
@@ -243,13 +413,25 @@ export class CalendarComponent implements OnInit {
   error: string | null = null;
   instructionsText = 'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule.';
 
+  // Cancel form
+  cancelForm: FormGroup;
+  lookupResults: (SignUp & { shift?: VolunteerShift })[] | null = null;
+  lookingUp = false;
+  cancelling = new Set<number>();
+
   constructor(
     private volunteerShiftService: VolunteerShiftService,
     private textBoxService: TextBoxService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private route: ActivatedRoute
-  ) {}
+    private route: ActivatedRoute,
+    private fb: FormBuilder
+  ) {
+    this.cancelForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      name: ['', [Validators.required]]
+    });
+  }
 
   ngOnInit() {
     this.loadData();
@@ -312,7 +494,7 @@ export class CalendarComponent implements OnInit {
 
   openSignupDialog(shift: VolunteerShift) {
     const dialogData: SignupDialogData = { shift };
-    
+
     const dialogRef = this.dialog.open(SignupDialogComponent, {
       width: '500px',
       data: dialogData
@@ -322,12 +504,12 @@ export class CalendarComponent implements OnInit {
       if (signupData) {
         try {
           const newSignup = await this.volunteerShiftService.createSignup(signupData);
-          
+
           const shiftIndex = this.upcomingShifts.findIndex(s => s.ShiftID === shift.ShiftID);
           if (shiftIndex !== -1) {
             this.upcomingShifts[shiftIndex].signups.push(newSignup);
           }
-          
+
           this.showMessage('Successfully signed up for the shift!');
         } catch (error) {
           console.error('Error creating signup:', error);
@@ -335,6 +517,53 @@ export class CalendarComponent implements OnInit {
         }
       }
     });
+  }
+
+  async lookupSignups() {
+    if (this.cancelForm.invalid) return;
+
+    this.lookingUp = true;
+    this.lookupResults = null;
+
+    try {
+      const { email, name } = this.cancelForm.value;
+      const results = await this.volunteerShiftService.findSignupsByEmail(email.trim());
+      // Filter by name (case-insensitive)
+      this.lookupResults = results.filter(
+        r => r.Name.toLowerCase() === name.trim().toLowerCase()
+      );
+    } catch (error) {
+      console.error('Error looking up signups:', error);
+      this.showMessage('Error looking up signups. Please try again.');
+    } finally {
+      this.lookingUp = false;
+    }
+  }
+
+  async cancelSignup(signup: SignUp & { shift?: VolunteerShift }) {
+    const shiftDate = signup.shift ? this.formatDate(signup.shift.StartTime) : 'this shift';
+    if (!confirm(`Are you sure you want to cancel your signup for ${shiftDate}?`)) {
+      return;
+    }
+
+    this.cancelling.add(signup.SignUpID);
+
+    try {
+      await this.volunteerShiftService.cancelSignupWithNotification(signup.SignUpID);
+
+      // Remove from lookup results
+      this.lookupResults = this.lookupResults?.filter(r => r.SignUpID !== signup.SignUpID) || null;
+
+      // Reload shifts to update capacity display
+      await this.loadShifts();
+
+      this.showMessage('Your signup has been cancelled. A confirmation email has been sent.');
+    } catch (error) {
+      console.error('Error cancelling signup:', error);
+      this.showMessage('Error cancelling signup. Please try again.');
+    } finally {
+      this.cancelling.delete(signup.SignUpID);
+    }
   }
 
   formatDate(date: Date): string {
@@ -386,24 +615,24 @@ export class CalendarComponent implements OnInit {
 
   formatInstructions(text: string): string {
     if (!text) return '';
-    
+
     let safeText = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
-    
+
     safeText = safeText.replace(
-      /(https?:\/\/[^\s]+)/g, 
+      /(https?:\/\/[^\s]+)/g,
       '<a href="$1" target="_blank">$1</a>'
     );
-    
+
     safeText = safeText.replace(
       /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
       '<a href="mailto:$1">$1</a>'
     );
-    
+
     return safeText;
   }
 
