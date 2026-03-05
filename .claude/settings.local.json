@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx ng build)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(rm -f .vscode/tasks.json .env.example .env.oauth.example)",
+      "Bash(rm -rf .devcontainer/)"
     ]
   }
 }
