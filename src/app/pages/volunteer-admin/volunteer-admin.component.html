@@ -72,16 +72,69 @@
       <div class="admin-create">
         <h2>Create New Shift</h2>
         <form (ngSubmit)="createShift()" class="admin-create__form">
-          <div class="form-group">
-            <label class="form-label" for="shift-date">Date</label>
-            <input
-              id="shift-date"
-              type="date"
-              class="form-input"
-              [(ngModel)]="newShift.date"
-              name="date"
-              required>
+          <div class="admin-create__recurring">
+            <label class="form-checkbox">
+              <input
+                type="checkbox"
+                [(ngModel)]="recurring"
+                name="recurring">
+              <span>Recurring shifts</span>
+            </label>
           </div>
+
+          @if (recurring) {
+            <div class="form-group">
+              <label class="form-label">Days of the week</label>
+              <div class="admin-create__days">
+                @for (day of dayLabels; track day; let i = $index) {
+                  <button
+                    type="button"
+                    class="day-chip"
+                    [class.day-chip--active]="repeatDays[i]"
+                    (click)="toggleDay(i)">
+                    {{ day }}
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="admin-create__row">
+              <div class="form-group">
+                <label class="form-label" for="shift-date">Starting from</label>
+                <input
+                  id="shift-date"
+                  type="date"
+                  class="form-input"
+                  [(ngModel)]="newShift.date"
+                  [min]="todayStr"
+                  name="date"
+                  required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="repeat-weeks">Number of weeks</label>
+                <input
+                  id="repeat-weeks"
+                  type="number"
+                  class="form-input"
+                  [(ngModel)]="repeatWeeks"
+                  name="repeatWeeks"
+                  min="1"
+                  max="52">
+              </div>
+            </div>
+          } @else {
+            <div class="form-group">
+              <label class="form-label" for="shift-date">Date</label>
+              <input
+                id="shift-date"
+                type="date"
+                class="form-input"
+                [(ngModel)]="newShift.date"
+                [min]="todayStr"
+                name="date"
+                required>
+            </div>
+          }
+
           <div class="admin-create__row">
             <div class="form-group">
               <label class="form-label" for="shift-start">Start Time</label>
@@ -113,19 +166,20 @@
                 max="100">
             </div>
           </div>
+
           <button type="submit" class="btn btn--primary" [disabled]="creating">
             @if (creating) {
               <div class="spinner spinner--sm"></div>
               Creating...
             } @else {
               <span class="material-icons">add</span>
-              Create Shift
+              {{ recurring ? 'Create ' + totalShiftsToCreate + ' Shifts' : 'Create Shift' }}
             }
           </button>
         </form>
       </div>
 
-      <!-- Shift List -->
+      <!-- Upcoming Shifts -->
       <div class="admin-shifts">
         <h2>Upcoming Shifts</h2>
 
@@ -134,11 +188,11 @@
             <div class="spinner"></div>
             <span>Loading shifts...</span>
           </div>
-        } @else if (shifts.length === 0) {
+        } @else if (upcomingShifts.length === 0) {
           <p class="admin-empty">No upcoming shifts.</p>
         } @else {
           <div class="admin-shifts__list">
-            @for (shift of shifts; track shift.ShiftID) {
+            @for (shift of upcomingShifts; track shift.ShiftID) {
               <div class="admin-shift">
                 <div class="admin-shift__header" (click)="toggleExpand(shift.ShiftID)">
                   <div class="admin-shift__info">
@@ -204,6 +258,70 @@
           </div>
         }
       </div>
+
+      <!-- Past Shifts -->
+      @if (!loading && pastShifts.length > 0) {
+        <div class="admin-shifts admin-shifts--past">
+          <div class="admin-shifts__toggle" (click)="showPastShifts = !showPastShifts">
+            <h2>Past Shifts ({{ pastShifts.length }})</h2>
+            <span class="material-icons">
+              {{ showPastShifts ? 'expand_less' : 'expand_more' }}
+            </span>
+          </div>
+
+          @if (showPastShifts) {
+            <div class="admin-shifts__list">
+              @for (shift of pastShifts; track shift.ShiftID) {
+                <div class="admin-shift admin-shift--past">
+                  <div class="admin-shift__header" (click)="toggleExpand(shift.ShiftID)">
+                    <div class="admin-shift__info">
+                      <strong>{{ formatDate(shift) }}</strong>
+                      <span>{{ formatTime(shift) }}</span>
+                    </div>
+                    <div class="admin-shift__meta">
+                      <span class="admin-shift__count">
+                        {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} signed up
+                      </span>
+                      <span class="material-icons">
+                        {{ expandedShiftId === shift.ShiftID ? 'expand_less' : 'expand_more' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  @if (expandedShiftId === shift.ShiftID) {
+                    <div class="admin-shift__body">
+                      @if (shift.signups.length === 0) {
+                        <p class="admin-shift__empty">No signups were recorded.</p>
+                      } @else {
+                        <table class="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Email</th>
+                              <th>Phone</th>
+                              <th>#</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (signup of shift.signups; track signup.SignUpID) {
+                              <tr>
+                                <td>{{ signup.Name }}</td>
+                                <td>{{ signup.Email }}</td>
+                                <td>{{ signup.PhoneNumber }}</td>
+                                <td>{{ signup.NumPeople }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     }
   </div>
 </section>

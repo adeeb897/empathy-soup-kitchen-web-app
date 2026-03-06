@@ -23,11 +23,10 @@ export class VolunteerShiftService {
     private retryService: RetryService
   ) {}
 
-  async getAllShifts(): Promise<VolunteerShift[]> {
+  async getAllShifts(includePast = false): Promise<VolunteerShift[]> {
     const data = await this.fetchJson<VolunteerShiftAPIResponse>(this.shiftsEndpoint);
-    return (data.value || [])
-      .map(shift => this.parseShiftDates(shift))
-      .filter(shift => shift.StartTime >= new Date());
+    const shifts = (data.value || []).map(shift => this.parseShiftDates(shift));
+    return includePast ? shifts : shifts.filter(shift => shift.StartTime >= new Date());
   }
 
   async getAllSignups(): Promise<SignUp[]> {
@@ -35,9 +34,9 @@ export class VolunteerShiftService {
     return data.value || [];
   }
 
-  async getShiftsWithSignups(): Promise<VolunteerShift[]> {
+  async getShiftsWithSignups(includePast = false): Promise<VolunteerShift[]> {
     const [shifts, allSignups] = await Promise.all([
-      this.getAllShifts(),
+      this.getAllShifts(includePast),
       this.getAllSignups()
     ]);
 
