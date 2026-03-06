@@ -10,7 +10,8 @@
     "EMAIL_SMTP_PASSWORD": "your-app-specific-password-here",
     "EMAIL_SENDER_NAME": "Empathy Soup Kitchen",
     "EMAIL_SENDER_EMAIL": "noreply@empathysoupkitchen.org",
-    "EMAIL_ADMIN_EMAIL": "admin@empathysoupkitchen.org"
+    "EMAIL_ADMIN_EMAIL": "admin@empathysoupkitchen.org",
+    "SQL_CONNECTION_STRING": "Server=tcp:YOUR_SERVER.database.windows.net,1433;Initial Catalog=empathy-db;User ID=sqladmin;Password=YOUR_PASSWORD;Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;"
   },
   "Host": {
     "CORS": "*",

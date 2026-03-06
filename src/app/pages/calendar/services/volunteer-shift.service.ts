@@ -15,8 +15,8 @@ export interface SignUpAPIResponse {
   providedIn: 'root'
 })
 export class VolunteerShiftService {
-  private shiftsEndpoint = '/data-api/rest/VolunteerShifts';
-  private signupsEndpoint = '/data-api/rest/SignUps';
+  private shiftsEndpoint = '/api/shifts';
+  private signupsEndpoint = '/api/signups';
 
   constructor(
     private emailService: EmailService,
@@ -82,7 +82,7 @@ export class VolunteerShiftService {
     }
 
     const response = await this.retryService.fetchWithRetry(
-      `${this.shiftsEndpoint}/ShiftID/${shiftId}`,
+      `${this.shiftsEndpoint}/${shiftId}`,
       { method: 'DELETE' }
     );
 
@@ -121,7 +121,7 @@ export class VolunteerShiftService {
 
   async deleteSignup(signupId: number): Promise<void> {
     const response = await this.retryService.fetchWithRetry(
-      `${this.signupsEndpoint}/SignUpID/${signupId}`,
+      `${this.signupsEndpoint}/${signupId}`,
       { method: 'DELETE' }
     );
 
@@ -214,7 +214,7 @@ export class VolunteerShiftService {
   private async getShiftById(shiftId: number): Promise<VolunteerShift | null> {
     try {
       const data = await this.fetchJson<VolunteerShiftAPIResponse>(
-        `${this.shiftsEndpoint}?$filter=ShiftID eq ${shiftId}`
+        `${this.shiftsEndpoint}?ShiftID=${shiftId}`
       );
       const shifts = data.value || [];
       return shifts.length > 0 ? this.parseShiftDates(shifts[0]) : null;

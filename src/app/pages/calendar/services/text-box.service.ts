@@ -11,7 +11,7 @@ interface TextBox {
   providedIn: 'root',
 })
 export class TextBoxService {
-  private apiEndpoint = '/data-api/rest/TextBoxes';
+  private apiEndpoint = '/api/textboxes';
   private defaultTexts: { [key: string]: string } = {
     VolunteerInstructions:
       'Welcome to the volunteer signup portal! Please review available shifts and sign up for those that fit your schedule. If you have questions, contact us at volunteer@empathysoupkitchen.org.',
@@ -34,7 +34,7 @@ export class TextBoxService {
 
     try {
       console.log(`Fetching "${textName}" from API...`);
-      const endpoint = `${this.apiEndpoint}?$filter=TextName eq ${textName}`;
+      const endpoint = `${this.apiEndpoint}?TextName=${textName}`;
       const response = await this.retryService.fetchWithRetry(endpoint);
 
       if (!response.ok) {
@@ -126,7 +126,7 @@ export class TextBoxService {
       }
 
       // First check if the text exists
-      const existingTextEndpoint = `${this.apiEndpoint}?$filter=TextName eq ${textName}`;
+      const existingTextEndpoint = `${this.apiEndpoint}?TextName=${textName}`;
       const checkResponse = await this.retryService.fetchWithRetry(existingTextEndpoint);
 
       if (!checkResponse.ok) {
@@ -149,7 +149,7 @@ export class TextBoxService {
       if (checkData.value && checkData.value.length > 0) {
         // Text exists, update it
         const textId = checkData.value[0].ID;
-        const updateEndpoint = `${this.apiEndpoint}/ID/${textId}`;
+        const updateEndpoint = `${this.apiEndpoint}/${textId}`;
         const updateResponse = await this.retryService.fetchWithRetry(updateEndpoint, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
