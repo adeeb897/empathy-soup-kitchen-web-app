@@ -49,23 +49,38 @@ export class GetInvolvedComponent implements OnInit {
     this.buildReportList();
   }
 
-  private buildReportList(): void {
+  private async buildReportList(): Promise<void> {
     const years = ['2024', '2023'];
+    const candidates: FinancialReport[] = [];
     for (const year of years) {
       const quarters = year === '2024' ? [4] : [1, 2, 3, 4];
       for (const q of quarters) {
-        this.reports.push({
+        candidates.push({
           year,
           quarter: q,
           label: `Q${q} ${year}`,
           url: `assets/pdfs/financial-${year}-q${q}.pdf`,
-          available: true, // Will check at runtime
+          available: false,
         });
       }
     }
-    // Open the most recent year by default
-    if (years.length > 0) {
-      this.openYears.add(years[0]);
+
+    const checks = await Promise.all(
+      candidates.map(async (report) => {
+        try {
+          const res = await fetch(report.url, { method: 'HEAD' });
+          return { ...report, available: res.ok && (res.headers.get('content-type')?.includes('pdf') ?? false) };
+        } catch {
+          return report;
+        }
+      })
+    );
+
+    this.reports = checks.filter((r) => r.available);
+
+    const firstYear = this.uniqueYears[0];
+    if (firstYear) {
+      this.openYears.add(firstYear);
     }
   }
 

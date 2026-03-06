@@ -5,8 +5,8 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["post"],
-      "route": "auth/token"
+      "methods": ["post", "options"],
+      "route": "auth/verify-magic"
     },
     {
       "type": "http",
