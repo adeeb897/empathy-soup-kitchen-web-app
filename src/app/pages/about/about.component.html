@@ -13,23 +13,24 @@
 <!-- Board Members -->
 <section class="board section--cream section">
   <div class="container">
-    <div class="board__layout" appScrollAnimate>
-      <div class="board__image">
-        <img src="assets/board_members.png" alt="Empathy Soup Kitchen board members" loading="lazy">
-      </div>
-      <div class="board__content">
-        <span class="section-label">Our Team</span>
-        <h2 class="section-title">The people behind<br>every meal</h2>
-        <p>
-          Our dedicated board members and volunteers work tirelessly to ensure that
-          every person who walks through our doors is treated with dignity and leaves
-          with a full stomach and a warm heart.
-        </p>
-        <p>
-          Founded over three years ago, we've grown from a small group of neighbors
-          to a thriving community that has served over 5,000 meals and counting.
-        </p>
-      </div>
+    <div class="board__header" appScrollAnimate>
+      <span class="section-label">Our Team</span>
+      <h2 class="section-title">The people behind every meal</h2>
+      <p>
+        Our dedicated board members and volunteers work tirelessly to ensure that
+        every person who walks through our doors is treated with dignity and leaves
+        with a full stomach and a warm heart.
+      </p>
+    </div>
+    <div class="board__grid" appScrollAnimate>
+      @for (member of boardMembers; track member.name) {
+        <div class="board__member">
+          <div class="board__avatar">
+            <img [src]="member.image" [alt]="member.name" loading="lazy">
+          </div>
+          <span class="board__name">{{ member.name }}</span>
+        </div>
+      }
     </div>
   </div>
 </section>
