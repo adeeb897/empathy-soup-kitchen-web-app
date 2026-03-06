@@ -3,7 +3,7 @@
   "data-source": {
     "database-type": "mssql",
     "options": {
-      "set-session-context": false 
+      "set-session-context": false
     },
     "connection-string": "@env('DATABASE_CONNECTION_STRING')"
   },

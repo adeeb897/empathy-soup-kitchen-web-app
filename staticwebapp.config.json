@@ -10,6 +10,6 @@
   ],
   "navigationFallback": {
     "rewrite": "index.html",
-    "exclude": ["/*.{ico,js,map,css}"]
+    "exclude": ["/*.{ico,js,map,css}", "/api/*", "/data-api/*"]
   }
 }
