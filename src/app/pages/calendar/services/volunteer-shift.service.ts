@@ -167,7 +167,7 @@ export class VolunteerShiftService {
   }
 
   getShiftCapacityInfo(shift: VolunteerShift) {
-    const filledSlots = shift.signups?.reduce((total, s) => total + (s.NumPeople || 1), 0) || 0;
+    const filledSlots = shift.signups?.length || 0;
     const remainingCapacity = shift.Capacity - filledSlots;
     const percentFilled = shift.Capacity > 0 ? (filledSlots / shift.Capacity) * 100 : 0;
     return { filledSlots, remainingCapacity, percentFilled, isFull: filledSlots >= shift.Capacity };
