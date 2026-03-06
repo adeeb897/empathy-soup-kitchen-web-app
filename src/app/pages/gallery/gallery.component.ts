@@ -10,7 +10,7 @@ import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.d
   styleUrl: './gallery.component.scss',
 })
 export class GalleryComponent implements OnInit, OnDestroy {
-  totalImages = 69;
+  totalImages = 70;
   batchSize = 20;
   images: string[] = [];
   visibleImages: string[] = [];
