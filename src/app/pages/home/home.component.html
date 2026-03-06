@@ -1,41 +1,116 @@
-<div class="home-container">
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Empathy Soup Kitchen</h1>
-      <p>Serving our community with warmth, dignity, and nutritious meals.</p>
-      <div class="button-group">
-        <button mat-raised-button [routerLink]="['/calendar']">VOLUNTEER NOW</button>
-        <a mat-raised-button class="donate-button" href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank">DONATE</a>
+<!-- Hero -->
+<section class="hero" role="banner">
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    <span class="hero__label">McKeesport, Pennsylvania</span>
+    <h1 class="hero__title">Every meal is an<br>act of empathy</h1>
+    <p class="hero__subtitle">
+      Free meals every weekend for anyone who walks through our doors.
+      No questions asked. No signup needed.
+    </p>
+    <div class="hero__actions">
+      <a routerLink="/volunteer" class="btn btn--white btn--large">Volunteer With Us</a>
+      <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--primary btn--large">Donate Now</a>
+    </div>
+  </div>
+  <div class="hero__scroll-hint" aria-hidden="true">
+    <span class="material-icons">expand_more</span>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats section--charcoal">
+  <div class="stats__inner container">
+    @for (stat of stats; track stat.label; let i = $index) {
+      <div class="stats__item">
+        <span class="stats__number" #statValue>
+          {{ displayStats[i] | number }}{{ stat.suffix }}
+        </span>
+        <span class="stats__label">{{ stat.label }}</span>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- What We Do -->
+<section class="what-we-do section">
+  <div class="container">
+    <div class="what-we-do__header" appScrollAnimate>
+      <span class="section-label">What We Do</span>
+      <h2 class="section-title">Nourishing our community,<br>one meal at a time</h2>
+    </div>
+
+    <div class="what-we-do__grid">
+      <div class="what-we-do__card" appScrollAnimate>
+        <div class="what-we-do__icon">
+          <span class="material-icons">restaurant</span>
+        </div>
+        <h3>Weekend Meals</h3>
+        <p>Every Saturday and Sunday, we serve meals to anyone who walks in. Babies to grandparents &mdash; everyone is welcome at our table.</p>
+      </div>
+
+      <div class="what-we-do__card" appScrollAnimate>
+        <div class="what-we-do__icon what-we-do__icon--sage">
+          <span class="material-icons">people</span>
+        </div>
+        <h3>Volunteer Community</h3>
+        <p>Volunteers give their time to prep, cook, serve, and clean. Families, student groups, and individuals all come together to make it happen.</p>
+      </div>
+
+      <div class="what-we-do__card" appScrollAnimate>
+        <div class="what-we-do__icon what-we-do__icon--cream">
+          <span class="material-icons">public</span>
+        </div>
+        <h3>Refugee Support</h3>
+        <p>Beyond meals, we provide food assistance, employment help, and financial aid to refugees building new lives in our community.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Mission Section -->
-  <section class="mission">
-    <h2>Our Mission</h2>
-    <p>We are dedicated to serving people with a place of comfort and acceptance, providing delicious and nutritious meals to those in need.</p>
-  </section>
 
-  <!-- Location Section -->
-  <section class="location">
-    <div class="content-wrapper">
-      <div class="location-info">
-        <h2>Visit Us</h2>
-        <address>
-          523 Sinclair Street<br>
-          McKeesport, PA 15132
-        </address>
-        <p class="info">Our new kitchen was built in 2024 with generous donations from our community.</p>
-      </div>
-      <div class="map-container">
-        <iframe 
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.873990503389!2d-79.84668!3d40.347302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8834dd3f7b7f051f%3A0x3ada31dc83666f6f!2s523%20Sinclair%20St%2C%20McKeesport%2C%20PA%2015132!5e0!3m2!1sen!2sus!4v1637329894007!5m2!1sen!2sus"
-          allowfullscreen=""
-          loading="lazy">
-        </iframe>
-      </div>
+<!-- CTA Section -->
+<section class="cta section">
+  <div class="container cta__inner" appScrollAnimate>
+    <h2 class="cta__title">No one should<br>eat alone</h2>
+    <p class="cta__text">
+      Whether you're looking for a meal, want to volunteer your time,
+      or can contribute in any way &mdash; there's a place for you here.
+    </p>
+    <div class="cta__actions">
+      <a routerLink="/volunteer" class="btn btn--primary btn--large">Sign Up to Volunteer</a>
+      <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--secondary btn--large">Make a Donation</a>
     </div>
-  </section>
-</div>
+  </div>
+</section>
 
+<!-- Hours -->
+<section class="hours section--cream section">
+  <div class="container hours__inner" appScrollAnimate>
+    <div class="hours__content">
+      <span class="section-label">Come Visit</span>
+      <h2 class="section-title">Open every weekend</h2>
+      <div class="hours__details">
+        <div class="hours__time">
+          <span class="material-icons">schedule</span>
+          <div>
+            <strong>Saturday &amp; Sunday</strong>
+            <span>1:00 PM &ndash; 2:00 PM</span>
+          </div>
+        </div>
+        <div class="hours__location">
+          <span class="material-icons">place</span>
+          <div>
+            <strong>523 Sinclair Street</strong>
+            <span>McKeesport, PA 15132</span>
+          </div>
+        </div>
+      </div>
+      <p class="hours__note">Just walk in. No signup or reservation needed.</p>
+      <a routerLink="/about" class="btn btn--primary" fragment="contact">Get Directions</a>
+    </div>
+    <div class="hours__image">
+      <img src="assets/kitchen_1.jpg" alt="Inside Empathy Soup Kitchen" loading="lazy">
+    </div>
+  </div>
+</section>

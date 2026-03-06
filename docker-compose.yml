@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -13,14 +11,16 @@ services:
       MSSQL_PID: "Developer"
     volumes:
       - sqlserver_data:/var/opt/mssql
-      - ./docker/sql-init:/docker-entrypoint-initdb.d:ro
+      - ./docker/sql-init:/sql-init:ro
+      - ./docker/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: /bin/bash /entrypoint.sh
     networks:
       - empathy-network
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P Password123! -Q 'SELECT 1'"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P Password123! -Q \"SELECT 1 FROM sys.databases WHERE name='EmpathySoupKitchen'\" | grep -q 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
       start_period: 30s
 
   data-api-builder:

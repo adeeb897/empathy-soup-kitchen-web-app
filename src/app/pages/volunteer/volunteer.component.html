@@ -1,0 +1,133 @@
+<!-- Header -->
+<section class="vol-header section">
+  <div class="container">
+    <div class="vol-header__content" appScrollAnimate>
+      <span class="section-label">Volunteer</span>
+      <h1 class="section-title">Lend a hand,<br>warm a heart</h1>
+      @if (instructionsText) {
+        <p class="vol-header__subtitle">{{ instructionsText }}</p>
+      }
+      <div class="vol-header__actions">
+        <button class="btn btn--secondary" (click)="openCancelModal()">
+          <span class="material-icons">event_busy</span>
+          Cancel a Signup
+        </button>
+        <button class="btn btn--ghost" (click)="toggleDetails()">
+          <span class="material-icons">{{ showDetails ? 'expand_less' : 'info' }}</span>
+          What to Expect
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Volunteer Details Accordion -->
+@if (showDetails) {
+  <section class="vol-details section--cream">
+    <div class="container">
+      <div class="vol-details__grid" appScrollAnimate>
+        <div class="vol-details__card">
+          <span class="material-icons">schedule</span>
+          <h3>Arrival Time</h3>
+          <p>Please arrive <strong>10 minutes early</strong>. Meals are served during the scheduled shift time.</p>
+        </div>
+        <div class="vol-details__card">
+          <span class="material-icons">checkroom</span>
+          <h3>What to Wear</h3>
+          <p>Comfortable clothes and <strong>closed-toe shoes</strong> required. We provide aprons and gloves.</p>
+        </div>
+        <div class="vol-details__card">
+          <span class="material-icons">groups</span>
+          <h3>Groups Welcome</h3>
+          <p>Families, student groups, and work teams are all welcome to volunteer together.</p>
+        </div>
+        <div class="vol-details__card">
+          <span class="material-icons">assignment</span>
+          <h3>What You'll Do</h3>
+          <p>Set up the dining room, welcome guests, bring meals to tables, and help clean up.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- Shift Listings -->
+<section class="vol-shifts section">
+  <div class="container">
+    @if (loading) {
+      <div class="vol-loading">
+        <div class="spinner"></div>
+        <span>Loading available shifts...</span>
+      </div>
+    } @else if (error) {
+      <div class="vol-error">
+        <span class="material-icons">error_outline</span>
+        <p>{{ error }}</p>
+        <button class="btn btn--primary" (click)="loadData()">Try Again</button>
+      </div>
+    } @else {
+      @for (weekend of weekends; track weekend.weekStartDate) {
+        @if (hasShiftsForWeekend(weekend)) {
+          <div class="vol-weekend" appScrollAnimate>
+            <h2 class="vol-weekend__title">
+              Weekend of {{ formatWeekendLabel(weekend.weekStartDate) }}
+            </h2>
+
+            @for (day of weekend.days; track day.date) {
+              @if (day.shifts.length > 0) {
+                <h3 class="vol-day__title">{{ formatDayLabel(day.date) }}</h3>
+                <div class="vol-shifts__list">
+                  @for (shift of day.shifts; track shift.ShiftID) {
+                    <div class="vol-shift-card" [class.is-full]="getCapacity(shift).isFull">
+                      <div class="vol-shift-card__time">
+                        <span class="material-icons">schedule</span>
+                        {{ formatTime(shift) }}
+                      </div>
+
+                      <div class="vol-shift-card__capacity">
+                        <div class="vol-shift-card__bar">
+                          <div
+                            class="vol-shift-card__bar-fill"
+                            [style.width.%]="getCapacity(shift).percentFilled"
+                            [class.is-full]="getCapacity(shift).isFull"
+                            [class.is-nearly-full]="getCapacity(shift).percentFilled >= 75">
+                          </div>
+                        </div>
+                        <span class="vol-shift-card__slots">
+                          @if (getCapacity(shift).isFull) {
+                            Full
+                          } @else {
+                            {{ getCapacity(shift).remainingCapacity }} spots left
+                          }
+                        </span>
+                      </div>
+
+                      <button
+                        class="btn btn--primary btn--small"
+                        (click)="openSignupModal(shift)"
+                        [disabled]="getCapacity(shift).isFull">
+                        @if (getCapacity(shift).isFull) {
+                          Full
+                        } @else {
+                          Sign Up
+                        }
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+      }
+
+      @if (noShiftsAvailable) {
+        <div class="vol-empty" appScrollAnimate>
+          <span class="material-icons">event</span>
+          <h3>No shifts available right now</h3>
+          <p>Check back soon — new shifts are added regularly.</p>
+        </div>
+      }
+    }
+  </div>
+</section>

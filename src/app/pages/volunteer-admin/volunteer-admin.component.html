@@ -1,0 +1,182 @@
+<section class="admin section">
+  <div class="container">
+
+    <!-- Loading -->
+    @if (authState.isLoading) {
+      <div class="admin-loading">
+        <div class="spinner"></div>
+        <span>Authenticating...</span>
+      </div>
+    }
+
+    <!-- Not authenticated -->
+    @else if (!authState.isAuthenticated) {
+      <div class="admin-login">
+        <span class="material-icons admin-login__icon">admin_panel_settings</span>
+        <h1>Volunteer Admin</h1>
+        <p>Sign in with your admin Google account to manage volunteer shifts.</p>
+        @if (authState.error) {
+          <div class="admin-error">
+            <span class="material-icons">error</span>
+            {{ authState.error }}
+          </div>
+        }
+        <button class="btn btn--primary btn--large" (click)="login()">
+          <span class="material-icons">login</span>
+          Sign In with Google
+        </button>
+      </div>
+    }
+
+    <!-- Authenticated -->
+    @else {
+      <div class="admin-header">
+        <div>
+          <h1>Volunteer Admin</h1>
+          <p>Signed in as <strong>{{ authState.user?.email }}</strong></p>
+        </div>
+        <button class="btn btn--ghost" (click)="logout()">
+          <span class="material-icons">logout</span>
+          Sign Out
+        </button>
+      </div>
+
+      <!-- Create Shift Form -->
+      <div class="admin-create">
+        <h2>Create New Shift</h2>
+        <form (ngSubmit)="createShift()" class="admin-create__form">
+          <div class="form-group">
+            <label class="form-label" for="shift-date">Date</label>
+            <input
+              id="shift-date"
+              type="date"
+              class="form-input"
+              [(ngModel)]="newShift.date"
+              name="date"
+              required>
+          </div>
+          <div class="admin-create__row">
+            <div class="form-group">
+              <label class="form-label" for="shift-start">Start Time</label>
+              <input
+                id="shift-start"
+                type="time"
+                class="form-input"
+                [(ngModel)]="newShift.startTime"
+                name="startTime">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="shift-end">End Time</label>
+              <input
+                id="shift-end"
+                type="time"
+                class="form-input"
+                [(ngModel)]="newShift.endTime"
+                name="endTime">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="shift-capacity">Capacity</label>
+              <input
+                id="shift-capacity"
+                type="number"
+                class="form-input"
+                [(ngModel)]="newShift.capacity"
+                name="capacity"
+                min="1"
+                max="100">
+            </div>
+          </div>
+          <button type="submit" class="btn btn--primary" [disabled]="creating">
+            @if (creating) {
+              <div class="spinner spinner--sm"></div>
+              Creating...
+            } @else {
+              <span class="material-icons">add</span>
+              Create Shift
+            }
+          </button>
+        </form>
+      </div>
+
+      <!-- Shift List -->
+      <div class="admin-shifts">
+        <h2>Upcoming Shifts</h2>
+
+        @if (loading) {
+          <div class="admin-loading">
+            <div class="spinner"></div>
+            <span>Loading shifts...</span>
+          </div>
+        } @else if (shifts.length === 0) {
+          <p class="admin-empty">No upcoming shifts.</p>
+        } @else {
+          <div class="admin-shifts__list">
+            @for (shift of shifts; track shift.ShiftID) {
+              <div class="admin-shift">
+                <div class="admin-shift__header" (click)="toggleExpand(shift.ShiftID)">
+                  <div class="admin-shift__info">
+                    <strong>{{ formatDate(shift) }}</strong>
+                    <span>{{ formatTime(shift) }}</span>
+                  </div>
+                  <div class="admin-shift__meta">
+                    <span class="admin-shift__count">
+                      {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} signed up
+                    </span>
+                    <span class="material-icons">
+                      {{ expandedShiftId === shift.ShiftID ? 'expand_less' : 'expand_more' }}
+                    </span>
+                  </div>
+                </div>
+
+                @if (expandedShiftId === shift.ShiftID) {
+                  <div class="admin-shift__body">
+                    @if (shift.signups.length === 0) {
+                      <p class="admin-shift__empty">No signups yet.</p>
+                    } @else {
+                      <table class="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>#</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (signup of shift.signups; track signup.SignUpID) {
+                            <tr>
+                              <td>{{ signup.Name }}</td>
+                              <td>{{ signup.Email }}</td>
+                              <td>{{ signup.PhoneNumber }}</td>
+                              <td>{{ signup.NumPeople }}</td>
+                              <td>
+                                <button
+                                  class="btn btn--danger btn--small"
+                                  (click)="deleteSignup(signup.SignUpID); $event.stopPropagation()">
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    }
+                    <div class="admin-shift__actions">
+                      <button
+                        class="btn btn--danger btn--small"
+                        (click)="deleteShift(shift); $event.stopPropagation()">
+                        <span class="material-icons">delete</span>
+                        Delete Shift
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

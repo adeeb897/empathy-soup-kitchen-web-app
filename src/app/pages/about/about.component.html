@@ -1,0 +1,115 @@
+<!-- Mission -->
+<section class="mission section">
+  <div class="container">
+    <div class="mission__content" appScrollAnimate>
+      <span class="section-label">Our Mission</span>
+      <blockquote class="mission__quote">
+        &ldquo;To provide free, nutritious meals every weekend to anyone in need in the McKeesport community, serving with warmth, dignity, and compassion regardless of background or circumstance.&rdquo;
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<!-- Board Members -->
+<section class="board section--cream section">
+  <div class="container">
+    <div class="board__header" appScrollAnimate>
+      <span class="section-label">Our Team</span>
+      <h2 class="section-title">The people behind every meal</h2>
+      <p>
+        Our dedicated board members and volunteers work tirelessly to ensure that
+        every person who walks through our doors is treated with dignity and leaves
+        with a full stomach and a warm heart.
+      </p>
+    </div>
+    <div class="board__grid" appScrollAnimate>
+      @for (member of boardMembers; track member.name) {
+        <div class="board__member">
+          <div class="board__avatar">
+            <img [src]="member.image" [alt]="member.name" loading="lazy">
+          </div>
+          <span class="board__name">{{ member.name }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq section" id="faq">
+  <div class="container">
+    <div class="faq__header" appScrollAnimate>
+      <span class="section-label">FAQ</span>
+      <h2 class="section-title">Common questions</h2>
+    </div>
+
+    <div class="faq__list" appScrollAnimate>
+      @for (faq of faqs; track faq.question; let i = $index) {
+        <div class="faq__item" [class.is-open]="openFaqIndex === i">
+          <button
+            class="faq__trigger"
+            (click)="toggleFaq(i)"
+            [attr.aria-expanded]="openFaqIndex === i"
+            [attr.aria-controls]="'faq-answer-' + i">
+            <span>{{ faq.question }}</span>
+            <span class="material-icons faq__icon">expand_more</span>
+          </button>
+          <div
+            class="faq__answer"
+            [id]="'faq-answer-' + i"
+            role="region">
+            <p>{{ faq.answer }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="contact section--cream section" id="contact">
+  <div class="container">
+    <div class="contact__layout">
+      <div class="contact__info" appScrollAnimate>
+        <span class="section-label">Contact Us</span>
+        <h2 class="section-title">Come visit</h2>
+
+        <div class="contact__details">
+          <div class="contact__detail">
+            <span class="material-icons">place</span>
+            <div>
+              <strong>523 Sinclair Street</strong>
+              <span>McKeesport, PA 15132</span>
+            </div>
+          </div>
+          <div class="contact__detail">
+            <span class="material-icons">schedule</span>
+            <div>
+              <strong>Saturday &amp; Sunday</strong>
+              <span>1:00 PM &ndash; 2:00 PM</span>
+            </div>
+          </div>
+          <div class="contact__detail">
+            <span class="material-icons">email</span>
+            <div>
+              <a href="mailto:empathysoupkitchen&#64;gmail.com">empathysoupkitchen&#64;gmail.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact__map" appScrollAnimate>
+        <iframe
+          [src]="mapsUrl | safe:'resourceUrl'"
+          width="100%"
+          height="400"
+          style="border:0; border-radius: 16px;"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Empathy Soup Kitchen location on Google Maps">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,335 @@
+/* ============================================
+   GET INVOLVED PAGE
+   ============================================ */
+
+.gi-header {
+  padding-bottom: var(--space-xl);
+}
+
+.gi-header__content {
+  max-width: 650px;
+}
+
+.gi-header__subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  margin-top: var(--space-md);
+}
+
+/* Tabs */
+.gi-tabs {
+  position: sticky;
+  top: var(--nav-height);
+  z-index: 100;
+  background: var(--color-warm-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.gi-tabs__nav {
+  display: flex;
+  gap: var(--space-xs);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.gi-tabs__btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+
+  .material-icons { font-size: 18px; }
+
+  &:hover {
+    color: var(--color-charcoal);
+  }
+
+  &.is-active {
+    color: var(--color-terracotta);
+    border-bottom-color: var(--color-terracotta);
+  }
+}
+
+/* Donate - Online */
+.donate-online {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3xl);
+  align-items: center;
+  margin-bottom: var(--space-4xl);
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  h2 {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--space-lg);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-xl);
+  }
+}
+
+.donate-online__visual {
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  aspect-ratio: 4/3;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/* Donate - Shopping List */
+.donate-shop {
+  margin-bottom: var(--space-4xl);
+
+  h2 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-sm);
+  }
+}
+
+.donate-shop__desc {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xl);
+}
+
+.donate-shop__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-md);
+}
+
+.donate-shop__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-white);
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+
+  .material-icons {
+    color: var(--color-sage);
+    font-size: 20px;
+  }
+}
+
+/* Donate - Drop-off */
+.donate-dropoff__card {
+  background: var(--color-cream);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-2xl);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+
+  h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-md);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-lg);
+  }
+}
+
+.donate-dropoff__icon {
+  font-size: 48px;
+  color: var(--color-terracotta);
+  margin-bottom: var(--space-lg);
+}
+
+.donate-dropoff__address {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-charcoal);
+
+  .material-icons {
+    font-size: 18px;
+    color: var(--color-terracotta);
+  }
+}
+
+/* Refugee Services */
+.refugee-services__header {
+  max-width: 650px;
+  margin-bottom: var(--space-3xl);
+
+  h2 {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--space-lg);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+}
+
+.refugee-services__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-3xl);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.refugee-services__card {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-2xl);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .material-icons {
+    font-size: 32px;
+    color: var(--color-sage);
+    margin-bottom: var(--space-lg);
+  }
+
+  h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-md);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+}
+
+.refugee-services__cta {
+  text-align: center;
+  padding: var(--space-2xl);
+  background: var(--color-cream);
+  border-radius: var(--border-radius-lg);
+
+  p {
+    font-size: var(--font-size-lg);
+    font-weight: 500;
+    margin-bottom: var(--space-lg);
+  }
+}
+
+/* Financial Reports */
+.reports__header {
+  max-width: 650px;
+  margin-bottom: var(--space-2xl);
+
+  h2 {
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--space-lg);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+}
+
+.reports__list {
+  max-width: 600px;
+}
+
+.reports__year {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reports__year-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-lg) 0;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-charcoal);
+
+  &:hover { color: var(--color-terracotta); }
+}
+
+.reports__quarters {
+  padding-bottom: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.reports__quarter-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-white);
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  color: var(--color-charcoal);
+  transition: all var(--transition-fast);
+
+  .material-icons:first-child {
+    color: var(--color-terracotta);
+  }
+
+  &:hover {
+    background: var(--color-cream);
+    transform: translateX(4px);
+  }
+}
+
+.reports__quarter-arrow {
+  margin-left: auto;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+}
+
+/* Report Viewer */
+.reports__viewer-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+
+  h3 {
+    font-size: var(--font-size-xl);
+  }
+}
+
+.reports__viewer-frame {
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}

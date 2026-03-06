@@ -32,6 +32,7 @@ BEGIN
         Email NVARCHAR(255) NOT NULL,
         PhoneNumber NVARCHAR(20) NOT NULL,
         NumPeople INT NOT NULL DEFAULT 1,
+        ReminderSent BIT NOT NULL DEFAULT 0,
         CreatedAt DATETIME2(7) DEFAULT GETUTCDATE(),
         UpdatedAt DATETIME2(7) DEFAULT GETUTCDATE(),
         FOREIGN KEY (ShiftID) REFERENCES dbo.VolunteerShifts(ShiftID) ON DELETE CASCADE
