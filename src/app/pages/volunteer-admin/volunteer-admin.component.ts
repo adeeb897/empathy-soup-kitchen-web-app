@@ -20,6 +20,8 @@ export class VolunteerAdminComponent implements OnInit {
   loading = false;
   expandedShiftId: number | null = null;
   showPastShifts = false;
+  selectedShiftIds = new Set<number>();
+  deleting = false;
   todayStr = new Date().toISOString().split('T')[0];
 
   // Login form
@@ -230,6 +232,49 @@ export class VolunteerAdminComponent implements OnInit {
       await this.loadShifts();
     } catch (e) {
       this.toastService.error('Failed to remove signup');
+    }
+  }
+
+  toggleSelect(shiftId: number): void {
+    if (this.selectedShiftIds.has(shiftId)) {
+      this.selectedShiftIds.delete(shiftId);
+    } else {
+      this.selectedShiftIds.add(shiftId);
+    }
+  }
+
+  get allSelected(): boolean {
+    return this.upcomingShifts.length > 0 && this.selectedShiftIds.size === this.upcomingShifts.length;
+  }
+
+  toggleSelectAll(): void {
+    if (this.allSelected) {
+      this.selectedShiftIds.clear();
+    } else {
+      this.upcomingShifts.forEach(s => this.selectedShiftIds.add(s.ShiftID));
+    }
+  }
+
+  async deleteSelectedShifts(): Promise<void> {
+    const count = this.selectedShiftIds.size;
+    if (count === 0) return;
+    if (!confirm(`Delete ${count} shift${count > 1 ? 's' : ''}? This will also delete all associated signups.`)) {
+      return;
+    }
+
+    this.deleting = true;
+    try {
+      for (const id of this.selectedShiftIds) {
+        await this.shiftService.deleteShift(id);
+      }
+      this.toastService.success(`${count} shift${count > 1 ? 's' : ''} deleted`);
+      this.selectedShiftIds.clear();
+      await this.loadShifts();
+    } catch (e) {
+      this.toastService.error('Failed to delete some shifts');
+      await this.loadShifts();
+    } finally {
+      this.deleting = false;
     }
   }
 
