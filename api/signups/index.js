@@ -3,7 +3,7 @@ const { getPool, sql } = require('../shared/db');
 const HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type'
 };
 
@@ -33,6 +33,19 @@ module.exports = async function (context, req) {
         .input('ReminderSent', sql.Bit, ReminderSent || false)
         .query('INSERT INTO dbo.SignUps (ShiftID, Name, Email, PhoneNumber, NumPeople, ReminderSent) OUTPUT INSERTED.* VALUES (@ShiftID, @Name, @Email, @PhoneNumber, @NumPeople, @ReminderSent)');
       context.res = { status: 201, headers: HEADERS, body: { value: result.recordset } };
+    }
+
+    else if (req.method === 'PATCH' && id) {
+      const { ReminderSent } = req.body;
+      const result = await pool.request()
+        .input('SignUpID', sql.Int, parseInt(id))
+        .input('ReminderSent', sql.Bit, ReminderSent)
+        .query('UPDATE dbo.SignUps SET ReminderSent = @ReminderSent OUTPUT INSERTED.* WHERE SignUpID = @SignUpID');
+      if (result.recordset.length === 0) {
+        context.res = { status: 404, headers: HEADERS, body: { error: 'Signup not found' } };
+      } else {
+        context.res = { status: 200, headers: HEADERS, body: { value: result.recordset } };
+      }
     }
 
     else if (req.method === 'DELETE' && id) {

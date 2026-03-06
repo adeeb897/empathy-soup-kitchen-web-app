@@ -98,8 +98,44 @@ resource dbConnection 'Microsoft.Web/staticSites/databaseConnections@2023-12-01'
   }
 }
 
+// ─── Logic App: Hourly Reminder Scheduler ────────────────────────────
+resource reminderScheduler 'Microsoft.Logic/workflows@2019-05-01' = {
+  name: 'empathy-reminder-scheduler'
+  location: location
+  properties: {
+    state: 'Enabled'
+    definition: {
+      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
+      contentVersion: '1.0.0.0'
+      triggers: {
+        Recurrence: {
+          type: 'Recurrence'
+          recurrence: {
+            frequency: 'Hour'
+            interval: 1
+          }
+        }
+      }
+      actions: {
+        Send_Reminders: {
+          type: 'Http'
+          inputs: {
+            method: 'POST'
+            uri: 'https://${swa.properties.defaultHostname}/api/reminders/process'
+            headers: {
+              'Content-Type': 'application/json'
+            }
+            body: {}
+          }
+        }
+      }
+    }
+  }
+}
+
 // ─── Outputs ────────────────────────────────────────────────────────
 output sqlServerName string = sqlServer.name
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output databaseName string = sqlDatabase.name
 output swaDefaultHostname string = swa.properties.defaultHostname
+output reminderSchedulerName string = reminderScheduler.name
