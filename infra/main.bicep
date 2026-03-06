@@ -89,11 +89,11 @@ resource sqlAdAdmin 'Microsoft.Sql/servers/administrators@2023-08-01-preview' = 
 resource dbConnection 'Microsoft.Web/staticSites/databaseConnections@2023-12-01' = {
   parent: swa
   name: 'default'
-  dependsOn: [swaIdentity]
+  dependsOn: [swaIdentity, sqlAdAdmin]
   properties: {
     resourceId: sqlDatabase.id
     connectionIdentity: 'SystemAssigned'
-    connectionString: 'Server=tcp:${sqlServer.name}${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabase.name};User ID=${sqlAdminLogin};Password=${sqlAdminPassword};Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;'
+    connectionString: 'Server=tcp:${sqlServer.name}${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabase.name};Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;'
     region: location
   }
 }
