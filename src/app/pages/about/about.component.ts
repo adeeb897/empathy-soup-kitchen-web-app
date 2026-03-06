@@ -15,15 +15,15 @@ export class AboutComponent {
   mapsUrl = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.873990503389!2d-79.84668!3d40.347302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8834dd3f7b7f051f%3A0x3ada31dc83666f6f!2s523%20Sinclair%20St%2C%20McKeesport%2C%20PA%2015132!5e0!3m2!1sen!2sus!4v1637329894007!5m2!1sen!2sus';
 
   boardMembers = [
-    { name: 'Ahraz Zaman', image: 'assets/board_members/Ahraz_Zaman.png' },
-    { name: 'Hamid Jafri', image: 'assets/board_members/Hamid_Jafri.png' },
+    { name: 'Nusrah Hussain', image: 'assets/board_members/Nusrah_Hussain.jpeg' },
     { name: 'Imran Qadeer', image: 'assets/board_members/Imran_Qadeer.png' },
     { name: 'Mudassar Ali', image: 'assets/board_members/Mudassar_Ali.png' },
-    { name: 'Nusrah Hussain', image: 'assets/board_members/Nusrah_Hussain.jpeg' },
     { name: 'Omar Abbasi', image: 'assets/board_members/Omar_Abbasi.png' },
+    { name: 'Ahraz Zaman', image: 'assets/board_members/Ahraz_Zaman.png' },
     { name: 'Saad Mehmood', image: 'assets/board_members/Saad_Mehmood.png' },
     { name: 'Shahryar Ghani', image: 'assets/board_members/Shahryar_Ghani.png' },
     { name: 'Syed Yasir Ahmed', image: 'assets/board_members/Syed_Yasir_Ahmed.jpeg' },
+    { name: 'Hamid Jafri', image: 'assets/board_members/Hamid_Jafri.png' },
   ];
 
   faqs = [
