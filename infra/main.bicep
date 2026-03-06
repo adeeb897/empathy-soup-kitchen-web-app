@@ -73,6 +73,18 @@ resource swaIdentity 'Microsoft.Web/staticSites@2023-12-01' = {
   properties: {}
 }
 
+// ─── Set SWA managed identity as SQL AD admin ───────────────────────
+resource sqlAdAdmin 'Microsoft.Sql/servers/administrators@2023-08-01-preview' = {
+  parent: sqlServer
+  name: 'ActiveDirectory'
+  properties: {
+    administratorType: 'ActiveDirectory'
+    login: swaName
+    sid: swaIdentity.identity.principalId
+    tenantId: swaIdentity.identity.tenantId
+  }
+}
+
 // ─── Link database to SWA ───────────────────────────────────────────
 resource dbConnection 'Microsoft.Web/staticSites/databaseConnections@2023-12-01' = {
   parent: swa
