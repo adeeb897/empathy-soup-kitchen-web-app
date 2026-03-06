@@ -1,55 +1,103 @@
 # Empathy Soup Kitchen Web Application
 
-## Local Development Setup
+Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in the Atlanta area.
+
+## Architecture
+
+- **Frontend:** Angular 18 standalone components, custom CSS design system (no UI library)
+- **Hosting:** Azure Static Web Apps (Standard tier)
+- **Database:** Azure SQL (serverless, free tier) via Data API Builder (DAB)
+- **CI/CD:** GitHub Actions → Azure SWA auto-deploy on push to `main`
+
+## Project Structure
+
+```
+src/app/
+├── pages/
+│   ├── home/                 # Landing page with hero, stats, hours
+│   ├── volunteer/            # Shift signup + cancellation
+│   ├── volunteer-admin/      # Admin panel (OAuth-protected)
+│   ├── get-involved/         # Donate, refugee services, financial reports
+│   ├── gallery/              # Masonry photo gallery with lightbox
+│   └── about/                # Mission, board, FAQ, contact
+├── shared/
+│   ├── components/           # Navbar, Footer, ScrollAnimate directive
+│   └── services/             # ModalService, ToastService
+└── pages/calendar/
+    ├── models/               # VolunteerShift, SignUp interfaces
+    └── services/             # VolunteerShiftService, TextBoxService, EmailService
+infra/
+├── main.bicep                # Azure SQL Server + Database + SWA DB link
+├── sql-setup.sql             # Table schemas (VolunteerShifts, SignUps, TextBoxes)
+└── parameters.json           # Deployment parameter template
+swa-db-connections/
+└── staticwebapp.database.config.json  # DAB entity config
+```
+
+## Database Schema
+
+Defined in `infra/sql-setup.sql`. Column names match the Angular service contracts exactly so DAB auto-maps without field overrides.
+
+| Table | Key Columns |
+|-------|------------|
+| `dbo.VolunteerShifts` | ShiftID, StartTime, EndTime, Capacity |
+| `dbo.SignUps` | SignUpID, ShiftID (FK), Name, Email, PhoneNumber, NumPeople, ReminderSent |
+| `dbo.TextBoxes` | ID, TextName (unique), TextContent |
+
+## Infrastructure Deployment
+
+Requires [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli).
+
+```bash
+# 1. Login
+az login
+
+# 2. Deploy Azure SQL + link to SWA
+az deployment group create \
+  --resource-group empathy-soup-kitchen-web-app \
+  --template-file infra/main.bicep \
+  --parameters sqlAdminPassword='<STRONG_PASSWORD>'
+
+# 3. Create tables (use Azure Portal Query Editor or sqlcmd)
+#    Run the contents of infra/sql-setup.sql against the new database
+```
+
+The Bicep template provisions:
+- Azure SQL Server (TLS 1.2, Azure services firewall rule)
+- Azure SQL Database (serverless Gen5, free tier, auto-pause at 60 min)
+- SWA database connection (auto-sets `DATABASE_CONNECTION_STRING`)
+
+## Local Development
 
 ### Prerequisites
-- Docker and Docker Compose
 - Node.js and npm
 - Angular CLI (`npm install -g @angular/cli`)
+- Docker and Docker Compose (for local database)
 
-### Quick Start with Database
+### Quick Start
 ```bash
-# Start complete development environment (database + app)
+# Start local database + dev server with API proxy
 npm run dev
 ```
 
-### Database Management Commands
-- `npm run db:start` - Start SQL Server and Data API Builder containers
-- `npm run db:stop` - Stop database containers  
-- `npm run db:reset` - Reset database (deletes all data)
-- `npm run db:init` - Initialize database with sample data
-- `npm run db:logs` - View database container logs
+### Commands
+| Command | Description |
+|---------|------------|
+| `npm run dev` | Start DB containers + Angular dev server with proxy |
+| `npm run db:start` | Start SQL Server + DAB containers |
+| `npm run db:stop` | Stop database containers |
+| `npm run db:reset` | Reset database (deletes all data) |
+| `npm run db:logs` | View database container logs |
+| `ng serve` | Dev server only (no local DB) at `http://localhost:4200/` |
+| `ng build` | Production build → `dist/empathy-soup-kitchen-web-app/browser` |
+| `ng test` | Run unit tests via Karma |
 
-### Development server
+The local dev server proxies `/data-api/rest/` calls to the local DAB instance at `http://localhost:5000`.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Troubleshooting
 
-**With local database:** The app is configured to proxy API calls to the local Data API Builder at `http://localhost:5000/data-api/rest/`
+**Database containers won't start:** Ensure Docker is running. Wait 30s after `db:start` before connecting.
 
-## Code scaffolding
+**Reset everything:** `npm run db:reset && sleep 30`
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Database Troubleshooting
-
-If you encounter database connection issues:
-1. Ensure Docker is running
-2. Wait 30 seconds after `db:start` before running `db:init`  
-3. Reset everything: `npm run db:reset && sleep 30 && npm run db:init`
-4. Check container status: `docker ps`
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+**Azure Data API returning 500:** Check that the database connection is linked in Azure Portal (Static Web App → Database connection) and that `DATABASE_CONNECTION_STRING` is set in environment variables.

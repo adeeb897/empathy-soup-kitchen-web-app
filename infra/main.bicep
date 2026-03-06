@@ -63,10 +63,21 @@ resource swa 'Microsoft.Web/staticSites@2023-12-01' existing = {
   name: swaName
 }
 
+// ─── Enable system-assigned managed identity on SWA ─────────────────
+resource swaIdentity 'Microsoft.Web/staticSites@2023-12-01' = {
+  name: swaName
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {}
+}
+
 // ─── Link database to SWA ───────────────────────────────────────────
 resource dbConnection 'Microsoft.Web/staticSites/databaseConnections@2023-12-01' = {
   parent: swa
   name: 'default'
+  dependsOn: [swaIdentity]
   properties: {
     resourceId: sqlDatabase.id
     connectionIdentity: 'SystemAssigned'
