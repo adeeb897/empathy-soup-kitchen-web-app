@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminOAuthService, AuthState } from '../calendar/services/admin-oauth.service';
+import { AdminAuthService, AuthState } from '../calendar/services/admin-auth.service';
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { VolunteerShift } from '../calendar/models/volunteer.model';
@@ -19,6 +19,11 @@ export class VolunteerAdminComponent implements OnInit {
   loading = false;
   expandedShiftId: number | null = null;
 
+  // Login form
+  loginEmail = '';
+  linkSent = false;
+  linkMessage = '';
+
   // Create shift form
   newShift = {
     date: '',
@@ -29,12 +34,25 @@ export class VolunteerAdminComponent implements OnInit {
   creating = false;
 
   constructor(
-    private authService: AdminOAuthService,
+    private authService: AdminAuthService,
     private shiftService: VolunteerShiftService,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
+    // Check for magic link token in URL
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      this.authService.verifyToken(token).then((success) => {
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        if (success) {
+          this.toastService.success('Signed in successfully');
+        }
+      });
+    }
+
     this.authService.authState$.subscribe((state) => {
       this.authState = state;
       if (state.isAuthenticated) {
@@ -43,14 +61,28 @@ export class VolunteerAdminComponent implements OnInit {
     });
   }
 
-  login(): void {
-    this.authService.login().subscribe();
+  async sendLoginLink(): Promise<void> {
+    if (!this.loginEmail) {
+      this.toastService.error('Please enter your email');
+      return;
+    }
+
+    const result = await this.authService.sendMagicLink(this.loginEmail);
+    this.linkSent = true;
+    this.linkMessage = result.message;
+
+    if (result.success) {
+      this.toastService.success('Check your email for a login link');
+    } else {
+      this.toastService.error(result.message);
+    }
   }
 
   logout(): void {
-    this.authService.logout().subscribe(() => {
-      this.shifts = [];
-    });
+    this.authService.logout();
+    this.shifts = [];
+    this.linkSent = false;
+    this.loginEmail = '';
   }
 
   async loadShifts(): Promise<void> {

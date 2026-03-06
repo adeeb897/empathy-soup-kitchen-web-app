@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { AdminAuthGuard } from './pages/calendar/guards/admin-auth.guard';
+
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -21,7 +21,6 @@ export const routes: Routes = [
       import('./pages/volunteer-admin/volunteer-admin.component').then(
         (m) => m.VolunteerAdminComponent
       ),
-    canActivate: [AdminAuthGuard],
   },
   {
     path: 'get-involved',

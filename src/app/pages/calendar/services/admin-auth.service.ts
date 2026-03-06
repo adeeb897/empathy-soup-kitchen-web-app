@@ -1,86 +1,151 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-// Add interface for the window environment
-interface WindowWithEnv extends Window {
-  env?: {
-    [key: string]: string;
-  };
+export interface AdminUser {
+  email: string;
+  name: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+export interface AuthState {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: AdminUser | null;
+  error: string | null;
+}
+
+const STORAGE_KEY = 'esk_admin_session';
+
+interface StoredSession {
+  sessionToken: string;
+  email: string;
+  name: string;
+  expiresAt: number;
+}
+
+@Injectable({ providedIn: 'root' })
 export class AdminAuthService {
-  // Get admin password from window.env
-  private adminPassword: string;
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
-  
-  isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
-  
+  private state = new BehaviorSubject<AuthState>({
+    isAuthenticated: false,
+    isLoading: true,
+    user: null,
+    error: null,
+  });
+
+  authState$ = this.state.asObservable();
+
   constructor() {
-    // Get password from environment or use default
-    this.adminPassword = this.getEnvironmentVariable('ADMIN_PASSWORD', 'admin123');
-    
-    // Check if we have an auth token in session storage
-    this.checkAuthStatus();
-    console.log('Admin password is set to:', this.adminPassword);
+    this.restoreSession();
   }
-  
-  // Method to safely get environment variables
-  private getEnvironmentVariable(key: string, defaultValue: string = ''): string {
-    if (typeof window !== 'undefined') {
-      // Check if there's a global env object (like window.env)
-      const windowWithEnv = window as WindowWithEnv;
-      if (windowWithEnv.env && windowWithEnv.env[key]) {
-        return windowWithEnv.env[key];
+
+  private restoreSession(): void {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        this.setState({ isAuthenticated: false, isLoading: false, user: null, error: null });
+        return;
       }
 
-      // Check if there's a global config object (like EMAIL_CONFIG pattern)
-      const globalConfig = (window as any).ADMIN_CONFIG;
-      if (globalConfig && globalConfig[key]) {
-        return globalConfig[key];
+      const session: StoredSession = JSON.parse(raw);
+      if (Date.now() > session.expiresAt) {
+        localStorage.removeItem(STORAGE_KEY);
+        this.setState({ isAuthenticated: false, isLoading: false, user: null, error: null });
+        return;
       }
-    }
 
-    // Check localStorage for development/testing
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem(`ADMIN_${key}`);
-      if (stored) {
-        return stored;
+      this.setState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: { email: session.email, name: session.name },
+        error: null,
+      });
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+      this.setState({ isAuthenticated: false, isLoading: false, user: null, error: null });
+    }
+  }
+
+  async sendMagicLink(email: string): Promise<{ success: boolean; message: string }> {
+    this.setState({ ...this.state.value, isLoading: true, error: null });
+
+    try {
+      const res = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json();
+      this.setState({ ...this.state.value, isLoading: false });
+
+      if (!res.ok) {
+        return { success: false, message: data.error || 'Failed to send login link' };
       }
-    }
 
-    return defaultValue;
-  }
-  
-  checkAuthStatus(): void {
-    const isAuth = sessionStorage.getItem('calendar_admin_authenticated') === 'true';
-    this.isAuthenticatedSubject.next(isAuth);
-  }
-  
-  login(password: string): boolean {
-    console.log('Login attempt with password:', password);
-    console.log('Expected password:', this.adminPassword);
-    
-    // Compare as strings to ensure exact matching
-    const isValid = String(password) === String(this.adminPassword);
-    console.log('Password valid:', isValid);
-    
-    if (isValid) {
-      sessionStorage.setItem('calendar_admin_authenticated', 'true');
-      this.isAuthenticatedSubject.next(true);
+      return { success: true, message: data.message };
+    } catch {
+      this.setState({ ...this.state.value, isLoading: false });
+      return { success: false, message: 'Network error. Please try again.' };
     }
-    
-    return isValid;
   }
-  
+
+  async verifyToken(token: string): Promise<boolean> {
+    this.setState({ isAuthenticated: false, isLoading: true, user: null, error: null });
+
+    try {
+      const res = await fetch('/api/auth/verify-magic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.valid) {
+        this.setState({
+          isAuthenticated: false,
+          isLoading: false,
+          user: null,
+          error: data.error || 'Invalid or expired link',
+        });
+        return false;
+      }
+
+      const session: StoredSession = {
+        sessionToken: data.sessionToken,
+        email: data.email,
+        name: data.name,
+        expiresAt: data.expiresAt,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+
+      this.setState({
+        isAuthenticated: true,
+        isLoading: false,
+        user: { email: data.email, name: data.name },
+        error: null,
+      });
+      return true;
+    } catch {
+      this.setState({
+        isAuthenticated: false,
+        isLoading: false,
+        user: null,
+        error: 'Verification failed. Please try again.',
+      });
+      return false;
+    }
+  }
+
   logout(): void {
-    sessionStorage.removeItem('calendar_admin_authenticated');
-    this.isAuthenticatedSubject.next(false);
+    localStorage.removeItem(STORAGE_KEY);
+    this.setState({ isAuthenticated: false, isLoading: false, user: null, error: null });
   }
-  
+
   isAuthenticated(): boolean {
-    return this.isAuthenticatedSubject.value;
+    return this.state.value.isAuthenticated;
+  }
+
+  private setState(s: AuthState): void {
+    this.state.next(s);
   }
 }
