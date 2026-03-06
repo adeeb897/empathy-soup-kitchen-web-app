@@ -191,36 +191,25 @@
   }
 }
 
-.vol-shift-card__capacity {
+.vol-shift-card__status {
   flex: 1;
-  min-width: 150px;
 }
 
-.vol-shift-card__bar {
-  height: 6px;
-  background: var(--color-cream);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: var(--space-xs);
-}
-
-.vol-shift-card__bar-fill {
-  height: 100%;
-  background: var(--color-sage);
-  border-radius: 3px;
-  transition: width var(--transition-slow);
-
-  &.is-nearly-full {
-    background: #E8A838;
-  }
-
-  &.is-full {
-    background: #D14343;
-  }
-}
-
-.vol-shift-card__slots {
+.vol-shift-card__badge {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: 999px;
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  &--open {
+    background: rgba(91, 127, 94, 0.12);
+    color: var(--color-sage);
+  }
+
+  &--full {
+    background: rgba(209, 67, 67, 0.08);
+    color: #D14343;
+  }
 }

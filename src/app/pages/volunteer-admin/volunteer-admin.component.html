@@ -155,7 +155,7 @@
                 name="endTime">
             </div>
             <div class="form-group">
-              <label class="form-label" for="shift-capacity">Capacity</label>
+              <label class="form-label" for="shift-capacity">Max Groups</label>
               <input
                 id="shift-capacity"
                 type="number"
@@ -201,7 +201,7 @@
                   </div>
                   <div class="admin-shift__meta">
                     <span class="admin-shift__count">
-                      {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} signed up
+                      {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} group{{ shift.Capacity === 1 ? '' : 's' }}
                     </span>
                     <span class="material-icons">
                       {{ expandedShiftId === shift.ShiftID ? 'expand_less' : 'expand_more' }}
@@ -280,7 +280,7 @@
                     </div>
                     <div class="admin-shift__meta">
                       <span class="admin-shift__count">
-                        {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} signed up
+                        {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} group{{ shift.Capacity === 1 ? '' : 's' }}
                       </span>
                       <span class="material-icons">
                         {{ expandedShiftId === shift.ShiftID ? 'expand_less' : 'expand_more' }}

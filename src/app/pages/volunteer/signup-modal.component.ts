@@ -68,7 +68,7 @@ import { VolunteerShift } from '../calendar/models/volunteer.model';
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="numPeople">Number of People</label>
+          <label class="form-label" for="numPeople">Group Size</label>
           <input
             id="numPeople"
             type="number"
@@ -76,8 +76,8 @@ import { VolunteerShift } from '../calendar/models/volunteer.model';
             [(ngModel)]="formData.NumPeople"
             name="numPeople"
             min="1"
-            max="20"
-            placeholder="1">
+            max="50"
+            placeholder="How many people in your group?">
         </div>
 
         @if (errorMessage) {

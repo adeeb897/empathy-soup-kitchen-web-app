@@ -31,8 +31,8 @@ export class VolunteerAdminComponent implements OnInit {
   newShift = {
     date: '',
     startTime: '13:00',
-    endTime: '14:00',
-    capacity: 10,
+    endTime: '15:00',
+    capacity: 1,
   };
   recurring = false;
   repeatWeeks = 4;

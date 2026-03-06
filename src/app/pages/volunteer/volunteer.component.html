@@ -84,22 +84,12 @@
                         {{ formatTime(shift) }}
                       </div>
 
-                      <div class="vol-shift-card__capacity">
-                        <div class="vol-shift-card__bar">
-                          <div
-                            class="vol-shift-card__bar-fill"
-                            [style.width.%]="getCapacity(shift).percentFilled"
-                            [class.is-full]="getCapacity(shift).isFull"
-                            [class.is-nearly-full]="getCapacity(shift).percentFilled >= 75">
-                          </div>
-                        </div>
-                        <span class="vol-shift-card__slots">
-                          @if (getCapacity(shift).isFull) {
-                            Full
-                          } @else {
-                            {{ getCapacity(shift).remainingCapacity }} spots left
-                          }
-                        </span>
+                      <div class="vol-shift-card__status">
+                        @if (getCapacity(shift).isFull) {
+                          <span class="vol-shift-card__badge vol-shift-card__badge--full">Full</span>
+                        } @else {
+                          <span class="vol-shift-card__badge vol-shift-card__badge--open">Available</span>
+                        }
                       </div>
 
                       <button
