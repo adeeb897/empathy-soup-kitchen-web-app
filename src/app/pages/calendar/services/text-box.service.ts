@@ -149,7 +149,7 @@ export class TextBoxService {
       if (checkData.value && checkData.value.length > 0) {
         // Text exists, update it
         const textId = checkData.value[0].ID;
-        const updateEndpoint = `${this.apiEndpoint}/${textId}`;
+        const updateEndpoint = `${this.apiEndpoint}/ID/${textId}`;
         const updateResponse = await this.retryService.fetchWithRetry(updateEndpoint, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
