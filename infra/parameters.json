@@ -4,6 +4,14 @@
   "parameters": {
     "sqlAdminLogin": {
       "value": "sqladmin"
+    },
+    "sqlAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/d073de43-f3c2-4027-b030-f5a14c392588/resourceGroups/empathy-soup-kitchen-web-app/providers/Microsoft.KeyVault/vaults/empathy-kv-lm4sylaandsks"
+        },
+        "secretName": "sql-admin-password"
+      }
     }
   }
 }
