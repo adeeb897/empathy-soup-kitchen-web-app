@@ -1,11 +1,17 @@
 {
   "bindings": [
     {
-      "type": "timerTrigger",
+      "type": "httpTrigger",
       "direction": "in",
-      "name": "timer",
-      "schedule": "0 */4 * * * *",
-      "runOnStartup": true
+      "name": "req",
+      "methods": ["get"],
+      "authLevel": "anonymous",
+      "route": "db-keepalive"
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
     }
   ]
 }
