@@ -14,6 +14,31 @@ param sqlAdminPassword string
 @description('Unique suffix for globally-unique resource names')
 param uniqueSuffix string = uniqueString(resourceGroup().id)
 
+// ─── Key Vault ──────────────────────────────────────────────────────
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: 'empathy-kv-${uniqueSuffix}'
+  location: location
+  properties: {
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+    tenantId: subscription().tenantId
+    accessPolicies: []
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 7
+  }
+}
+
+resource sqlPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'sql-admin-password'
+  properties: {
+    value: sqlAdminPassword
+  }
+}
+
 // ─── Azure SQL Server ───────────────────────────────────────────────
 resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
   name: 'empathy-sql-${uniqueSuffix}'
@@ -165,6 +190,7 @@ resource reminderScheduler 'Microsoft.Logic/workflows@2019-05-01' = {
 }
 
 // ─── Outputs ────────────────────────────────────────────────────────
+output keyVaultName string = keyVault.name
 output sqlServerName string = sqlServer.name
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output databaseName string = sqlDatabase.name
