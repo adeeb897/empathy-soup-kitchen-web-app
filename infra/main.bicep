@@ -98,6 +98,37 @@ resource dbConnection 'Microsoft.Web/staticSites/databaseConnections@2023-12-01'
   }
 }
 
+// ─── Logic App: DB Keepalive (every 4 minutes) ───────────────────────
+resource dbKeepaliveScheduler 'Microsoft.Logic/workflows@2019-05-01' = {
+  name: 'empathy-db-keepalive'
+  location: location
+  properties: {
+    state: 'Enabled'
+    definition: {
+      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
+      contentVersion: '1.0.0.0'
+      triggers: {
+        Recurrence: {
+          type: 'Recurrence'
+          recurrence: {
+            frequency: 'Minute'
+            interval: 4
+          }
+        }
+      }
+      actions: {
+        Ping_DB: {
+          type: 'Http'
+          inputs: {
+            method: 'GET'
+            uri: 'https://${swa.properties.defaultHostname}/api/db-keepalive'
+          }
+        }
+      }
+    }
+  }
+}
+
 // ─── Logic App: Hourly Reminder Scheduler ────────────────────────────
 resource reminderScheduler 'Microsoft.Logic/workflows@2019-05-01' = {
   name: 'empathy-reminder-scheduler'
@@ -138,4 +169,5 @@ output sqlServerName string = sqlServer.name
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output databaseName string = sqlDatabase.name
 output swaDefaultHostname string = swa.properties.defaultHostname
+output dbKeepaliveSchedulerName string = dbKeepaliveScheduler.name
 output reminderSchedulerName string = reminderScheduler.name
