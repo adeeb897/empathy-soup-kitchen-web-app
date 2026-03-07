@@ -11,6 +11,9 @@ param sqlAdminLogin string = 'sqladmin'
 @secure()
 param sqlAdminPassword string
 
+@description('Object ID of the deploying user (for Key Vault access)')
+param deployingUserObjectId string
+
 @description('Unique suffix for globally-unique resource names')
 param uniqueSuffix string = uniqueString(resourceGroup().id)
 
@@ -24,8 +27,17 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
       name: 'standard'
     }
     tenantId: subscription().tenantId
-    accessPolicies: []
-    enableRbacAuthorization: true
+    accessPolicies: [
+      {
+        tenantId: subscription().tenantId
+        objectId: deployingUserObjectId
+        permissions: {
+          secrets: ['get', 'list', 'set']
+        }
+      }
+    ]
+    enableRbacAuthorization: false
+    enabledForTemplateDeployment: true
     enableSoftDelete: true
     softDeleteRetentionInDays: 7
   }

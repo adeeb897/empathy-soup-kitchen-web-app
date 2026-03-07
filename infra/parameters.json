@@ -5,6 +5,9 @@
     "sqlAdminLogin": {
       "value": "sqladmin"
     },
+    "deployingUserObjectId": {
+      "value": "ea5adfb7-402b-4d41-8ab1-f7a75b503e83"
+    },
     "sqlAdminPassword": {
       "reference": {
         "keyVault": {
