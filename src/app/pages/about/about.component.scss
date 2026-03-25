@@ -22,6 +22,42 @@
   position: relative;
 }
 
+/* Report */
+.report__content {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-top: var(--space-lg);
+  }
+}
+
+.report__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+  padding: var(--space-md) var(--space-xl);
+  background: var(--color-terracotta);
+  color: #fff;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  transition: background var(--transition-base);
+
+  .material-icons {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background: var(--color-charcoal);
+  }
+}
+
 /* Board */
 .board__header {
   text-align: center;
