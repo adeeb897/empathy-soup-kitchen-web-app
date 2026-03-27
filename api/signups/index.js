@@ -18,7 +18,25 @@ module.exports = async function (context, req) {
     const id = context.bindingData.id;
 
     if (req.method === 'GET') {
-      const result = await pool.request().query('SELECT * FROM dbo.SignUps');
+      const signUpId = req.query.SignUpID;
+      const shiftId = req.query.ShiftID;
+      const email = req.query.Email;
+      let result;
+      if (signUpId) {
+        result = await pool.request()
+          .input('SignUpID', sql.Int, parseInt(signUpId))
+          .query('SELECT * FROM dbo.SignUps WHERE SignUpID = @SignUpID');
+      } else if (shiftId) {
+        result = await pool.request()
+          .input('ShiftID', sql.Int, parseInt(shiftId))
+          .query('SELECT * FROM dbo.SignUps WHERE ShiftID = @ShiftID');
+      } else if (email) {
+        result = await pool.request()
+          .input('Email', sql.NVarChar(200), email)
+          .query('SELECT * FROM dbo.SignUps WHERE Email = @Email');
+      } else {
+        result = await pool.request().query('SELECT * FROM dbo.SignUps');
+      }
       context.res = { status: 200, headers: HEADERS, body: { value: result.recordset } };
     }
 

@@ -73,13 +73,7 @@ export class VolunteerShiftService {
   }
 
   async deleteShift(shiftId: number): Promise<void> {
-    // Delete all signups for this shift first
-    const allSignups = await this.getAllSignups();
-    const shiftSignups = allSignups.filter(s => s.ShiftID === shiftId);
-    for (const signup of shiftSignups) {
-      await this.deleteSignup(signup.SignUpID);
-    }
-
+    // Signups are automatically removed via ON DELETE CASCADE in the database
     const response = await this.retryService.fetchWithRetry(
       `${this.shiftsEndpoint}/${shiftId}`,
       { method: 'DELETE' }
@@ -130,9 +124,9 @@ export class VolunteerShiftService {
   }
 
   async cancelSignupWithNotification(signupId: number): Promise<void> {
-    // Fetch signup details before deleting
-    const allSignups = await this.getAllSignups();
-    const signup = allSignups.find(s => s.SignUpID === signupId);
+    // Fetch this specific signup before deleting
+    const data = await this.fetchJson<SignUpAPIResponse>(`${this.signupsEndpoint}?SignUpID=${signupId}`);
+    const signup = (data.value || [])[0];
     if (!signup) {
       throw new Error('Signup not found');
     }
@@ -150,18 +144,18 @@ export class VolunteerShiftService {
   }
 
   async findSignupsByEmail(email: string): Promise<(SignUp & { shift?: VolunteerShift })[]> {
-    const [allSignups, shifts] = await Promise.all([
-      this.getAllSignups(),
+    const [emailSignups, shifts] = await Promise.all([
+      this.fetchJson<SignUpAPIResponse>(`${this.signupsEndpoint}?Email=${encodeURIComponent(email)}`),
       this.getAllShifts()
     ]);
 
+    const signups = emailSignups.value || [];
     const shiftMap = new Map(shifts.map(s => [s.ShiftID, s]));
 
-    return allSignups
-      .filter(s => s.Email.toLowerCase() === email.toLowerCase())
+    return signups
       .filter(s => {
         const shift = shiftMap.get(s.ShiftID);
-        return shift && shift.StartTime >= new Date(); // Only future shifts
+        return shift && shift.StartTime >= new Date();
       })
       .map(s => ({ ...s, shift: shiftMap.get(s.ShiftID) }));
   }
