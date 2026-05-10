@@ -34,7 +34,7 @@ import { RouterLink } from '@angular/router';
 
           <div class="footer__links-group">
             <h4 class="footer__heading">Contact</h4>
-            <a href="mailto:empathysoupkitchen&#64;gmail.com">empathysoupkitchen&#64;gmail.com</a>
+            <a href="mailto:info&#64;empathysoupkitchen.org">info&#64;empathysoupkitchen.org</a>
           </div>
         </div>
 
