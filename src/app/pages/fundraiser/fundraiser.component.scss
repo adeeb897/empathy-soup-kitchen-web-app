@@ -231,37 +231,9 @@
   text-align: center;
 
   h2 {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-2xl);
     color: var(--color-charcoal);
-    margin-bottom: var(--space-md);
-  }
-
-  > p {
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-lg);
-    line-height: 1.7;
-    margin-bottom: var(--space-2xl);
-
-    strong { color: var(--color-charcoal); }
-  }
-}
-
-.fr-close__divider {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  margin: var(--space-2xl) 0 var(--space-xl);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--color-border);
+    margin-bottom: var(--space-xl);
   }
 }
 
