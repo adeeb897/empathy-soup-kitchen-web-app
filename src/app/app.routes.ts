@@ -41,6 +41,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/about/about.component').then((m) => m.AboutComponent),
   },
+  {
+    path: 'fundraiser',
+    loadComponent: () =>
+      import('./pages/fundraiser/fundraiser.component').then((m) => m.FundraiserComponent),
+  },
 
   // Legacy redirects
   { path: 'calendar/admin', redirectTo: '/volunteer/admin', pathMatch: 'full' },

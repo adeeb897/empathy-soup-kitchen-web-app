@@ -1,0 +1,159 @@
+<!-- Hero Section -->
+<section class="fr-hero section">
+  <div class="container">
+    <div class="fr-hero__content" appScrollAnimate>
+      <span class="section-label">Annual Fundraiser 2025</span>
+      <h1 class="section-title">Giving Back to the<br>Streets of Pittsburgh</h1>
+      <p class="fr-hero__subtitle">Empowering Communities Through Action</p>
+      <a
+        [href]="ticketsUrl"
+        target="_blank"
+        rel="noopener"
+        class="btn btn--primary btn--large">
+        <span class="material-icons">confirmation_number</span>
+        Get Your Tickets
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Event Details -->
+<section class="fr-details section">
+  <div class="container">
+    <div class="fr-details__grid" appScrollAnimate>
+
+      <div class="fr-details__card">
+        <span class="material-icons fr-details__icon">place</span>
+        <div>
+          <h3>Venue</h3>
+          <p class="fr-details__primary">Wyndham Pittsburgh</p>
+          <p class="fr-details__secondary">600 Commonwealth Pl, Pittsburgh, PA 15222</p>
+        </div>
+      </div>
+
+      <div class="fr-details__card">
+        <span class="material-icons fr-details__icon">schedule</span>
+        <div>
+          <h3>Date &amp; Time</h3>
+          <p class="fr-details__primary">Saturday, June 14, 2025</p>
+          <p class="fr-details__secondary">6:30 PM</p>
+        </div>
+      </div>
+
+      <div class="fr-details__card">
+        <span class="material-icons fr-details__icon">confirmation_number</span>
+        <div>
+          <h3>Tickets</h3>
+          <p class="fr-details__secondary">Register online or scan the QR code at the event.</p>
+          <a
+            [href]="ticketsUrl"
+            target="_blank"
+            rel="noopener"
+            class="btn btn--primary btn--small fr-details__btn">
+            Buy Tickets
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Guest Speaker -->
+<section class="fr-speaker section">
+  <div class="container">
+    <div class="fr-speaker__inner" appScrollAnimate>
+      <div class="fr-speaker__badge">Guest Speaker</div>
+      <h2 class="fr-speaker__name">Shaykh Mikaeel Ahmed Smith</h2>
+      <div class="fr-speaker__bio">
+        <p>
+          Shaykh Mikaeel Ahmed Smith is an instructor at Qalam and a faculty member at the
+          Qalam Seminary where he teaches Tafsir, Seerah, Aqeedah, and Hadith.
+        </p>
+        <p>
+          He gives lectures and conducts various classes for the community. You can listen to
+          him regularly on the Qalam Podcast, as well as read his books — with the heart in
+          mind — and when hearing becomes listening on Qalam Books.
+        </p>
+      </div>
+      <div class="fr-speaker__subjects">
+        @for (subject of ['Tafsir', 'Seerah', 'Aqeedah', 'Hadith']; track subject) {
+          <span class="fr-speaker__tag">{{ subject }}</span>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- What We Do -->
+<section class="fr-mission section">
+  <div class="container">
+    <div class="fr-mission__header" appScrollAnimate>
+      <h2>What We Do</h2>
+    </div>
+    <div class="fr-mission__grid">
+      <div class="fr-mission__card" appScrollAnimate>
+        <span class="material-icons">restaurant</span>
+        <h3>Free Weekly Meals</h3>
+        <p>
+          Provide free, nutritious meals every weekend to anyone in need in the
+          Greater Pittsburgh community.
+        </p>
+      </div>
+      <div class="fr-mission__card" appScrollAnimate>
+        <span class="material-icons">home</span>
+        <h3>Refugee Support</h3>
+        <p>
+          Provide comprehensive support to refugees building new lives, including
+          food assistance, employment help, and financial aid.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA / Tickets -->
+<section class="fr-cta section">
+  <div class="container">
+    <div class="fr-cta__inner" appScrollAnimate>
+      <h2>Join Us at the Fundraiser</h2>
+      <p>
+        Your attendance and support directly funds our mission to serve the streets
+        of Pittsburgh. We hope to see you there.
+      </p>
+      <a
+        [href]="ticketsUrl"
+        target="_blank"
+        rel="noopener"
+        class="btn btn--primary btn--large">
+        <span class="material-icons">confirmation_number</span>
+        Get Tickets Now
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="fr-contact section">
+  <div class="container">
+    <div class="fr-contact__inner" appScrollAnimate>
+      <h3>Questions?</h3>
+      <div class="fr-contact__list">
+        <a href="tel:4129089588" class="fr-contact__item">
+          <span class="material-icons">phone</span>
+          <div>
+            <span class="fr-contact__name">Sameer Hashmi</span>
+            <span class="fr-contact__phone">412-908-9588</span>
+          </div>
+        </a>
+        <a href="tel:4122979685" class="fr-contact__item">
+          <span class="material-icons">phone</span>
+          <div>
+            <span class="fr-contact__name">Mudassar Ali</span>
+            <span class="fr-contact__phone">412-297-9685</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
