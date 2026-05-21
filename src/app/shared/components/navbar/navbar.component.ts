@@ -20,9 +20,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <li role="none"><a routerLink="/get-involved" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Get Involved</a></li>
           <li role="none"><a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a></li>
           <li role="none"><a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a></li>
+          <li role="none"><a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a></li>
         </ul>
 
-        <a routerLink="/get-involved" class="navbar__cta btn btn--primary btn--small" (click)="closeMobile()">
+        <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="navbar__cta btn btn--primary btn--small" (click)="closeMobile()">
           Donate
         </a>
 
@@ -45,8 +46,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <a routerLink="/get-involved" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Get Involved</a>
           <a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a>
           <a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a>
+          <a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a>
           <div class="navbar__mobile-cta">
-            <a routerLink="/get-involved" class="btn btn--primary btn--large" style="width:100%" (click)="closeMobile()">Donate Now</a>
+            <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--primary btn--large" style="width:100%" (click)="closeMobile()">Donate Now</a>
           </div>
         </div>
       }

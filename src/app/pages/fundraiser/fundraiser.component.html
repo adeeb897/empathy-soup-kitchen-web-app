@@ -1,0 +1,111 @@
+<!-- Hero -->
+<section class="fr-hero section">
+  <div class="container">
+    <div class="fr-hero__content" appScrollAnimate>
+      <span class="section-label">Fundraiser Event</span>
+      <h1 class="section-title">Your support makes<br>a real difference</h1>
+      <p class="fr-hero__subtitle">Help us feed, support, and uplift those who need it most.</p>
+
+      <div class="fr-hero__meta">
+        <div class="fr-hero__meta-item">
+          <span class="material-icons">event</span>
+          <span>Saturday, October 3, 2026 &middot; 6:30 PM</span>
+        </div>
+        <div class="fr-hero__meta-item">
+          <span class="material-icons">place</span>
+          <span>Wyndham Pittsburgh &middot; 600 Commonwealth Pl, Pittsburgh, PA 15222</span>
+        </div>
+      </div>
+
+      <a
+        [href]="ticketsUrl"
+        target="_blank"
+        rel="noopener"
+        class="btn btn--primary btn--large fr-hero__cta">
+        <span class="material-icons">confirmation_number</span>
+        Buy Tickets
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Guest Speaker -->
+<section class="fr-speaker section">
+  <div class="container">
+    <div class="fr-speaker__inner" appScrollAnimate>
+      <div class="fr-speaker__portrait">
+        <img
+          src="https://images.squarespace-cdn.com/content/v1/5a2403c7ace864ba32064780/1516205609332-4YV3NT81ZF3CHHV9QK9T/%5BHeadshot%5D+Imam+Mikaeel.png?format=1000w"
+          alt="Shaykh Mikaeel Ahmed Smith"
+          loading="lazy"
+          referrerpolicy="no-referrer">
+      </div>
+      <div class="fr-speaker__body">
+        <div class="fr-speaker__badge">Guest Speaker</div>
+        <h2 class="fr-speaker__name">Shaykh Mikaeel Ahmed Smith</h2>
+        <div class="fr-speaker__bio">
+          <p>
+            Shaykh Mikaeel Ahmed Smith is an instructor at Qalam and a faculty member at the
+            Qalam Seminary. He teaches Tafsir, Seerah, Aqeedah, and Hadith.
+          </p>
+          <p>
+            He gives lectures and conducts classes for the community and is a host of the
+            Qalam Podcast. He is also an author and his work focuses on the heart, making
+            faith practical and encouraging reflection.
+          </p>
+        </div>
+        <div class="fr-speaker__subjects">
+          @for (subject of ['Tafsir', 'Seerah', 'Aqeedah', 'Hadith']; track subject) {
+            <span class="fr-speaker__tag">{{ subject }}</span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Our Mission -->
+<section class="fr-mission section">
+  <div class="container">
+    <div class="fr-mission__header" appScrollAnimate>
+      <span class="section-label">Our Mission</span>
+      <h2>Why your support matters</h2>
+    </div>
+    <div class="fr-mission__grid">
+      <div class="fr-mission__card" appScrollAnimate>
+        <span class="material-icons">restaurant</span>
+        <p>Serve free, nutritious meals to anyone in need.</p>
+      </div>
+      <div class="fr-mission__card" appScrollAnimate>
+        <span class="material-icons">volunteer_activism</span>
+        <p>Provide comprehensive support to refugees building new lives.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Closing Contact -->
+<section class="fr-close section">
+  <div class="container">
+    <div class="fr-close__card" appScrollAnimate>
+      <h2>Questions?</h2>
+
+      <div class="fr-close__contacts">
+        <a href="tel:4129089588" class="fr-close__contact">
+          <span class="material-icons">phone</span>
+          <div>
+            <span class="fr-close__name">Sameer Hashmi</span>
+            <span class="fr-close__phone">412-908-9588</span>
+          </div>
+        </a>
+        <a href="tel:4122979685" class="fr-close__contact">
+          <span class="material-icons">phone</span>
+          <div>
+            <span class="fr-close__name">Mudassar Ali</span>
+            <span class="fr-close__phone">412-297-9685</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
