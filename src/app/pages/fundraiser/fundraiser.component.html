@@ -1,60 +1,30 @@
-<!-- Hero Section -->
+<!-- Hero -->
 <section class="fr-hero section">
   <div class="container">
     <div class="fr-hero__content" appScrollAnimate>
       <span class="section-label">Fundraiser Event</span>
       <h1 class="section-title">Your support makes<br>a real difference</h1>
       <p class="fr-hero__subtitle">Help us feed, support, and uplift those who need it most.</p>
+
+      <div class="fr-hero__meta">
+        <div class="fr-hero__meta-item">
+          <span class="material-icons">event</span>
+          <span>Saturday, October 3, 2026 &middot; 6:30 PM</span>
+        </div>
+        <div class="fr-hero__meta-item">
+          <span class="material-icons">place</span>
+          <span>Wyndham Pittsburgh &middot; 600 Commonwealth Pl, Pittsburgh, PA 15222</span>
+        </div>
+      </div>
+
       <a
         [href]="ticketsUrl"
         target="_blank"
         rel="noopener"
-        class="btn btn--primary btn--large">
+        class="btn btn--primary btn--large fr-hero__cta">
         <span class="material-icons">confirmation_number</span>
         Buy Tickets
       </a>
-    </div>
-  </div>
-</section>
-
-<!-- Event Details -->
-<section class="fr-details section">
-  <div class="container">
-    <div class="fr-details__grid" appScrollAnimate>
-
-      <div class="fr-details__card">
-        <span class="material-icons fr-details__icon">place</span>
-        <div>
-          <h3>Venue</h3>
-          <p class="fr-details__primary">Wyndham Pittsburgh</p>
-          <p class="fr-details__secondary">600 Commonwealth Pl, Pittsburgh, PA 15222</p>
-        </div>
-      </div>
-
-      <div class="fr-details__card">
-        <span class="material-icons fr-details__icon">schedule</span>
-        <div>
-          <h3>Date &amp; Time</h3>
-          <p class="fr-details__primary">Saturday, October 3, 2026</p>
-          <p class="fr-details__secondary">6:30 PM</p>
-        </div>
-      </div>
-
-      <div class="fr-details__card">
-        <span class="material-icons fr-details__icon">confirmation_number</span>
-        <div>
-          <h3>Tickets &amp; Donations</h3>
-          <p class="fr-details__secondary">Reserve your seat or contribute to our mission online.</p>
-          <a
-            [href]="ticketsUrl"
-            target="_blank"
-            rel="noopener"
-            class="btn btn--primary btn--small fr-details__btn">
-            Buy Tickets
-          </a>
-        </div>
-      </div>
-
     </div>
   </div>
 </section>
@@ -99,6 +69,7 @@
   <div class="container">
     <div class="fr-mission__header" appScrollAnimate>
       <span class="section-label">Our Mission</span>
+      <h2>Why your support matters</h2>
     </div>
     <div class="fr-mission__grid">
       <div class="fr-mission__card" appScrollAnimate>
@@ -113,12 +84,16 @@
   </div>
 </section>
 
-<!-- CTA / Tickets -->
-<section class="fr-cta section">
+<!-- Closing CTA + Contact -->
+<section class="fr-close section">
   <div class="container">
-    <div class="fr-cta__inner" appScrollAnimate>
-      <h2>Your Support Makes a Real Difference</h2>
-      <p>Help us feed, support, and uplift those who need it most.</p>
+    <div class="fr-close__card" appScrollAnimate>
+      <h2>Reserve your seat</h2>
+      <p>
+        Join us on <strong>October 3, 2026</strong> at the Wyndham Pittsburgh. Purchase
+        tickets online, or reach out directly with any questions.
+      </p>
+
       <a
         [href]="ticketsUrl"
         target="_blank"
@@ -127,31 +102,24 @@
         <span class="material-icons">confirmation_number</span>
         Buy Tickets
       </a>
-    </div>
-  </div>
-</section>
 
-<!-- Contact -->
-<section class="fr-contact section">
-  <div class="container">
-    <div class="fr-contact__inner" appScrollAnimate>
-      <h3>For Tickets or Donations</h3>
-      <p class="fr-contact__intro">
-        Scan the QR code on the flyer, click the button above, or call:
-      </p>
-      <div class="fr-contact__list">
-        <a href="tel:4129089588" class="fr-contact__item">
+      <div class="fr-close__divider">
+        <span>or call to learn more</span>
+      </div>
+
+      <div class="fr-close__contacts">
+        <a href="tel:4129089588" class="fr-close__contact">
           <span class="material-icons">phone</span>
           <div>
-            <span class="fr-contact__name">Sameer Hashmi</span>
-            <span class="fr-contact__phone">412-908-9588</span>
+            <span class="fr-close__name">Sameer Hashmi</span>
+            <span class="fr-close__phone">412-908-9588</span>
           </div>
         </a>
-        <a href="tel:4122979685" class="fr-contact__item">
+        <a href="tel:4122979685" class="fr-close__contact">
           <span class="material-icons">phone</span>
           <div>
-            <span class="fr-contact__name">Mudassar Ali</span>
-            <span class="fr-contact__phone">412-297-9685</span>
+            <span class="fr-close__name">Mudassar Ali</span>
+            <span class="fr-close__phone">412-297-9685</span>
           </div>
         </a>
       </div>
