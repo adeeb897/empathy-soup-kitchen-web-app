@@ -71,8 +71,11 @@ export class VolunteerAdminComponent implements OnInit {
     this.pledgesError = '';
     try {
       this.pledges = await this.pledgeService.getPledges();
-    } catch (error) {
-      this.pledgesError = 'Could not load pledges. Please try again.';
+    } catch (error: any) {
+      const message = String(error?.message ?? '');
+      this.pledgesError = /401|403/.test(message)
+        ? 'Your session has expired. Please sign out and sign in again to view pledges.'
+        : 'Could not load pledges. Please try again.';
       console.error('Failed to load pledges:', error);
     } finally {
       this.pledgesLoading = false;

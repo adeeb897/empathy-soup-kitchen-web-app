@@ -51,9 +51,9 @@ END
 GO
 
 -- ─── Pledges (from the public pledge form) ──────────────────────────
--- NOTE: served by /api/pledges, which is an anonymous Function like
--- /api/signups. An unauthenticated GET returns every row, including
--- donor contact details.
+-- Holds donor contact details, home addresses and amounts. /api/pledges
+-- accepts anonymous POSTs (the public form) but requires an admin session
+-- token for reads and deletes.
 IF OBJECT_ID('dbo.Pledges', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Pledges (

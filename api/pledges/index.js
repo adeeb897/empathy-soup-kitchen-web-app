@@ -1,20 +1,32 @@
 const { getPool, sql } = require('../shared/db');
+const { requireAdmin } = require('../shared/auth');
 
 const HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 };
 
-// NOTE: authLevel is "anonymous" to match /api/signups, so an unauthenticated
-// GET returns every pledge including donor contact details. If the donor list
-// should be private, this route needs an auth check and the admin UI needs to
-// send a session token.
+// Pledge records hold donor contact details, home addresses and amounts, so
+// reads and deletes require a valid admin session token (Authorization:
+// Bearer <token>, issued by auth-verify-magic).
+//
+// POST stays public — the pledge form is filled in by anonymous visitors.
 module.exports = async function (context, req) {
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers: HEADERS };
     return;
+  }
+
+  // Gate everything except public form submissions.
+  if (req.method !== 'POST') {
+    const auth = requireAdmin(req);
+    if (!auth.valid) {
+      context.log.warn(`Unauthorized ${req.method} /api/pledges: ${auth.error}`);
+      context.res = { status: auth.status, headers: HEADERS, body: { error: auth.error } };
+      return;
+    }
   }
 
   try {

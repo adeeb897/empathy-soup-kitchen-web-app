@@ -55,7 +55,9 @@ export class PledgeService {
   }
 
   async getPledges(): Promise<PledgeRecord[]> {
-    const response = await this.retryService.fetchWithRetry(this.pledgesEndpoint);
+    const response = await this.retryService.fetchWithRetry(this.pledgesEndpoint, {
+      headers: this.authHeaders(),
+    });
     if (!response.ok) {
       throw new Error(`Failed to load pledges: ${response.status}`);
     }
@@ -66,10 +68,28 @@ export class PledgeService {
   async deletePledge(pledgeId: number): Promise<void> {
     const response = await this.retryService.fetchWithRetry(
       `${this.pledgesEndpoint}/${pledgeId}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: this.authHeaders() }
     );
     if (!response.ok) {
       throw new Error(`Failed to delete pledge: ${response.status}`);
+    }
+  }
+
+  /**
+   * Reads the admin session token stored by AdminAuthService. Reading it here
+   * rather than injecting the service keeps this service usable from the public
+   * pledge form, which has no admin session.
+   */
+  private authHeaders(): Record<string, string> {
+    try {
+      const raw = localStorage.getItem('esk_admin_session');
+      if (!raw) return {};
+      const session = JSON.parse(raw);
+      return session?.sessionToken
+        ? { Authorization: `Bearer ${session.sessionToken}` }
+        : {};
+    } catch {
+      return {};
     }
   }
 
