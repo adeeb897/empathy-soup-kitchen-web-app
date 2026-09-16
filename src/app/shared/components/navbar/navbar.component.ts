@@ -22,6 +22,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <li role="none"><a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a></li>
           <li role="none"><a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a></li>
           <li role="none"><a routerLink="/pledge" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Pledge Form</a></li>
+          <li role="none"><a routerLink="/financial-report" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Financial Report</a></li>
         </ul>
 
         <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="navbar__cta btn btn--primary btn--small" (click)="closeMobile()">
@@ -49,6 +50,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a>
           <a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a>
           <a routerLink="/pledge" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Pledge Form</a>
+          <a routerLink="/financial-report" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Financial Report</a>
           <div class="navbar__mobile-cta">
             <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--primary btn--large" style="width:100%" (click)="closeMobile()">Donate Now</a>
           </div>
@@ -116,15 +118,16 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       align-items: center;
       gap: var(--space-xs);
 
-      @media (min-width: 900px) {
+      @media (min-width: 1100px) {
         display: flex;
       }
 
       a {
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 0.75rem;
         font-size: var(--font-size-sm);
         font-weight: 500;
         color: var(--color-text);
+        white-space: nowrap;
         border-radius: var(--border-radius);
         transition: all var(--transition-fast);
 
@@ -143,7 +146,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     .navbar__cta {
       display: none;
 
-      @media (min-width: 900px) {
+      @media (min-width: 1100px) {
         display: inline-flex;
       }
     }
@@ -157,7 +160,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       border: none;
       cursor: pointer;
 
-      @media (min-width: 900px) {
+      @media (min-width: 1100px) {
         display: none;
       }
     }
@@ -192,7 +195,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       border-top: 1px solid var(--color-border);
       animation: slideDown 0.25s ease;
 
-      @media (min-width: 900px) {
+      @media (min-width: 1100px) {
         display: none;
       }
 

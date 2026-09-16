@@ -51,6 +51,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/pledge/pledge.component').then((m) => m.PledgeComponent),
   },
+  {
+    path: 'financial-report',
+    loadComponent: () =>
+      import('./pages/financial-report/financial-report.component').then(
+        (m) => m.FinancialReportComponent
+      ),
+  },
 
   // Legacy redirects
   { path: 'calendar/admin', redirectTo: '/volunteer/admin', pathMatch: 'full' },
@@ -62,7 +69,8 @@ export const routes: Routes = [
   { path: 'faqs', redirectTo: '/about', pathMatch: 'full' },
   { path: 'refugee-services', redirectTo: '/get-involved', pathMatch: 'full' },
   { path: 'volunteers', redirectTo: '/volunteer', pathMatch: 'full' },
-  { path: 'financial-report/:year/:quarter', redirectTo: '/get-involved', pathMatch: 'full' },
+  { path: 'financial-report/:year/:quarter', redirectTo: '/financial-report', pathMatch: 'full' },
+  { path: 'financial-reports', redirectTo: '/financial-report', pathMatch: 'full' },
   { path: 'soup-kitchen-tasks', redirectTo: '/volunteer', pathMatch: 'full' },
   { path: 'refugee-tasks', redirectTo: '/get-involved', pathMatch: 'full' },
 
