@@ -77,24 +77,28 @@ resource sqlFirewallAzure 'Microsoft.Sql/servers/firewallRules@2023-08-01-previe
   }
 }
 
-// ─── Azure SQL Database (free tier) ─────────────────────────────────
+// ─── Azure SQL Database ─────────────────────────────────────────────
+// Basic (5 DTU, 2 GB) rather than serverless on the free offer: serverless
+// auto-paused after an hour idle, so the first volunteer of the day waited
+// 30-90 s for the database to resume — a wait Static Web Apps cannot even hold
+// a request open for. Basic is always on for a flat ~$5/month, which for three
+// small tables of shifts, signups and pledges is the cheaper end of the trade.
+//
+// Note this gives up the free offer's 100,000 vCore-seconds per month, and its
+// 'AutoPause' exhaustion behaviour that could have taken the site offline for
+// the rest of a month.
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   parent: sqlServer
   name: 'empathy-db'
   location: location
   sku: {
-    name: 'GP_S_Gen5_2'
-    tier: 'GeneralPurpose'
-    family: 'Gen5'
-    capacity: 2
+    name: 'Basic'
+    tier: 'Basic'
+    capacity: 5
   }
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
-    maxSizeBytes: 34359738368 // 32 GB
-    autoPauseDelay: 60
-    minCapacity: json('0.5')
-    useFreeLimit: true
-    freeLimitExhaustionBehavior: 'AutoPause'
+    maxSizeBytes: 2147483648 // 2 GB, the Basic tier maximum
   }
 }
 

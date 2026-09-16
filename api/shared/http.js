@@ -3,12 +3,12 @@ const { isWarmingUp } = require('./db');
 /** Seconds the browser should wait before retrying while the database resumes. */
 const RETRY_AFTER_SECONDS = 5;
 
-function corsHeaders(methods) {
+function corsHeaders(methods, allowHeaders = 'Content-Type') {
   return {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': methods,
-    'Access-Control-Allow-Headers': 'Content-Type'
+    'Access-Control-Allow-Headers': allowHeaders
   };
 }
 

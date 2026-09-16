@@ -6,7 +6,7 @@ Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a
 
 - **Frontend:** Angular 18 standalone components, custom CSS design system (no UI library)
 - **Hosting:** Azure Static Web Apps (Standard tier)
-- **Database:** Azure SQL (serverless, free tier) via Data API Builder (DAB)
+- **Database:** Azure SQL (Basic, 5 DTU) via Data API Builder (DAB)
 - **CI/CD:** GitHub Actions → Azure SWA auto-deploy on push to `main`
 
 ## Project Structure
@@ -195,7 +195,12 @@ az deployment group show \
 
 The Bicep template provisions:
 - Azure SQL Server (TLS 1.2, Azure services firewall rule)
-- Azure SQL Database (serverless Gen5, free tier, auto-pause at 60 min)
+- Azure SQL Database (Basic tier, 5 DTU, always on)
+
+Re-deploying over the existing serverless database scales it to Basic in place —
+the data is preserved, but connections drop for a few seconds while the change
+applies, so do it outside serving hours. The database must already fit inside
+Basic's 2 GB limit.
 - SWA database connection (auto-sets `DATABASE_CONNECTION_STRING`)
 
 ## Local Development
@@ -225,42 +230,52 @@ npm run dev
 
 The local dev server proxies `/data-api/rest/` calls to the local DAB instance at `http://localhost:5000`.
 
-## Cold Starts
+## Database Availability
 
-The database is Azure SQL serverless on the free offer, so it auto-pauses after
-an hour of inactivity. The first request afterwards waits 30-90 seconds while it
-resumes, and Static Web Apps cuts off any API response at 45 seconds, so a
-request can never simply wait the resume out. The app handles this instead of
-hiding it:
+The database runs on Azure SQL **Basic** (5 DTU, always on, ~$5/month) rather
+than serverless on the free offer. Serverless auto-paused after an hour idle and
+the first request afterwards waited 30-90 seconds for it to resume — longer than
+the 45-second ceiling Static Web Apps puts on any API response, so the request
+could not even wait it out. Basic removes that wait entirely.
+
+The resume-handling code stays in place as a safety net for a restarted database
+or a transient connection failure, and it is what keeps a bad minute from
+looking like an outage:
 
 - `GET /api/warmup` is a readiness probe. Touching the database is what triggers
-  the resume, so the frontend calls it as soon as a visitor reaches for a link
-  into the volunteer flow (nav link, home page CTA) — the wake-up runs while
-  they are still reading the current page.
-- `api/shared/db.js` retries transient login failures inside a bounded budget,
-  shares one connect attempt across concurrent requests, and tags a still-paused
-  database so handlers answer `503` + `Retry-After` instead of `500`.
+  a resume, so the frontend calls it as soon as a visitor reaches for a link into
+  the volunteer flow (nav link, home page CTA).
+- `api/shared/db.js` retries transient logins inside a bounded budget, shares one
+  connect attempt across concurrent requests, and tags an unavailable database so
+  handlers answer `503` + `Retry-After` instead of `500`.
 - `RetryService` retries those 503s. Writes only retry on 503 (raised before the
   query reaches SQL), never on 500, so a signup cannot be inserted twice.
 - The volunteer page shows a "waking up the sign-up system" notice with a timer
-  after 1.5 s, and recovers on its own once the database is up.
+  after 1.5 s and recovers on its own. On Basic it should never appear.
 
-### Cost knobs
+### If you ever move back to serverless
 
-The free offer covers 100,000 vCore-seconds per month. At the configured
-`minCapacity` of 0.5 vCore that is roughly **55 hours of awake time per month**;
-once it is used up, `freeLimitExhaustionBehavior: 'AutoPause'` takes the
-database offline until the next calendar month.
+The free offer covers 100,000 vCore-seconds per month, which at `minCapacity`
+0.5 is roughly **55 hours of awake time** — and `freeLimitExhaustionBehavior:
+'AutoPause'` takes the database offline for the rest of the month once that runs
+out. Anything touching the database on a schedule (the hourly reminder Logic App,
+for one) keeps it awake and eats that budget, so the schedule has to be part of
+the sum.
 
-- `autoPauseDelay` (currently 60 min) is the awake time each wake-up costs.
-  Lowering it to the 15 min minimum stretches the monthly budget but makes cold
-  starts more frequent; raising it does the reverse.
-- Anything that touches the database on a schedule keeps it awake. The hourly
-  reminder Logic App alone wakes it 24 times a day, which on its own exceeds the
-  free budget several times over — widen its lookahead window and run it less
-  often if the free limit is being exhausted.
-- Eliminating cold starts entirely means leaving serverless: a Basic (5 DTU)
-  database is always on for about $5/month.
+## Reminder Emails
+
+The reminder Logic App calls `POST /api/reminders/process` hourly. Each run
+emails every signup for a shift starting **3 to 26 hours** from now that has not
+been reminded yet, then sets `ReminderSent`.
+
+The window is much wider than the hourly schedule on purpose: `ReminderSent` is
+what prevents duplicates, so a run that fails or is skipped is simply caught by
+the next one instead of leaving those volunteers with no reminder at all. The
+3-hour floor keeps someone who signs up the morning of a shift from getting a
+"reminder" minutes later. Because a catch-up run can send on the day of the
+shift, the email says "today" or "tomorrow" based on the actual date, in Eastern
+time (`TIME_ZONE` in `api/send-reminders/index.js`) — shift times are stored in
+UTC, and Azure Functions run in UTC, so the timezone has to be explicit.
 
 ## Troubleshooting
 

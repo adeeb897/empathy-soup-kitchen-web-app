@@ -1,12 +1,49 @@
 const nodemailer = require('nodemailer');
 const { getPool, sql } = require('../shared/db');
 
+// The kitchen and its volunteers are in Eastern time; shift times are stored
+// in UTC, so every date in the email is formatted in this zone explicitly.
+const TIME_ZONE = 'America/New_York';
+
+// How far ahead to look for shifts still needing a reminder. The window is far
+// wider than the hourly schedule so a run that fails or is skipped is caught by
+// the next one — ReminderSent is what prevents duplicates, not a narrow window.
+// Shifts closer than the floor are left alone: a "reminder" arriving minutes
+// after someone signs up is noise, and it is too late to be useful anyway.
+const REMINDER_FLOOR_HOURS = 3;
+const REMINDER_CEILING_HOURS = 26;
+
+/** Calendar day in the kitchen's timezone, as YYYY-MM-DD. */
+function dayKey(date) {
+  return date.toLocaleDateString('en-CA', { timeZone: TIME_ZONE });
+}
+
+function nextDayKey(key) {
+  const [year, month, day] = key.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+}
+
+/**
+ * How to refer to the shift in the email. Reminders normally go out the day
+ * before, but a catch-up run can send one the same day, and "tomorrow" would
+ * then be wrong.
+ */
+function relativeDay(startTime, now) {
+  const today = dayKey(now);
+  const shiftDay = dayKey(startTime);
+
+  if (shiftDay === today) return 'today';
+  if (shiftDay === nextDayKey(today)) return 'tomorrow';
+
+  return `on ${startTime.toLocaleDateString('en-US', { weekday: 'long', timeZone: TIME_ZONE })}`;
+}
+
 /**
  * Azure Function to process and send volunteer shift reminders.
- * Called hourly via GitHub Actions cron workflow.
+ * Called hourly by the reminder Logic App.
  *
- * Finds shifts starting in the next 24-26 hours, sends reminder emails
- * to signups that haven't been reminded yet, and marks them as reminded.
+ * Finds upcoming shifts inside the reminder window, sends reminder emails to
+ * signups that haven't been reminded yet, and marks them as reminded.
  */
 module.exports = async function (context, req) {
     context.log('Reminder processing triggered');
@@ -26,10 +63,10 @@ module.exports = async function (context, req) {
     try {
         const pool = await getPool();
 
-        // 1. Find shifts starting in 24-26 hours (reminder window)
+        // 1. Find shifts inside the reminder window
         const now = new Date();
-        const windowStart = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        const windowEnd = new Date(now.getTime() + 26 * 60 * 60 * 1000);
+        const windowStart = new Date(now.getTime() + REMINDER_FLOOR_HOURS * 60 * 60 * 1000);
+        const windowEnd = new Date(now.getTime() + REMINDER_CEILING_HOURS * 60 * 60 * 1000);
 
         const shiftsResult = await pool.request()
             .input('windowStart', sql.DateTime2, windowStart)
@@ -104,15 +141,16 @@ module.exports = async function (context, req) {
 
             const startTime = new Date(shift.StartTime);
             const endTime = new Date(shift.EndTime);
-            const shiftDate = startTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const fmtTime = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const when = relativeDay(startTime, now);
+            const shiftDate = startTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: TIME_ZONE });
+            const fmtTime = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: TIME_ZONE });
             const shiftTime = `${fmtTime(startTime)} - ${fmtTime(endTime)}`;
 
             try {
                 await transporter.sendMail({
                     from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_EMAIL}>`,
                     to: signup.Email,
-                    subject: `Reminder: Volunteer shift tomorrow - ${shiftDate}`,
+                    subject: `Reminder: Volunteer shift ${when} - ${shiftDate}`,
                     html: `
                         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
                             <div style="background:#C45D3E;color:#fff;padding:24px;text-align:center;border-radius:8px 8px 0 0">
@@ -120,7 +158,7 @@ module.exports = async function (context, req) {
                             </div>
                             <div style="background:#FAF7F2;padding:24px;border-radius:0 0 8px 8px">
                                 <p>Hi ${signup.Name},</p>
-                                <p>This is a friendly reminder about your volunteer shift tomorrow!</p>
+                                <p>This is a friendly reminder about your volunteer shift ${when}!</p>
                                 <div style="background:#F0EBE1;padding:16px;border-left:4px solid #C45D3E;margin:16px 0">
                                     <p style="margin:4px 0"><strong>Date:</strong> ${shiftDate}</p>
                                     <p style="margin:4px 0"><strong>Time:</strong> ${shiftTime}</p>
@@ -130,11 +168,11 @@ module.exports = async function (context, req) {
                                 <h3>Location</h3>
                                 <p>Empathy Soup Kitchen<br>523 Sinclair Street<br>McKeesport, PA 15132</p>
                                 <p>Can't make it? Visit our <a href="https://empathysoupkitchen.org/volunteer">Volunteer page</a> to cancel your signup.</p>
-                                <p>See you tomorrow!<br>The Empathy Soup Kitchen Team</p>
+                                <p>See you ${when}!<br>The Empathy Soup Kitchen Team</p>
                             </div>
                         </div>
                     `,
-                    text: `Shift Reminder\n\nHi ${signup.Name},\n\nThis is a friendly reminder about your volunteer shift tomorrow!\n\nDate: ${shiftDate}\nTime: ${shiftTime}\nGroup size: ${signup.NumPeople}\n\nPlease arrive 10 minutes early. Wear comfortable clothes and closed-toe shoes.\n\nLocation:\nEmpathy Soup Kitchen\n523 Sinclair Street\nMcKeesport, PA 15132\n\nCan't make it? Visit https://empathysoupkitchen.org/volunteer to cancel your signup.\n\nSee you tomorrow!\nThe Empathy Soup Kitchen Team`,
+                    text: `Shift Reminder\n\nHi ${signup.Name},\n\nThis is a friendly reminder about your volunteer shift ${when}!\n\nDate: ${shiftDate}\nTime: ${shiftTime}\nGroup size: ${signup.NumPeople}\n\nPlease arrive 10 minutes early. Wear comfortable clothes and closed-toe shoes.\n\nLocation:\nEmpathy Soup Kitchen\n523 Sinclair Street\nMcKeesport, PA 15132\n\nCan't make it? Visit https://empathysoupkitchen.org/volunteer to cancel your signup.\n\nSee you ${when}!\nThe Empathy Soup Kitchen Team`,
                     headers: { 'X-Email-Type': 'reminder' }
                 });
 

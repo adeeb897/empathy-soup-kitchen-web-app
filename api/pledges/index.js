@@ -1,12 +1,8 @@
 const { getPool, sql } = require('../shared/db');
 const { requireAdmin } = require('../shared/auth');
+const { corsHeaders, errorResponse } = require('../shared/http');
 
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-};
+const HEADERS = corsHeaders('GET, POST, DELETE, OPTIONS', 'Content-Type, Authorization');
 
 // Pledge records hold donor contact details, home addresses and amounts, so
 // reads and deletes require a valid admin session token (Authorization:
@@ -102,7 +98,6 @@ module.exports = async function (context, req) {
       context.res = { status: 405, headers: HEADERS, body: { error: 'Method not allowed' } };
     }
   } catch (error) {
-    context.log.error('Pledges API error:', error);
-    context.res = { status: 500, headers: HEADERS, body: { error: error.message } };
+    context.res = errorResponse(context, error, HEADERS);
   }
 };
