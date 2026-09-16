@@ -58,12 +58,7 @@
       <div class="vol-loading">
         <div class="spinner"></div>
         @if (warmingUp) {
-          <span>Waking up the sign-up system&hellip; ({{ warmingSeconds }}s)</span>
-          <p class="vol-loading__note">
-            Our shift database goes to sleep when nobody is using it, which keeps hosting costs
-            down for the kitchen. Waking it takes up to a minute &mdash; the shifts will appear
-            here on their own, no need to refresh.
-          </p>
+          <span>Still loading shifts&hellip; ({{ warmingSeconds }}s)</span>
         } @else {
           <span>Loading available shifts...</span>
         }

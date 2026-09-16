@@ -78,7 +78,7 @@ export class VolunteerComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error('Failed to load volunteer data:', e);
       this.error = this.warmingUp
-        ? 'The sign-up system is taking longer than usual to wake up. Please try again.'
+        ? 'The sign-up system is taking longer than usual to respond. Please try again.'
         : 'Unable to load volunteer shifts. Please try again later.';
     } finally {
       this.stopWarmingNotice();

@@ -74,14 +74,6 @@
   padding: var(--space-4xl) 0;
   color: var(--color-text-secondary);
 
-  &__note {
-    max-width: 44ch;
-    margin: var(--space-md) auto 0;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    opacity: 0.8;
-  }
-
   .spinner {
     margin: 0 auto var(--space-lg);
     width: 32px;
