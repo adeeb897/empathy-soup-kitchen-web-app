@@ -1,12 +1,24 @@
 const { getPool, sql } = require('../shared/db');
 const { corsHeaders, errorResponse } = require('../shared/http');
+const { requireAdmin } = require('../shared/auth');
 
-const HEADERS = corsHeaders('GET, POST, PATCH, HEAD, OPTIONS');
+const HEADERS = corsHeaders('GET, POST, PATCH, HEAD, OPTIONS', 'Content-Type, Authorization');
 
 module.exports = async function (context, req) {
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers: HEADERS };
     return;
+  }
+
+  // Reads are public — the volunteer page renders these strings. Editing site
+  // copy is admin-only.
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    const auth = requireAdmin(req);
+    if (!auth.valid) {
+      context.log.warn(`Unauthorized ${req.method} /api/textboxes: ${auth.error}`);
+      context.res = { status: auth.status, headers: HEADERS, body: { error: auth.error } };
+      return;
+    }
   }
 
   try {

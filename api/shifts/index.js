@@ -1,12 +1,24 @@
 const { getPool, sql } = require('../shared/db');
 const { corsHeaders, errorResponse } = require('../shared/http');
+const { requireAdmin } = require('../shared/auth');
 
-const HEADERS = corsHeaders('GET, POST, DELETE, OPTIONS');
+const HEADERS = corsHeaders('GET, POST, DELETE, OPTIONS', 'Content-Type, Authorization');
 
 module.exports = async function (context, req) {
   if (req.method === 'OPTIONS') {
     context.res = { status: 200, headers: HEADERS };
     return;
+  }
+
+  // GET is public — the volunteer calendar needs to render shifts. Creating and
+  // deleting shifts is admin-only.
+  if (req.method !== 'GET') {
+    const auth = requireAdmin(req);
+    if (!auth.valid) {
+      context.log.warn(`Unauthorized ${req.method} /api/shifts: ${auth.error}`);
+      context.res = { status: auth.status, headers: HEADERS, body: { error: auth.error } };
+      return;
+    }
   }
 
   try {

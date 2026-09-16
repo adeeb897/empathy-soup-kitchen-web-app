@@ -5,7 +5,7 @@ import { AdminAuthService, AuthState } from '../calendar/services/admin-auth.ser
 import { ApiWarmupService } from '../../shared/services/api-warmup.service';
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
 import { ToastService } from '../../shared/services/toast.service';
-import { VolunteerShift } from '../calendar/models/volunteer.model';
+import { VolunteerShift, SignUp } from '../calendar/models/volunteer.model';
 import { PledgeService, PledgeRecord } from '../pledge/pledge.service';
 
 @Component({
@@ -274,11 +274,11 @@ export class VolunteerAdminComponent implements OnInit {
     }
   }
 
-  async deleteSignup(signupId: number): Promise<void> {
+  async deleteSignup(signup: SignUp): Promise<void> {
     if (!confirm('Remove this signup?')) return;
 
     try {
-      await this.shiftService.cancelSignupWithNotification(signupId);
+      await this.shiftService.cancelSignupWithNotification(signup);
       this.toastService.success('Signup removed');
       await this.loadShifts();
     } catch (e) {

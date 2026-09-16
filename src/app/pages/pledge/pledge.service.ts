@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RetryService } from '../../shared/utils/retry.service';
+import { AdminAuthService } from '../calendar/services/admin-auth.service';
 
 export interface PledgeSubmission {
   amount: string;
@@ -37,7 +38,10 @@ export class PledgeService {
   private readonly pledgesEndpoint = '/api/pledges';
   private readonly recipient = 'info@empathysoupkitchen.org';
 
-  constructor(private retryService: RetryService) {}
+  constructor(
+    private retryService: RetryService,
+    private authService: AdminAuthService
+  ) {}
 
   /**
    * Saves the pledge, then notifies staff by email. The record is saved first so
@@ -76,21 +80,11 @@ export class PledgeService {
   }
 
   /**
-   * Reads the admin session token stored by AdminAuthService. Reading it here
-   * rather than injecting the service keeps this service usable from the public
-   * pledge form, which has no admin session.
+   * Admin credentials for the reads/deletes. Returns {} when signed out, so the
+   * public pledge form works unchanged.
    */
   private authHeaders(): Record<string, string> {
-    try {
-      const raw = localStorage.getItem('esk_admin_session');
-      if (!raw) return {};
-      const session = JSON.parse(raw);
-      return session?.sessionToken
-        ? { Authorization: `Bearer ${session.sessionToken}` }
-        : {};
-    } catch {
-      return {};
-    }
+    return this.authService.authHeaders();
   }
 
   private async savePledge(pledge: PledgeSubmission): Promise<void> {
