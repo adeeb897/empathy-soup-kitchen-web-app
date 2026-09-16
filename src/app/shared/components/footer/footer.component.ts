@@ -24,15 +24,6 @@ import { RouterLink } from '@angular/router';
             <a routerLink="/get-involved">Get Involved</a>
             <a routerLink="/gallery">Gallery</a>
             <a routerLink="/about">About</a>
-            <a
-              href="https://eskupdates.pages.dev/"
-              target="_blank"
-              rel="noopener"
-              class="footer__external">
-              Updates
-              <span class="footer__external-icon" aria-hidden="true">&#8599;</span>
-              <span class="sr-only">(opens in a new tab)</span>
-            </a>
           </div>
 
           <div class="footer__links-group">
@@ -126,17 +117,6 @@ import { RouterLink } from '@angular/router';
         &:hover {
           color: var(--color-white);
         }
-      }
-
-      .footer__external {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .footer__external-icon {
-        font-size: 0.85em;
-        opacity: 0.6;
       }
 
       p {
