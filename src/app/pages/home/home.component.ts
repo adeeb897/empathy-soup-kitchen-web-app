@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ElementRef, ViewChildren, QueryList, Afte
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
+import { ApiWarmupService } from '../../shared/services/api-warmup.service';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +22,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private statsObserver!: IntersectionObserver;
 
   @ViewChildren('statValue') statElements!: QueryList<ElementRef>;
+
+  constructor(private warmup: ApiWarmupService) {}
+
+  /** Start the database resume when a visitor reaches for a volunteer CTA. */
+  warmVolunteerApi(): void {
+    this.warmup.prewarm();
+  }
 
   ngAfterViewInit(): void {
     const statsSection = document.querySelector('.stats');

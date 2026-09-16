@@ -54,48 +54,26 @@ resource sqlPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   }
 }
 
-// ─── Azure SQL Server ───────────────────────────────────────────────
-resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
-  name: 'empathy-sql-${uniqueSuffix}'
-  location: location
-  properties: {
-    administratorLogin: sqlAdminLogin
-    administratorLoginPassword: sqlAdminPassword
-    version: '12.0'
-    minimalTlsVersion: '1.2'
-    publicNetworkAccess: 'Enabled'
+// ─── Azure SQL server and database ──────────────────────────────────
+// Declared in database.bicep so CI can apply database changes on its own,
+// without redeploying the Static Web App (whose preflight fails) alongside
+// them. Deploying main.bicep still applies the same definition.
+var sqlServerName = 'empathy-sql-${uniqueSuffix}'
+
+module database 'database.bicep' = {
+  name: 'sql-database'
+  params: {
+    location: location
+    sqlServerName: sqlServerName
+    sqlAdminLogin: sqlAdminLogin
+    sqlAdminPassword: sqlAdminPassword
   }
 }
 
-// Allow Azure services to connect
-resource sqlFirewallAzure 'Microsoft.Sql/servers/firewallRules@2023-08-01-preview' = {
-  parent: sqlServer
-  name: 'AllowAzureServices'
-  properties: {
-    startIpAddress: '0.0.0.0'
-    endIpAddress: '0.0.0.0'
-  }
-}
-
-// ─── Azure SQL Database (free tier) ─────────────────────────────────
-resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
-  parent: sqlServer
-  name: 'empathy-db'
-  location: location
-  sku: {
-    name: 'GP_S_Gen5_2'
-    tier: 'GeneralPurpose'
-    family: 'Gen5'
-    capacity: 2
-  }
-  properties: {
-    collation: 'SQL_Latin1_General_CP1_CI_AS'
-    maxSizeBytes: 34359738368 // 32 GB
-    autoPauseDelay: 60
-    minCapacity: json('0.5')
-    useFreeLimit: true
-    freeLimitExhaustionBehavior: 'AutoPause'
-  }
+// Reference to the server the module creates, so its AD admin can be declared
+// here as a child resource.
+resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' existing = {
+  name: sqlServerName
 }
 
 // ─── Apply database schema ──────────────────────────────────────────
@@ -110,8 +88,8 @@ module schema 'schema.bicep' = {
   name: 'apply-sql-schema'
   params: {
     location: location
-    sqlServerFqdn: sqlServer.properties.fullyQualifiedDomainName
-    databaseName: sqlDatabase.name
+    sqlServerFqdn: database.outputs.sqlServerFqdn
+    databaseName: database.outputs.databaseName
     sqlAdminLogin: sqlAdminLogin
     sqlAdminPassword: sqlAdminPassword
     deploymentTime: deploymentTime
@@ -136,6 +114,7 @@ resource swaIdentity 'Microsoft.Web/staticSites@2023-12-01' = {
 // ─── Set SWA managed identity as SQL AD admin ───────────────────────
 resource sqlAdAdmin 'Microsoft.Sql/servers/administrators@2023-08-01-preview' = {
   parent: sqlServer
+  dependsOn: [database]
   name: 'ActiveDirectory'
   properties: {
     administratorType: 'ActiveDirectory'
@@ -151,9 +130,9 @@ resource dbConnection 'Microsoft.Web/staticSites/databaseConnections@2023-12-01'
   name: 'default'
   dependsOn: [swaIdentity, sqlAdAdmin]
   properties: {
-    resourceId: sqlDatabase.id
+    resourceId: database.outputs.databaseId
     connectionIdentity: 'SystemAssigned'
-    connectionString: 'Server=tcp:${sqlServer.name}${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabase.name};Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;'
+    connectionString: 'Server=tcp:${sqlServerName}${environment().suffixes.sqlServerHostname},1433;Database=${database.outputs.databaseName};Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;'
     region: location
   }
 }
@@ -195,9 +174,9 @@ resource reminderScheduler 'Microsoft.Logic/workflows@2019-05-01' = {
 
 // ─── Outputs ────────────────────────────────────────────────────────
 output keyVaultName string = keyVault.name
-output sqlServerName string = sqlServer.name
-output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
-output databaseName string = sqlDatabase.name
+output sqlServerName string = database.outputs.sqlServerName
+output sqlServerFqdn string = database.outputs.sqlServerFqdn
+output databaseName string = database.outputs.databaseName
 output swaDefaultHostname string = swa.properties.defaultHostname
 output reminderSchedulerName string = reminderScheduler.name
 output schemaTables array = schema.outputs.schemaTables

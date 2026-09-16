@@ -1,6 +1,7 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ApiWarmupService } from '../../services/api-warmup.service';
 
 @Component({
   selector: 'app-navbar',
@@ -16,7 +17,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
         <ul class="navbar__links" [class.navbar__links--open]="mobileOpen" role="menubar">
           <li role="none"><a routerLink="/home" routerLinkActive="is-active" [routerLinkActiveOptions]="{exact: true}" role="menuitem" (click)="closeMobile()">Home</a></li>
-          <li role="none"><a routerLink="/volunteer" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Volunteer</a></li>
+          <li role="none"><a routerLink="/volunteer" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()" (mouseenter)="warmVolunteerApi()" (focus)="warmVolunteerApi()" (touchstart)="warmVolunteerApi()">Volunteer</a></li>
           <li role="none"><a routerLink="/get-involved" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Get Involved</a></li>
           <li role="none"><a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a></li>
           <li role="none"><a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a></li>
@@ -48,7 +49,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       @if (mobileOpen) {
         <div class="navbar__mobile" id="mobile-menu" role="menu">
           <a routerLink="/home" routerLinkActive="is-active" [routerLinkActiveOptions]="{exact: true}" role="menuitem" (click)="closeMobile()">Home</a>
-          <a routerLink="/volunteer" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Volunteer</a>
+          <a routerLink="/volunteer" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()" (mouseenter)="warmVolunteerApi()" (focus)="warmVolunteerApi()" (touchstart)="warmVolunteerApi()">Volunteer</a>
           <a routerLink="/get-involved" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Get Involved</a>
           <a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a>
           <a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a>
@@ -257,6 +258,17 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 export class NavbarComponent {
   isScrolled = false;
   mobileOpen = false;
+
+  constructor(private warmup: ApiWarmupService) {}
+
+  /**
+   * The volunteer database auto-pauses when idle and takes up to a minute to
+   * resume. Starting that resume when someone reaches for the Volunteer link
+   * hides most of the wait behind their click.
+   */
+  warmVolunteerApi(): void {
+    this.warmup.prewarm();
+  }
 
   @HostListener('window:scroll')
   onScroll(): void {

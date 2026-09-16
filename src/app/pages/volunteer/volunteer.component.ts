@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
+import { ApiWarmupService } from '../../shared/services/api-warmup.service';
 import { TextBoxService } from '../calendar/services/text-box.service';
 import { ModalService } from '../../shared/services/modal.service';
 import { ToastService } from '../../shared/services/toast.service';
@@ -23,29 +24,50 @@ interface WeekendGroup {
   templateUrl: './volunteer.component.html',
   styleUrl: './volunteer.component.scss',
 })
-export class VolunteerComponent implements OnInit {
+export class VolunteerComponent implements OnInit, OnDestroy {
   weekends: WeekendGroup[] = [];
   loading = true;
+  warmingUp = false;
+  warmingSeconds = 0;
   error: string | null = null;
   instructionsText = '';
   showDetails = false;
+
+  /**
+   * The database only needs waking when it has auto-paused. Hold the notice
+   * back briefly so an already-warm database just loads without explanation.
+   */
+  private static readonly WARMING_NOTICE_DELAY_MS = 1500;
+
+  private warmingNoticeTimer?: ReturnType<typeof setTimeout>;
+  private warmingClock?: ReturnType<typeof setInterval>;
 
   constructor(
     private shiftService: VolunteerShiftService,
     private textBoxService: TextBoxService,
     private modalService: ModalService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private warmup: ApiWarmupService
   ) {}
 
   ngOnInit(): void {
     this.loadData();
   }
 
+  ngOnDestroy(): void {
+    this.stopWarmingNotice();
+  }
+
   async loadData(): Promise<void> {
     this.loading = true;
     this.error = null;
+    this.startWarmingNotice();
 
     try {
+      // Waiting for the database to resume before querying keeps the page from
+      // failing on a cold start; when it is already awake this returns at once.
+      await this.warmup.ensureReady();
+
       const [shifts, instructions] = await Promise.all([
         this.shiftService.getShiftsWithSignups(),
         this.textBoxService.getTextByName('VolunteerInstructions'),
@@ -55,10 +77,31 @@ export class VolunteerComponent implements OnInit {
       this.instructionsText = instructions || '';
     } catch (e) {
       console.error('Failed to load volunteer data:', e);
-      this.error = 'Unable to load volunteer shifts. Please try again later.';
+      this.error = this.warmingUp
+        ? 'The sign-up system is taking longer than usual to respond. Please try again.'
+        : 'Unable to load volunteer shifts. Please try again later.';
     } finally {
+      this.stopWarmingNotice();
       this.loading = false;
     }
+  }
+
+  private startWarmingNotice(): void {
+    this.stopWarmingNotice();
+    this.warmingSeconds = 0;
+
+    this.warmingNoticeTimer = setTimeout(() => {
+      this.warmingUp = true;
+      this.warmingClock = setInterval(() => this.warmingSeconds++, 1000);
+    }, VolunteerComponent.WARMING_NOTICE_DELAY_MS);
+  }
+
+  private stopWarmingNotice(): void {
+    clearTimeout(this.warmingNoticeTimer);
+    clearInterval(this.warmingClock);
+    this.warmingNoticeTimer = undefined;
+    this.warmingClock = undefined;
+    this.warmingUp = false;
   }
 
   getCapacity(shift: VolunteerShift) {

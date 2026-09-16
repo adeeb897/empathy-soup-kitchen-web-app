@@ -66,8 +66,8 @@ resource runSchema 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
 
       $connectionString = "Server=tcp:$($env:SQL_SERVER),1433;Initial Catalog=$($env:SQL_DATABASE);User ID=$($env:SQL_USER);Password=$($env:SQL_PASSWORD);Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;"
 
-      # The database is serverless with auto-pause, so the first connection
-      # after an idle period can fail while it resumes. Retry with backoff.
+      # A database that was just created, scaled or restarted can refuse
+      # connections for a short while. Retry with backoff.
       $connection = New-Object System.Data.SqlClient.SqlConnection $connectionString
       $maxAttempts = 10
       for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
@@ -77,7 +77,7 @@ resource runSchema 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
           break
         } catch {
           if ($attempt -eq $maxAttempts) { throw }
-          Write-Output "Connect attempt $attempt failed (database may be resuming); retrying in 30s..."
+          Write-Output "Connect attempt $attempt failed (database may still be coming online); retrying in 30s..."
           Start-Sleep -Seconds 30
         }
       }

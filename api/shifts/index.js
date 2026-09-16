@@ -1,11 +1,7 @@
 const { getPool, sql } = require('../shared/db');
+const { corsHeaders, errorResponse } = require('../shared/http');
 
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
-};
+const HEADERS = corsHeaders('GET, POST, DELETE, OPTIONS');
 
 module.exports = async function (context, req) {
   if (req.method === 'OPTIONS') {
@@ -51,7 +47,6 @@ module.exports = async function (context, req) {
       context.res = { status: 405, headers: HEADERS, body: { error: 'Method not allowed' } };
     }
   } catch (error) {
-    context.log.error('Shifts API error:', error);
-    context.res = { status: 500, headers: HEADERS, body: { error: error.message } };
+    context.res = errorResponse(context, error, HEADERS);
   }
 };

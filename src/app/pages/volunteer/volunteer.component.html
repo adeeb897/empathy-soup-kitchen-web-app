@@ -57,7 +57,11 @@
     @if (loading) {
       <div class="vol-loading">
         <div class="spinner"></div>
-        <span>Loading available shifts...</span>
+        @if (warmingUp) {
+          <span>Still loading shifts&hellip; ({{ warmingSeconds }}s)</span>
+        } @else {
+          <span>Loading available shifts...</span>
+        }
       </div>
     } @else if (error) {
       <div class="vol-error">

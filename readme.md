@@ -1,12 +1,12 @@
 # Empathy Soup Kitchen Web Application
 
-Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in the Atlanta area.
+Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in McKeesport, PA.
 
 ## Architecture
 
 - **Frontend:** Angular 18 standalone components, custom CSS design system (no UI library)
 - **Hosting:** Azure Static Web Apps (Standard tier)
-- **Database:** Azure SQL (serverless, free tier) via Data API Builder (DAB)
+- **Database:** Azure SQL (Basic, 5 DTU) via Data API Builder (DAB)
 - **CI/CD:** GitHub Actions → Azure SWA auto-deploy on push to `main`
 
 ## Project Structure
@@ -22,12 +22,13 @@ src/app/
 │   └── about/                # Mission, board, FAQ, contact
 ├── shared/
 │   ├── components/           # Navbar, Footer, ScrollAnimate directive
-│   └── services/             # ModalService, ToastService
+│   └── services/             # ModalService, ToastService, ApiWarmupService
 └── pages/calendar/
     ├── models/               # VolunteerShift, SignUp interfaces
     └── services/             # VolunteerShiftService, TextBoxService, EmailService
 infra/
-├── main.bicep                # Azure SQL Server + Database + SWA DB link
+├── main.bicep                # Full stack: Key Vault, SQL, SWA DB link, Logic App
+├── database.bicep            # SQL server + database (used by CI and by main.bicep)
 ├── schema.bicep              # Applies sql-setup.sql (used by CI and by main.bicep)
 ├── sql-setup.sql             # Table schemas (VolunteerShifts, SignUps, TextBoxes)
 └── parameters.json           # Deployment parameter template
@@ -46,24 +47,30 @@ Defined in `infra/sql-setup.sql`. Column names match the Angular service contrac
 | `dbo.TextBoxes` | ID, TextName (unique), TextContent |
 | `dbo.Pledges` | PledgeID, Amount, Name, Email, PhoneNumber, Address, Frequency, PaymentMethod, SubmittedAt |
 
-### Schema changes
+### Database changes
 
-The schema is applied **automatically on merge to `main`**. The `apply_schema_job` in the
-CI workflow deploys `infra/schema.bicep`, which executes `infra/sql-setup.sql` against
-the database. There is no manual step and no separate migration tool.
+Database changes are applied **automatically on merge to `main`**. The
+`apply_schema_job` in the CI workflow deploys, in order:
 
-`schema.bicep` deliberately touches **only** the database. It is kept separate from
-`main.bicep` so that applying a schema change never redeploys the Static Web App, Key
-Vault or Logic App — that is both unnecessary and, for `Microsoft.Web/staticSites`,
-fails preflight. `main.bicep` consumes `schema.bicep` as a module, so there is exactly
-one definition of how the schema is applied.
+1. `infra/database.bicep` — the SQL server and database themselves: service tier,
+   size, firewall, server settings.
+2. `infra/schema.bicep` — executes `infra/sql-setup.sql` against that database.
 
-To add or change a table: edit `infra/sql-setup.sql`, open a PR, and merge it. The job:
+There is no manual step and no separate migration tool.
+
+Both templates deliberately touch **only** the database, so applying a database
+change never redeploys the Static Web App, Key Vault or Logic App — that is both
+unnecessary and, for `Microsoft.Web/staticSites`, fails preflight. `main.bicep`
+consumes both as modules, so there is exactly one definition of each.
+
+To add or change a table: edit `infra/sql-setup.sql`. To change the service tier or
+another database setting: edit `infra/database.bicep`. Either way, open a PR and merge
+it. The job:
 
 - runs **only on merges to `main`**, never on PRs
 - runs **only when something under `infra/` changed** — app-only merges skip it
 - runs **before** the app deploys, so new code never goes live against a database that is
-  missing its tables. If the schema step fails, the app deploy is blocked.
+  missing its tables. If the step fails, the app deploy is blocked.
 
 You can also apply it manually at any time with the command in
 [Infrastructure Deployment](#infrastructure-deployment).
@@ -168,7 +175,23 @@ az deployment group create \
 Step 2 also applies `infra/sql-setup.sql` — `main.bicep` includes `schema.bicep` as a
 module, so the tables are created as part of the same deployment. It is idempotent.
 
-To apply **only** a schema change, without redeploying any other infrastructure:
+To apply **only** the database configuration (service tier, firewall, server
+settings), without redeploying any other infrastructure:
+
+```bash
+RG=empathy-soup-kitchen-web-app
+KV=$(az keyvault list -g $RG --query "[0].name" -o tsv)
+
+az deployment group create \
+  --resource-group $RG \
+  --template-file infra/database.bicep \
+  --parameters location="$(az group show -n $RG --query location -o tsv)" \
+  --parameters sqlServerName="$(az sql server list -g $RG --query "[0].name" -o tsv)" \
+  --parameters sqlAdminLogin=sqladmin \
+  --parameters sqlAdminPassword="$(az keyvault secret show --vault-name $KV --name sql-admin-password --query value -o tsv)"
+```
+
+To apply **only** a schema change:
 
 ```bash
 RG=empathy-soup-kitchen-web-app
@@ -182,7 +205,10 @@ az deployment group create \
   --parameters sqlAdminPassword="$(az keyvault secret show --vault-name $KV --name sql-admin-password --query value -o tsv)"
 ```
 
-This is what CI runs on merge.
+CI runs both of these on merge, in that order, whenever a push to `main` touches
+`infra/`. `main.bicep` is deliberately not what CI deploys: it redeploys the
+Static Web App too, which fails preflight (see #35). Both smaller templates
+declare zero `Microsoft.Web` resources.
 
 Verify what landed via the deployment output:
 
@@ -195,8 +221,13 @@ az deployment group show \
 
 The Bicep template provisions:
 - Azure SQL Server (TLS 1.2, Azure services firewall rule)
-- Azure SQL Database (serverless Gen5, free tier, auto-pause at 60 min)
+- Azure SQL Database (Basic tier, 5 DTU, always on)
 - SWA database connection (auto-sets `DATABASE_CONNECTION_STRING`)
+
+Changing the service tier scales the existing database in place: the data is
+preserved, but connections drop for a few seconds while the change applies. CI
+applies this on merge, so merge tier changes outside serving hours. The database
+must fit inside the tier's size limit (2 GB on Basic).
 
 ## Local Development
 
@@ -224,6 +255,53 @@ npm run dev
 | `ng test` | Run unit tests via Karma |
 
 The local dev server proxies `/data-api/rest/` calls to the local DAB instance at `http://localhost:5000`.
+
+## Database Availability
+
+The database runs on Azure SQL **Basic** (5 DTU, always on, ~$5/month) rather
+than serverless on the free offer. Serverless auto-paused after an hour idle and
+the first request afterwards waited 30-90 seconds for it to resume — longer than
+the 45-second ceiling Static Web Apps puts on any API response, so the request
+could not even wait it out. Basic removes that wait entirely.
+
+The resume-handling code stays in place as a safety net for a restarted database
+or a transient connection failure, and it is what keeps a bad minute from
+looking like an outage:
+
+- `GET /api/warmup` is a readiness probe. Touching the database is what triggers
+  a resume, so the frontend calls it as soon as a visitor reaches for a link into
+  the volunteer flow (nav link, home page CTA).
+- `api/shared/db.js` retries transient logins inside a bounded budget, shares one
+  connect attempt across concurrent requests, and tags an unavailable database so
+  handlers answer `503` + `Retry-After` instead of `500`.
+- `RetryService` retries those 503s. Writes only retry on 503 (raised before the
+  query reaches SQL), never on 500, so a signup cannot be inserted twice.
+- The volunteer page shows a "waking up the sign-up system" notice with a timer
+  after 1.5 s and recovers on its own. On Basic it should never appear.
+
+### If you ever move back to serverless
+
+The free offer covers 100,000 vCore-seconds per month, which at `minCapacity`
+0.5 is roughly **55 hours of awake time** — and `freeLimitExhaustionBehavior:
+'AutoPause'` takes the database offline for the rest of the month once that runs
+out. Anything touching the database on a schedule (the hourly reminder Logic App,
+for one) keeps it awake and eats that budget, so the schedule has to be part of
+the sum.
+
+## Reminder Emails
+
+The reminder Logic App calls `POST /api/reminders/process` hourly. Each run
+emails every signup for a shift starting **3 to 26 hours** from now that has not
+been reminded yet, then sets `ReminderSent`.
+
+The window is much wider than the hourly schedule on purpose: `ReminderSent` is
+what prevents duplicates, so a run that fails or is skipped is simply caught by
+the next one instead of leaving those volunteers with no reminder at all. The
+3-hour floor keeps someone who signs up the morning of a shift from getting a
+"reminder" minutes later. Because a catch-up run can send on the day of the
+shift, the email says "today" or "tomorrow" based on the actual date, in Eastern
+time (`TIME_ZONE` in `api/send-reminders/index.js`) — shift times are stored in
+UTC, and Azure Functions run in UTC, so the timezone has to be explicit.
 
 ## Troubleshooting
 
