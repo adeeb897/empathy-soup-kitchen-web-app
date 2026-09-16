@@ -8,8 +8,6 @@
         <h1 class="pledge__org-name">Empathy Soup Kitchen</h1>
         <div class="pledge__org-contact">
           <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>
-          <span class="pledge__dot">&middot;</span>
-          <a [href]="websiteUrl" target="_blank" rel="noopener">{{ websiteLabel }}</a>
         </div>
       </div>
     </div>
@@ -309,8 +307,7 @@
 
         <p class="pledge__footnote">
           Prefer to send it yourself? Email a completed form to
-          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a> or visit
-          <a [href]="websiteUrl" target="_blank" rel="noopener">{{ websiteLabel }}</a>.
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>.
         </p>
       </form>
     }

@@ -16,8 +16,6 @@ import { PledgeService } from './pledge.service';
 export class PledgeComponent {
   readonly presetAmounts = ['50', '100', '250', '500', '1000'];
   readonly contactEmail = 'info@empathysoupkitchen.org';
-  readonly websiteUrl = 'https://www.empathysoupkitchen.org';
-  readonly websiteLabel = 'www.empathysoupkitchen.org';
   readonly donateUrl = 'https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation';
 
   formData = {
