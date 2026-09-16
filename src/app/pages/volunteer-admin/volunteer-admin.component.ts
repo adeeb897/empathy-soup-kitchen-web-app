@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminAuthService, AuthState } from '../calendar/services/admin-auth.service';
+import { ApiWarmupService } from '../../shared/services/api-warmup.service';
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { VolunteerShift } from '../calendar/models/volunteer.model';
@@ -51,7 +52,8 @@ export class VolunteerAdminComponent implements OnInit {
     private authService: AdminAuthService,
     private shiftService: VolunteerShiftService,
     private toastService: ToastService,
-    private pledgeService: PledgeService
+    private pledgeService: PledgeService,
+    private warmup: ApiWarmupService
   ) {}
 
   get totalPledged(): number {
@@ -145,6 +147,8 @@ export class VolunteerAdminComponent implements OnInit {
   async loadShifts(): Promise<void> {
     this.loading = true;
     try {
+      // The database may have auto-paused; wait for it to resume before querying.
+      await this.warmup.ensureReady();
       const allShifts = await this.shiftService.getShiftsWithSignups(true);
       allShifts.sort((a, b) => a.StartTime.getTime() - b.StartTime.getTime());
       const now = new Date();
