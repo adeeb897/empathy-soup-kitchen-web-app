@@ -43,6 +43,43 @@ Defined in `infra/sql-setup.sql`. Column names match the Angular service contrac
 | `dbo.VolunteerShifts` | ShiftID, StartTime, EndTime, Capacity |
 | `dbo.SignUps` | SignUpID, ShiftID (FK), Name, Email, PhoneNumber, NumPeople, ReminderSent |
 | `dbo.TextBoxes` | ID, TextName (unique), TextContent |
+| `dbo.Pledges` | PledgeID, Amount, Name, Email, PhoneNumber, Address, Frequency, PaymentMethod, SubmittedAt |
+
+### Schema changes
+
+The schema is applied **automatically** by a Bicep `deploymentScript` (`runSchema` in
+`main.bicep`) on every `az deployment group create` — there is no manual step and no
+separate migration tool.
+
+To add or change a table, edit `infra/sql-setup.sql` and re-run the deployment command
+from [Infrastructure Deployment](#infrastructure-deployment).
+
+**Every statement must be idempotent.** The script re-runs in full on each deployment, so
+guard new objects the way the existing ones are guarded:
+
+```sql
+IF OBJECT_ID('dbo.NewTable', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.NewTable ( ... );
+END
+GO
+```
+
+Separate statements with `GO`. Batches are executed in order, so anything that references
+another object (a foreign key, an index) must come after the batch that creates it —
+otherwise the deployment fails against a fresh database, even though it passes against one
+where the tables already exist.
+
+For column changes on an existing table, use a guarded `ALTER`:
+
+```sql
+IF COL_LENGTH('dbo.Pledges', 'NewColumn') IS NULL
+    ALTER TABLE dbo.Pledges ADD NewColumn NVARCHAR(100) NULL;
+GO
+```
+
+Local Docker databases get their schema from `docker/sql-init/01-create-database.sql`
+instead, which needs the same change applied separately.
 
 ## Infrastructure Deployment
 
@@ -52,14 +89,24 @@ Requires [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-c
 # 1. Login
 az login
 
-# 2. Deploy Azure SQL + link to SWA
+# 2. Deploy Azure SQL + link to SWA + apply the database schema
 az deployment group create \
   --resource-group empathy-soup-kitchen-web-app \
   --template-file infra/main.bicep \
   --parameters sqlAdminPassword='<STRONG_PASSWORD>'
+```
 
-# 3. Create tables (use Azure Portal Query Editor or sqlcmd)
-#    Run the contents of infra/sql-setup.sql against the new database
+Step 2 also applies `infra/sql-setup.sql` — the `runSchema` deployment script runs it
+against the database as part of the same deployment, so there is no separate step to
+create tables. Re-run the same command after editing the schema; it is idempotent.
+
+Verify what landed via the deployment output:
+
+```bash
+az deployment group show \
+  --resource-group empathy-soup-kitchen-web-app \
+  --name main \
+  --query properties.outputs.schemaTables.value
 ```
 
 The Bicep template provisions:
