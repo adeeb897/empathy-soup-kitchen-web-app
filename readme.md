@@ -47,12 +47,20 @@ Defined in `infra/sql-setup.sql`. Column names match the Angular service contrac
 
 ### Schema changes
 
-The schema is applied **automatically** by a Bicep `deploymentScript` (`runSchema` in
-`main.bicep`) on every `az deployment group create` — there is no manual step and no
-separate migration tool.
+The schema is applied **automatically on merge to `main`**. The `apply_schema_job` in the
+CI workflow runs the Bicep deployment, whose `runSchema` deploymentScript executes
+`infra/sql-setup.sql` against the database. There is no manual step and no separate
+migration tool.
 
-To add or change a table, edit `infra/sql-setup.sql` and re-run the deployment command
-from [Infrastructure Deployment](#infrastructure-deployment).
+To add or change a table: edit `infra/sql-setup.sql`, open a PR, and merge it. The job:
+
+- runs **only on merges to `main`**, never on PRs
+- runs **only when something under `infra/` changed** — app-only merges skip it
+- runs **before** the app deploys, so new code never goes live against a database that is
+  missing its tables. If the schema step fails, the app deploy is blocked.
+
+You can also apply it manually at any time with the command in
+[Infrastructure Deployment](#infrastructure-deployment).
 
 **Every statement must be idempotent.** The script re-runs in full on each deployment, so
 guard new objects the way the existing ones are guarded:
@@ -80,6 +88,61 @@ GO
 
 Local Docker databases get their schema from `docker/sql-init/01-create-database.sql`
 instead, which needs the same change applied separately.
+
+### CI setup for automatic schema deployment (one-time)
+
+The workflow authenticates to Azure with **OIDC federated credentials** — no long-lived
+secret is stored in GitHub, and the SQL admin password is never needed by CI (the
+deployment reads it from Key Vault via `infra/parameters.json`).
+
+```bash
+RG=empathy-soup-kitchen-web-app
+SUB=$(az account show --query id -o tsv)
+REPO=adeeb897/empathy-soup-kitchen-web-app
+
+# 1. App registration + service principal
+APP_ID=$(az ad app create --display-name esk-github-deploy --query appId -o tsv)
+az ad sp create --id "$APP_ID"
+
+# 2. Trust GitHub Actions on main (and the CI environment, if you add one)
+az ad app federated-credential create --id "$APP_ID" --parameters "{
+  \"name\": \"github-main\",
+  \"issuer\": \"https://token.actions.githubusercontent.com\",
+  \"subject\": \"repo:${REPO}:ref:refs/heads/main\",
+  \"audiences\": [\"api://AzureADTokenExchange\"]
+}"
+
+# 3. Let it deploy into the resource group
+az role assignment create \
+  --assignee "$APP_ID" \
+  --role Contributor \
+  --scope "/subscriptions/${SUB}/resourceGroups/${RG}"
+
+echo "AZURE_CLIENT_ID=$APP_ID"
+echo "AZURE_TENANT_ID=$(az account show --query tenantId -o tsv)"
+echo "AZURE_SUBSCRIPTION_ID=$SUB"
+```
+
+Add those three values as GitHub **repository variables** (Settings → Secrets and
+variables → Actions → *Variables* tab — not Secrets):
+
+| Variable | Value |
+|----------|-------|
+| `AZURE_CLIENT_ID` | the app registration's client ID |
+| `AZURE_TENANT_ID` | your Entra tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | the subscription holding the resource group |
+
+The deployment also writes to Key Vault, whose access is granted by **access policy**
+rather than RBAC. If the deployment fails on the Key Vault step, grant the new principal
+access once:
+
+```bash
+az keyvault set-policy --name <empathy-kv-...> \
+  --spn "$APP_ID" --secret-permissions get list set
+```
+
+Until these variables exist, the schema job fails on merge and blocks the app deploy —
+so add them before merging any change under `infra/`.
 
 ## Infrastructure Deployment
 
