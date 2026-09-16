@@ -11,6 +11,8 @@
     "EMAIL_SENDER_NAME": "Empathy Soup Kitchen",
     "EMAIL_SENDER_EMAIL": "noreply@empathysoupkitchen.org",
     "EMAIL_ADMIN_EMAIL": "admin@empathysoupkitchen.org",
+    "MAGIC_LINK_SECRET": "long-random-string-used-to-sign-admin-session-tokens",
+    "ADMIN_EMAILS": "admin@empathysoupkitchen.org,someone-else@empathysoupkitchen.org",
     "SQL_CONNECTION_STRING": "Server=tcp:YOUR_SERVER.database.windows.net,1433;Initial Catalog=empathy-db;User ID=sqladmin;Password=YOUR_PASSWORD;Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;"
   },
   "Host": {
