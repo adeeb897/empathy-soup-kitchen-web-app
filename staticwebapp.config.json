@@ -1,6 +1,10 @@
 {
   "routes": [
-     {
+    {
+      "route": "/admin*",
+      "rewrite": "/index.html"
+    },
+    {
       "route": "/volunteer/admin*",
       "rewrite": "/index.html"
     },

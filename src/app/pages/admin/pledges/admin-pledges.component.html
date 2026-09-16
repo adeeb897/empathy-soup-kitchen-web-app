@@ -1,0 +1,93 @@
+<div class="admin-pledges">
+  <div class="admin-pledges__header">
+    <h2>Pledges</h2>
+    <button class="btn btn--ghost btn--small" (click)="loadPledges()" [disabled]="pledgesLoading">
+      <span class="material-icons">refresh</span>
+      Refresh
+    </button>
+  </div>
+
+  @if (pledgesLoading) {
+    <div class="admin-pledges__loading">
+      <div class="spinner"></div>
+      <p>Loading pledges…</p>
+    </div>
+  } @else if (pledgesError) {
+    <div class="admin-pledges__empty">
+      <span class="material-icons">error_outline</span>
+      <p>{{ pledgesError }}</p>
+    </div>
+  } @else if (pledges.length === 0) {
+    <div class="admin-pledges__empty">
+      <span class="material-icons">volunteer_activism</span>
+      <p>No pledges submitted yet.</p>
+    </div>
+  } @else {
+    <div class="admin-pledges__stats">
+      <div class="admin-pledges__stat">
+        <span class="admin-pledges__stat-value">{{ totalPledged | currency:'USD':'symbol':'1.2-2' }}</span>
+        <span class="admin-pledges__stat-label">Total Pledged</span>
+      </div>
+      <div class="admin-pledges__stat">
+        <span class="admin-pledges__stat-value">{{ pledges.length }}</span>
+        <span class="admin-pledges__stat-label">Pledges</span>
+      </div>
+      <div class="admin-pledges__stat">
+        <span class="admin-pledges__stat-value">{{ averagePledge | currency:'USD':'symbol':'1.2-2' }}</span>
+        <span class="admin-pledges__stat-label">Average</span>
+      </div>
+      <div class="admin-pledges__stat">
+        <span class="admin-pledges__stat-value">{{ monthlyPledgeCount }}</span>
+        <span class="admin-pledges__stat-label">Recurring Monthly</span>
+      </div>
+    </div>
+
+    <div class="admin-pledges__table-wrap">
+      <table class="admin-pledges__table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Contact</th>
+            <th>Frequency</th>
+            <th>Method</th>
+            <th>Volunteer</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (pledge of pledges; track pledge.PledgeID) {
+            <tr>
+              <td>{{ pledge.SubmittedAt | date:'MMM d, y' }}</td>
+              <td>
+                <strong>{{ pledge.Name }}</strong>
+                @if (pledge.Address) {
+                  <span class="admin-pledges__sub">{{ pledge.Address }}</span>
+                }
+              </td>
+              <td class="admin-pledges__amount">{{ pledge.AmountLabel || (pledge.Amount | currency:'USD') }}</td>
+              <td>
+                <a [href]="'mailto:' + pledge.Email">{{ pledge.Email }}</a>
+                @if (pledge.PhoneNumber) {
+                  <span class="admin-pledges__sub">{{ pledge.PhoneNumber }}</span>
+                }
+              </td>
+              <td>{{ pledge.Frequency || '—' }}</td>
+              <td>{{ pledge.PaymentMethod || '—' }}</td>
+              <td>{{ pledge.VolunteerInterest || '—' }}</td>
+              <td>
+                <button
+                  class="admin-pledges__delete"
+                  (click)="deletePledge(pledge.PledgeID)"
+                  aria-label="Delete pledge">
+                  <span class="material-icons">delete</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
