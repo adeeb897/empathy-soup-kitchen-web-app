@@ -1,0 +1,290 @@
+<section class="pledge section">
+  <div class="container">
+
+    <!-- Letterhead -->
+    <div class="pledge__letterhead" appScrollAnimate>
+      <img src="assets/logo.png" alt="Empathy Soup Kitchen" class="pledge__logo">
+      <div class="pledge__org">
+        <h1 class="pledge__org-name">Empathy Soup Kitchen</h1>
+        <div class="pledge__org-contact">
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>
+          <span class="pledge__dot">&middot;</span>
+          <a [href]="websiteUrl" target="_blank" rel="noopener">{{ websiteLabel }}</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripture -->
+    <div class="pledge__quotes" appScrollAnimate>
+      <blockquote>
+        &ldquo;Feed the hungry, visit the sick and set free the captives.&rdquo;
+        <cite>&mdash; Sahih Al-Bukhari, Volume 7, Hadith 552</cite>
+      </blockquote>
+      <blockquote>
+        &ldquo;(The righteous are those) who feed the poor, the orphan and the captive for the
+        love of God saying &lsquo;We feed you for the sake of God Alone; we seek from you neither
+        reward nor thanks.&rsquo;&rdquo;
+      </blockquote>
+    </div>
+
+    @if (success) {
+      <!-- Confirmation -->
+      <div class="pledge__success" appScrollAnimate>
+        <span class="material-icons">check_circle</span>
+        <h2>Thank you for your pledge</h2>
+        <p>
+          We've received your pledge and a copy has been sent to our team. Someone will
+          follow up with you shortly at the contact details you provided.
+        </p>
+        <p class="pledge__success-contact">
+          Questions in the meantime? Email
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>.
+        </p>
+        <button type="button" class="btn btn--secondary" (click)="resetForm()">
+          Submit another pledge
+        </button>
+      </div>
+    } @else {
+      <!-- Form -->
+      <form class="pledge__form" (ngSubmit)="onSubmit()" novalidate appScrollAnimate>
+        <h2 class="pledge__title">I wish to donate&hellip;</h2>
+
+        <!-- Pledge amount -->
+        <fieldset class="pledge__fieldset">
+          <legend class="pledge__legend">Pledge Amount <span aria-hidden="true">*</span></legend>
+          <div class="pledge__amounts">
+            @for (preset of presetAmounts; track preset) {
+              <label class="pledge__amount" [class.is-selected]="formData.amount === preset">
+                <input
+                  type="radio"
+                  name="amount"
+                  [value]="preset"
+                  [(ngModel)]="formData.amount">
+                <span>${{ preset }}</span>
+              </label>
+            }
+            <label class="pledge__amount" [class.is-selected]="formData.amount === 'other'">
+              <input
+                type="radio"
+                name="amount"
+                value="other"
+                [(ngModel)]="formData.amount">
+              <span>Other</span>
+            </label>
+          </div>
+
+          @if (formData.amount === 'other') {
+            <div class="pledge__field pledge__field--inline">
+              <label for="amountOther">Amount</label>
+              <input
+                id="amountOther"
+                name="amountOther"
+                type="text"
+                inputmode="decimal"
+                placeholder="Enter amount"
+                [(ngModel)]="formData.amountOther">
+            </div>
+          }
+
+          @if (submitted && amountInvalid) {
+            <span class="pledge__error">Please choose or enter a pledge amount.</span>
+          }
+        </fieldset>
+
+        <!-- Contact details -->
+        <fieldset class="pledge__fieldset">
+          <legend class="pledge__legend">Your Details</legend>
+
+          <div class="pledge__grid">
+            <div class="pledge__field">
+              <label for="name">Name <span aria-hidden="true">*</span></label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                autocomplete="name"
+                [class.is-invalid]="submitted && !formData.name.trim()"
+                [(ngModel)]="formData.name">
+              @if (submitted && !formData.name.trim()) {
+                <span class="pledge__error">Name is required.</span>
+              }
+            </div>
+
+            <div class="pledge__field">
+              <label for="phone">Phone # <span aria-hidden="true">*</span></label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                [class.is-invalid]="submitted && !formData.phone.trim()"
+                [(ngModel)]="formData.phone">
+              @if (submitted && !formData.phone.trim()) {
+                <span class="pledge__error">Phone number is required.</span>
+              }
+            </div>
+          </div>
+
+          <div class="pledge__field">
+            <label for="email">Email <span aria-hidden="true">*</span></label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              [class.is-invalid]="submitted && emailInvalid"
+              [(ngModel)]="formData.email">
+            @if (submitted && emailInvalid) {
+              <span class="pledge__error">Please enter a valid email address.</span>
+            }
+          </div>
+
+          <div class="pledge__field">
+            <label for="address">Address</label>
+            <input
+              id="address"
+              name="address"
+              type="text"
+              autocomplete="street-address"
+              [(ngModel)]="formData.address">
+          </div>
+        </fieldset>
+
+        <!-- Preferences -->
+        <fieldset class="pledge__fieldset">
+          <legend class="pledge__legend">Pledge Details</legend>
+
+          <div class="pledge__question">
+            <span class="pledge__question-label">Would you like to volunteer?</span>
+            <div class="pledge__options">
+              <label class="pledge__option" [class.is-selected]="formData.volunteer === 'yes'">
+                <input type="radio" name="volunteer" value="yes" [(ngModel)]="formData.volunteer">
+                <span>Yes</span>
+              </label>
+              <label class="pledge__option" [class.is-selected]="formData.volunteer === 'later'">
+                <input type="radio" name="volunteer" value="later" [(ngModel)]="formData.volunteer">
+                <span>Maybe later</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="pledge__question">
+            <span class="pledge__question-label">How often would you like to donate?</span>
+            <div class="pledge__options">
+              <label class="pledge__option" [class.is-selected]="formData.frequency === 'once'">
+                <input type="radio" name="frequency" value="once" [(ngModel)]="formData.frequency">
+                <span>Once</span>
+              </label>
+              <label class="pledge__option" [class.is-selected]="formData.frequency === 'monthly'">
+                <input type="radio" name="frequency" value="monthly" [(ngModel)]="formData.frequency">
+                <span>Monthly</span>
+              </label>
+              <label class="pledge__option" [class.is-selected]="formData.frequency === 'other'">
+                <input type="radio" name="frequency" value="other" [(ngModel)]="formData.frequency">
+                <span>Other</span>
+              </label>
+            </div>
+            @if (formData.frequency === 'other') {
+              <div class="pledge__field pledge__field--inline">
+                <label for="frequencyOther">Details</label>
+                <input
+                  id="frequencyOther"
+                  name="frequencyOther"
+                  type="text"
+                  placeholder="e.g. quarterly"
+                  [(ngModel)]="formData.frequencyOther">
+              </div>
+            }
+          </div>
+
+          <div class="pledge__question">
+            <span class="pledge__question-label">When will the donation be made?</span>
+            <div class="pledge__options">
+              <label class="pledge__option" [class.is-selected]="formData.timing === 'today'">
+                <input type="radio" name="timing" value="today" [(ngModel)]="formData.timing">
+                <span>Today</span>
+              </label>
+              <label class="pledge__option" [class.is-selected]="formData.timing === 'date'">
+                <input type="radio" name="timing" value="date" [(ngModel)]="formData.timing">
+                <span>On a date</span>
+              </label>
+            </div>
+            @if (formData.timing === 'date') {
+              <div class="pledge__field pledge__field--inline">
+                <label for="timingDate">Date</label>
+                <input
+                  id="timingDate"
+                  name="timingDate"
+                  type="date"
+                  [(ngModel)]="formData.timingDate">
+              </div>
+            }
+          </div>
+
+          <div class="pledge__question">
+            <span class="pledge__question-label">How will you donate the said amount?</span>
+            <div class="pledge__options">
+              <label class="pledge__option" [class.is-selected]="formData.method === 'check'">
+                <input type="radio" name="method" value="check" [(ngModel)]="formData.method">
+                <span>Check</span>
+              </label>
+              <label class="pledge__option" [class.is-selected]="formData.method === 'online'">
+                <input type="radio" name="method" value="online" [(ngModel)]="formData.method">
+                <span>Online</span>
+              </label>
+              <label class="pledge__option" [class.is-selected]="formData.method === 'cash'">
+                <input type="radio" name="method" value="cash" [(ngModel)]="formData.method">
+                <span>Cash</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="pledge__field">
+            <label for="notes">Anything else we should know?</label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows="3"
+              [(ngModel)]="formData.notes"></textarea>
+          </div>
+        </fieldset>
+
+        @if (errorMessage) {
+          <div class="pledge__alert" role="alert">
+            <span class="material-icons">error_outline</span>
+            <span>
+              {{ errorMessage }}
+              <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>
+            </span>
+          </div>
+        }
+
+        <div class="pledge__actions">
+          <button
+            type="submit"
+            class="btn btn--primary btn--large"
+            [disabled]="submitting">
+            @if (submitting) {
+              <span class="spinner spinner--sm"></span>
+              Submitting&hellip;
+            } @else {
+              <span class="material-icons">volunteer_activism</span>
+              Submit Pledge
+            }
+          </button>
+
+          <button type="button" class="btn btn--ghost pledge__print" (click)="print()">
+            <span class="material-icons">print</span>
+            Print this form
+          </button>
+        </div>
+
+        <p class="pledge__footnote">
+          Prefer to send it yourself? Email a completed form to
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a> or visit
+          <a [href]="websiteUrl" target="_blank" rel="noopener">{{ websiteLabel }}</a>.
+        </p>
+      </form>
+    }
+  </div>
+</section>
