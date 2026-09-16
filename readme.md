@@ -28,6 +28,7 @@ src/app/
     └── services/             # VolunteerShiftService, TextBoxService, EmailService
 infra/
 ├── main.bicep                # Azure SQL Server + Database + SWA DB link
+├── schema.bicep              # Applies sql-setup.sql (used by CI and by main.bicep)
 ├── sql-setup.sql             # Table schemas (VolunteerShifts, SignUps, TextBoxes)
 └── parameters.json           # Deployment parameter template
 swa-db-connections/
@@ -48,9 +49,14 @@ Defined in `infra/sql-setup.sql`. Column names match the Angular service contrac
 ### Schema changes
 
 The schema is applied **automatically on merge to `main`**. The `apply_schema_job` in the
-CI workflow runs the Bicep deployment, whose `runSchema` deploymentScript executes
-`infra/sql-setup.sql` against the database. There is no manual step and no separate
-migration tool.
+CI workflow deploys `infra/schema.bicep`, which executes `infra/sql-setup.sql` against
+the database. There is no manual step and no separate migration tool.
+
+`schema.bicep` deliberately touches **only** the database. It is kept separate from
+`main.bicep` so that applying a schema change never redeploys the Static Web App, Key
+Vault or Logic App — that is both unnecessary and, for `Microsoft.Web/staticSites`,
+fails preflight. `main.bicep` consumes `schema.bicep` as a module, so there is exactly
+one definition of how the schema is applied.
 
 To add or change a table: edit `infra/sql-setup.sql`, open a PR, and merge it. The job:
 
@@ -92,8 +98,8 @@ instead, which needs the same change applied separately.
 ### CI setup for automatic schema deployment (one-time)
 
 The workflow authenticates to Azure with **OIDC federated credentials** — no long-lived
-secret is stored in GitHub, and the SQL admin password is never needed by CI (the
-deployment reads it from Key Vault via `infra/parameters.json`).
+secret is stored in GitHub. The SQL admin password is never stored in GitHub either: the
+job reads it from Key Vault at run time and masks it from the logs.
 
 ```bash
 RG=empathy-soup-kitchen-web-app
@@ -132,17 +138,17 @@ variables → Actions → *Variables* tab — not Secrets):
 | `AZURE_TENANT_ID` | your Entra tenant ID |
 | `AZURE_SUBSCRIPTION_ID` | the subscription holding the resource group |
 
-The deployment also writes to Key Vault, whose access is granted by **access policy**
-rather than RBAC. If the deployment fails on the Key Vault step, grant the new principal
-access once:
+**Also required:** the job reads the SQL password from Key Vault, which uses **access
+policies** rather than RBAC — so Contributor alone is not enough. Grant it once:
 
 ```bash
-az keyvault set-policy --name <empathy-kv-...> \
-  --spn "$APP_ID" --secret-permissions get list set
+KV=$(az keyvault list -g "$RG" --query "[0].name" -o tsv)
+az keyvault set-policy --name "$KV" --spn "$APP_ID" --secret-permissions get list
 ```
 
-Until these variables exist, the schema job fails on merge and blocks the app deploy —
-so add them before merging any change under `infra/`.
+Until the variables exist and this policy is granted, the schema job fails on merge and
+blocks the app deploy — so do both before merging any change under `infra/`. The job
+reports which of the two is missing in its summary.
 
 ## Infrastructure Deployment
 
@@ -159,9 +165,24 @@ az deployment group create \
   --parameters sqlAdminPassword='<STRONG_PASSWORD>'
 ```
 
-Step 2 also applies `infra/sql-setup.sql` — the `runSchema` deployment script runs it
-against the database as part of the same deployment, so there is no separate step to
-create tables. Re-run the same command after editing the schema; it is idempotent.
+Step 2 also applies `infra/sql-setup.sql` — `main.bicep` includes `schema.bicep` as a
+module, so the tables are created as part of the same deployment. It is idempotent.
+
+To apply **only** a schema change, without redeploying any other infrastructure:
+
+```bash
+RG=empathy-soup-kitchen-web-app
+SQL_FQDN=$(az sql server list -g $RG --query "[0].fullyQualifiedDomainName" -o tsv)
+KV=$(az keyvault list -g $RG --query "[0].name" -o tsv)
+
+az deployment group create \
+  --resource-group $RG \
+  --template-file infra/schema.bicep \
+  --parameters sqlServerFqdn="$SQL_FQDN" \
+  --parameters sqlAdminPassword="$(az keyvault secret show --vault-name $KV --name sql-admin-password --query value -o tsv)"
+```
+
+This is what CI runs on merge.
 
 Verify what landed via the deployment output:
 
