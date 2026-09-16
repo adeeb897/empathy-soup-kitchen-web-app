@@ -133,10 +133,6 @@ export class PledgeComponent {
     this.showDonateNext = false;
   }
 
-  print(): void {
-    window.print();
-  }
-
   private resolvedAmount(): string {
     if (this.formData.amount === 'other') {
       // Strip any currency symbol the donor typed so the label isn't "$$100".
