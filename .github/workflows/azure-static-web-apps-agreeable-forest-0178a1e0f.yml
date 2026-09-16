@@ -57,6 +57,38 @@ jobs:
             echo "infra=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Verify Azure credentials are configured
+        if: steps.changes.outputs.infra == 'true'
+        run: |
+          set -euo pipefail
+          missing=()
+          [ -n "${{ vars.AZURE_CLIENT_ID }}" ]       || missing+=("AZURE_CLIENT_ID")
+          [ -n "${{ vars.AZURE_TENANT_ID }}" ]       || missing+=("AZURE_TENANT_ID")
+          [ -n "${{ vars.AZURE_SUBSCRIPTION_ID }}" ] || missing+=("AZURE_SUBSCRIPTION_ID")
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            {
+              echo "### ❌ Schema deployment not configured"
+              echo ""
+              echo "This merge changed files under \`infra/\`, so the database schema needs to"
+              echo "be applied — but these repository **variables** are not set:"
+              echo ""
+              for v in "${missing[@]}"; do echo "- \`$v\`"; done
+              echo ""
+              echo "Add them under **Settings → Secrets and variables → Actions → Variables**"
+              echo "(the *Variables* tab, not Secrets). Setup commands are in the readme under"
+              echo "\"CI setup for automatic schema deployment\"."
+              echo ""
+              echo "The app deploy is intentionally blocked: shipping code against a database"
+              echo "that has not been migrated is worse than not shipping."
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            echo "::error::Missing repository variables: ${missing[*]} — see the job summary for setup steps."
+            exit 1
+          fi
+
+          echo "Azure credentials configured."
+
       - name: Azure login (OIDC)
         if: steps.changes.outputs.infra == 'true'
         uses: azure/login@v2

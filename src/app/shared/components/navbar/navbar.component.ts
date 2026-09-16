@@ -21,13 +21,17 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <li role="none"><a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a></li>
           <li role="none"><a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a></li>
           <li role="none"><a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a></li>
-          <li role="none"><a routerLink="/pledge" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Pledge Form</a></li>
           <li role="none"><a routerLink="/financial-report" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Financial Report</a></li>
         </ul>
 
-        <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="navbar__cta btn btn--primary btn--small" (click)="closeMobile()">
-          Donate
-        </a>
+        <div class="navbar__actions">
+          <a routerLink="/pledge" class="btn btn--secondary btn--small" (click)="closeMobile()">
+            Pledge
+          </a>
+          <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--primary btn--small" (click)="closeMobile()">
+            Donate
+          </a>
+        </div>
 
         <button
           class="navbar__toggle"
@@ -49,10 +53,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a>
           <a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a>
           <a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a>
-          <a routerLink="/pledge" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Pledge Form</a>
           <a routerLink="/financial-report" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Financial Report</a>
           <div class="navbar__mobile-cta">
-            <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--primary btn--large" style="width:100%" (click)="closeMobile()">Donate Now</a>
+            <a routerLink="/pledge" class="btn btn--secondary btn--large" (click)="closeMobile()">Pledge</a>
+            <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--primary btn--large" (click)="closeMobile()">Donate Now</a>
           </div>
         </div>
       }
@@ -143,11 +147,18 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       }
     }
 
-    .navbar__cta {
+    .navbar__actions {
       display: none;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-shrink: 0;
 
       @media (min-width: 1100px) {
-        display: inline-flex;
+        display: flex;
+      }
+
+      .btn {
+        white-space: nowrap;
       }
     }
 
@@ -218,9 +229,17 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     }
 
     .navbar__mobile-cta {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
       padding-top: var(--space-lg);
       margin-top: var(--space-md);
       border-top: 1px solid var(--color-border);
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
     }
 
     @keyframes slideDown {
