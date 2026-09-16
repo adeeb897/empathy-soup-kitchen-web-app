@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { VolunteerShift, SignUp } from '../models/volunteer.model';
 import { EmailService } from './email.service';
 import { RetryService } from '../../../shared/utils/retry.service';
+import { AdminAuthService } from './admin-auth.service';
 
 export interface VolunteerShiftAPIResponse {
   value: VolunteerShift[];
@@ -20,8 +21,14 @@ export class VolunteerShiftService {
 
   constructor(
     private emailService: EmailService,
-    private retryService: RetryService
+    private retryService: RetryService,
+    private authService: AdminAuthService
   ) {}
+
+  /** Admin credentials; {} when signed out, so public calls are unaffected. */
+  private authHeaders(): Record<string, string> {
+    return this.authService.authHeaders();
+  }
 
   async getAllShifts(includePast = false): Promise<VolunteerShift[]> {
     const data = await this.fetchJson<VolunteerShiftAPIResponse>(this.shiftsEndpoint);
@@ -55,7 +62,7 @@ export class VolunteerShiftService {
   async createShift(shiftData: { StartTime: Date; EndTime: Date; Capacity: number }): Promise<VolunteerShift> {
     const response = await this.retryService.fetchWithRetry(this.shiftsEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
       body: JSON.stringify({
         StartTime: shiftData.StartTime.toISOString(),
         EndTime: shiftData.EndTime.toISOString(),
@@ -76,7 +83,7 @@ export class VolunteerShiftService {
     // Signups are automatically removed via ON DELETE CASCADE in the database
     const response = await this.retryService.fetchWithRetry(
       `${this.shiftsEndpoint}/${shiftId}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: this.authHeaders() }
     );
 
     if (!response.ok) {
@@ -123,14 +130,19 @@ export class VolunteerShiftService {
     }
   }
 
-  async cancelSignupWithNotification(signupId: number): Promise<void> {
-    // Fetch this specific signup before deleting
-    const data = await this.fetchJson<SignUpAPIResponse>(`${this.signupsEndpoint}?SignUpID=${signupId}`);
-    const signup = (data.value || [])[0];
-    if (!signup) {
+  /**
+   * Cancels a signup and sends the confirmation emails.
+   *
+   * Takes the signup record rather than an ID: looking one up by ID is
+   * admin-only (it would otherwise let anyone walk the table), and every
+   * caller already holds the record from findSignupsByEmail.
+   */
+  async cancelSignupWithNotification(signup: SignUp): Promise<void> {
+    if (!signup?.SignUpID) {
       throw new Error('Signup not found');
     }
 
+    const signupId = signup.SignUpID;
     const shift = await this.getShiftById(signup.ShiftID);
 
     // Delete the signup

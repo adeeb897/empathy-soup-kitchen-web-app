@@ -145,6 +145,34 @@ export class AdminAuthService {
     return this.state.value.isAuthenticated;
   }
 
+  /**
+   * The current session token, or null when signed out or expired.
+   * Single reader of the stored session — callers must not parse it themselves.
+   */
+  getSessionToken(): string | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+
+      const session: StoredSession = JSON.parse(raw);
+      if (!session?.sessionToken || Date.now() > session.expiresAt) {
+        return null;
+      }
+      return session.sessionToken;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Authorization header for admin API calls, or {} when not signed in —
+   * safe to spread into any request, including public ones.
+   */
+  authHeaders(): Record<string, string> {
+    const token = this.getSessionToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
   private setState(s: AuthState): void {
     this.state.next(s);
   }

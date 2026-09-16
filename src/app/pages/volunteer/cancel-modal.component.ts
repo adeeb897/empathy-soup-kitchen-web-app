@@ -255,7 +255,7 @@ export class CancelModalComponent {
     this.cancellingId = signup.SignUpID;
 
     try {
-      await this.shiftService.cancelSignupWithNotification(signup.SignUpID);
+      await this.shiftService.cancelSignupWithNotification(signup);
       this.signups = this.signups.filter(s => s.SignUpID !== signup.SignUpID);
 
       if (this.signups.length === 0) {
