@@ -99,12 +99,46 @@ jobs:
 
       - name: Apply schema
         if: steps.changes.outputs.infra == 'true'
+        env:
+          RG: empathy-soup-kitchen-web-app
         run: |
           set -euo pipefail
+
+          # Deploy schema.bicep, NOT main.bicep. main.bicep redeploys the Static
+          # Web App, Key Vault and Logic App, which is both unnecessary for a
+          # schema change and fails preflight on Microsoft.Web/staticSites.
+          # schema.bicep touches the database and nothing else.
+
+          SQL_FQDN=$(az sql server list -g "$RG" --query "[0].fullyQualifiedDomainName" -o tsv)
+          KV=$(az keyvault list -g "$RG" --query "[0].name" -o tsv)
+          echo "SQL server: $SQL_FQDN"
+          echo "Key Vault : $KV"
+
+          if ! SQL_PW=$(az keyvault secret show --vault-name "$KV" --name sql-admin-password --query value -o tsv 2>/dev/null) || [ -z "$SQL_PW" ]; then
+            {
+              echo "### ❌ Cannot read the SQL password from Key Vault"
+              echo ""
+              echo "The deployment identity could not read \`sql-admin-password\` from \`$KV\`."
+              echo "That vault uses **access policies**, not RBAC, so Contributor alone is not enough."
+              echo ""
+              echo "Grant it once:"
+              echo ""
+              echo '```bash'
+              echo "az keyvault set-policy --name $KV \\"
+              echo "  --spn \$AZURE_CLIENT_ID --secret-permissions get list"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Key Vault access denied for sql-admin-password — see the job summary."
+            exit 1
+          fi
+          # Mask it so it can never surface in logs, even via a later error.
+          echo "::add-mask::$SQL_PW"
+
           az deployment group create \
-            --resource-group empathy-soup-kitchen-web-app \
-            --template-file infra/main.bicep \
-            --parameters infra/parameters.json \
+            --resource-group "$RG" \
+            --template-file infra/schema.bicep \
+            --parameters sqlServerFqdn="$SQL_FQDN" \
+            --parameters sqlAdminPassword="$SQL_PW" \
             --name "schema-${{ github.run_id }}" \
             --query 'properties.outputs.schemaTables.value' \
             --output json > tables.json
