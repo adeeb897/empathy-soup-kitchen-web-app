@@ -19,6 +19,8 @@ interface FinancialReport {
   styleUrl: './financial-report.component.scss',
 })
 export class FinancialReportComponent implements OnInit {
+  readonly annualReportUrl = 'https://eskupdates.pages.dev/';
+
   reports: FinancialReport[] = [];
   selectedReport: FinancialReport | null = null;
   openYears: Set<string> = new Set();

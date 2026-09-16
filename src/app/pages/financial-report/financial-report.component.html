@@ -5,17 +5,47 @@
       <span class="section-label">Transparency</span>
       <h1 class="section-title">Financial Report</h1>
       <p class="fin-header__subtitle">
-        We believe in full transparency. Below you'll find our quarterly financial reports
-        showing exactly how donations are used.
+        We believe in full transparency. Below you'll find our annual impact report
+        and quarterly financials, showing exactly how donations are used.
       </p>
     </div>
   </div>
 </section>
 
-<!-- Reports -->
+<!-- Annual Impact Report -->
+<section class="fin-annual section">
+  <div class="container">
+    <a
+      [href]="annualReportUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="fin-annual__card"
+      appScrollAnimate>
+      <span class="material-icons fin-annual__icon">insights</span>
+      <span class="fin-annual__text">
+        <strong>Annual Impact Report 2025&ndash;2026</strong>
+        <span>
+          See how your support has made a difference — financials, community impact,
+          and our plans for the future.
+        </span>
+      </span>
+      <span class="fin-annual__action">
+        View the Full Report
+        <span class="material-icons">arrow_forward</span>
+        <span class="sr-only">(opens in a new tab)</span>
+      </span>
+    </a>
+  </div>
+</section>
+
+<!-- Quarterly Reports -->
 <section class="fin-body section">
   <div class="container">
     <div class="reports" appScrollAnimate>
+
+      @if (!selectedReport) {
+        <h2 class="fin-quarterly-title">Quarterly Reports</h2>
+      }
 
       @if (!selectedReport) {
         @if (loading) {
