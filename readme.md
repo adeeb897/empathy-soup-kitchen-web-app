@@ -1,6 +1,6 @@
 # Empathy Soup Kitchen Web Application
 
-Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in the Atlanta area.
+Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in McKeesport, PA.
 
 ## Architecture
 
@@ -27,7 +27,8 @@ src/app/
     ├── models/               # VolunteerShift, SignUp interfaces
     └── services/             # VolunteerShiftService, TextBoxService, EmailService
 infra/
-├── main.bicep                # Azure SQL Server + Database + SWA DB link
+├── main.bicep                # Full stack: Key Vault, SQL, SWA DB link, Logic App
+├── database.bicep            # SQL server + database (used by CI and by main.bicep)
 ├── schema.bicep              # Applies sql-setup.sql (used by CI and by main.bicep)
 ├── sql-setup.sql             # Table schemas (VolunteerShifts, SignUps, TextBoxes)
 └── parameters.json           # Deployment parameter template
@@ -46,24 +47,30 @@ Defined in `infra/sql-setup.sql`. Column names match the Angular service contrac
 | `dbo.TextBoxes` | ID, TextName (unique), TextContent |
 | `dbo.Pledges` | PledgeID, Amount, Name, Email, PhoneNumber, Address, Frequency, PaymentMethod, SubmittedAt |
 
-### Schema changes
+### Database changes
 
-The schema is applied **automatically on merge to `main`**. The `apply_schema_job` in the
-CI workflow deploys `infra/schema.bicep`, which executes `infra/sql-setup.sql` against
-the database. There is no manual step and no separate migration tool.
+Database changes are applied **automatically on merge to `main`**. The
+`apply_schema_job` in the CI workflow deploys, in order:
 
-`schema.bicep` deliberately touches **only** the database. It is kept separate from
-`main.bicep` so that applying a schema change never redeploys the Static Web App, Key
-Vault or Logic App — that is both unnecessary and, for `Microsoft.Web/staticSites`,
-fails preflight. `main.bicep` consumes `schema.bicep` as a module, so there is exactly
-one definition of how the schema is applied.
+1. `infra/database.bicep` — the SQL server and database themselves: service tier,
+   size, firewall, server settings.
+2. `infra/schema.bicep` — executes `infra/sql-setup.sql` against that database.
 
-To add or change a table: edit `infra/sql-setup.sql`, open a PR, and merge it. The job:
+There is no manual step and no separate migration tool.
+
+Both templates deliberately touch **only** the database, so applying a database
+change never redeploys the Static Web App, Key Vault or Logic App — that is both
+unnecessary and, for `Microsoft.Web/staticSites`, fails preflight. `main.bicep`
+consumes both as modules, so there is exactly one definition of each.
+
+To add or change a table: edit `infra/sql-setup.sql`. To change the service tier or
+another database setting: edit `infra/database.bicep`. Either way, open a PR and merge
+it. The job:
 
 - runs **only on merges to `main`**, never on PRs
 - runs **only when something under `infra/` changed** — app-only merges skip it
 - runs **before** the app deploys, so new code never goes live against a database that is
-  missing its tables. If the schema step fails, the app deploy is blocked.
+  missing its tables. If the step fails, the app deploy is blocked.
 
 You can also apply it manually at any time with the command in
 [Infrastructure Deployment](#infrastructure-deployment).
@@ -168,7 +175,23 @@ az deployment group create \
 Step 2 also applies `infra/sql-setup.sql` — `main.bicep` includes `schema.bicep` as a
 module, so the tables are created as part of the same deployment. It is idempotent.
 
-To apply **only** a schema change, without redeploying any other infrastructure:
+To apply **only** the database configuration (service tier, firewall, server
+settings), without redeploying any other infrastructure:
+
+```bash
+RG=empathy-soup-kitchen-web-app
+KV=$(az keyvault list -g $RG --query "[0].name" -o tsv)
+
+az deployment group create \
+  --resource-group $RG \
+  --template-file infra/database.bicep \
+  --parameters location="$(az group show -n $RG --query location -o tsv)" \
+  --parameters sqlServerName="$(az sql server list -g $RG --query "[0].name" -o tsv)" \
+  --parameters sqlAdminLogin=sqladmin \
+  --parameters sqlAdminPassword="$(az keyvault secret show --vault-name $KV --name sql-admin-password --query value -o tsv)"
+```
+
+To apply **only** a schema change:
 
 ```bash
 RG=empathy-soup-kitchen-web-app
@@ -182,7 +205,10 @@ az deployment group create \
   --parameters sqlAdminPassword="$(az keyvault secret show --vault-name $KV --name sql-admin-password --query value -o tsv)"
 ```
 
-This is what CI runs on merge.
+CI runs both of these on merge, in that order, whenever a push to `main` touches
+`infra/`. `main.bicep` is deliberately not what CI deploys: it redeploys the
+Static Web App too, which fails preflight (see #35). Both smaller templates
+declare zero `Microsoft.Web` resources.
 
 Verify what landed via the deployment output:
 
@@ -196,12 +222,12 @@ az deployment group show \
 The Bicep template provisions:
 - Azure SQL Server (TLS 1.2, Azure services firewall rule)
 - Azure SQL Database (Basic tier, 5 DTU, always on)
-
-Re-deploying over the existing serverless database scales it to Basic in place —
-the data is preserved, but connections drop for a few seconds while the change
-applies, so do it outside serving hours. The database must already fit inside
-Basic's 2 GB limit.
 - SWA database connection (auto-sets `DATABASE_CONNECTION_STRING`)
+
+Changing the service tier scales the existing database in place: the data is
+preserved, but connections drop for a few seconds while the change applies. CI
+applies this on merge, so merge tier changes outside serving hours. The database
+must fit inside the tier's size limit (2 GB on Basic).
 
 ## Local Development
 

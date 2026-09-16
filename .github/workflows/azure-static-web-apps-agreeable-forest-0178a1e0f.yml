@@ -97,7 +97,7 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Apply schema
+      - name: Apply database configuration and schema
         if: steps.changes.outputs.infra == 'true'
         env:
           RG: empathy-soup-kitchen-web-app
@@ -134,6 +134,29 @@ jobs:
           # Mask it so it can never surface in logs, even via a later error.
           echo "::add-mask::$SQL_PW"
 
+          # Database configuration first — service tier, firewall, server settings —
+          # so the schema is applied against the database as it should be. Like
+          # schema.bicep, database.bicep declares no Microsoft.Web resources, so it
+          # avoids the staticSites preflight failure that ruled out main.bicep.
+          # A deployment that changes nothing is a no-op; a tier change drops
+          # connections for a few seconds while it applies.
+          SQL_SERVER_NAME=$(az sql server list -g "$RG" --query "[0].name" -o tsv)
+          # Read the admin login off the server rather than assuming it: ARM
+          # rejects a deployment that tries to change it.
+          SQL_LOGIN=$(az sql server list -g "$RG" --query "[0].administratorLogin" -o tsv)
+          LOCATION=$(az group show -n "$RG" --query location -o tsv)
+
+          az deployment group create \
+            --resource-group "$RG" \
+            --template-file infra/database.bicep \
+            --parameters location="$LOCATION" \
+            --parameters sqlServerName="$SQL_SERVER_NAME" \
+            --parameters sqlAdminLogin="$SQL_LOGIN" \
+            --parameters sqlAdminPassword="$SQL_PW" \
+            --name "database-${{ github.run_id }}" \
+            --query 'properties.outputs.databaseName.value' \
+            --output tsv
+
           az deployment group create \
             --resource-group "$RG" \
             --template-file infra/schema.bicep \
@@ -147,7 +170,7 @@ jobs:
           cat tables.json
 
           {
-            echo "### Database schema applied"
+            echo "### Database configuration and schema applied"
             echo ""
             echo "Tables now present:"
             echo ""
