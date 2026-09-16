@@ -3,6 +3,7 @@ import { RetryService } from '../../shared/utils/retry.service';
 
 export interface PledgeSubmission {
   amount: string;
+  amountValue: number;
   name: string;
   phone: string;
   email: string;
@@ -14,15 +15,90 @@ export interface PledgeSubmission {
   notes: string;
 }
 
+export interface PledgeRecord {
+  PledgeID: number;
+  Amount: number;
+  AmountLabel: string | null;
+  Name: string;
+  Email: string;
+  PhoneNumber: string | null;
+  Address: string | null;
+  VolunteerInterest: string | null;
+  Frequency: string | null;
+  Timing: string | null;
+  PaymentMethod: string | null;
+  Notes: string | null;
+  SubmittedAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PledgeService {
-  private readonly endpoint = '/api/email/send';
+  private readonly emailEndpoint = '/api/email/send';
+  private readonly pledgesEndpoint = '/api/pledges';
   private readonly recipient = 'info@empathysoupkitchen.org';
 
   constructor(private retryService: RetryService) {}
 
+  /**
+   * Saves the pledge, then notifies staff by email. The record is saved first so
+   * a mail outage cannot lose the pledge; a failed notification is logged but
+   * does not fail the submission.
+   */
   async submitPledge(pledge: PledgeSubmission): Promise<void> {
-    const response = await this.retryService.fetchWithRetry(this.endpoint, {
+    await this.savePledge(pledge);
+
+    try {
+      await this.sendNotification(pledge);
+    } catch (error) {
+      console.warn('Pledge saved, but notification email failed:', error);
+    }
+  }
+
+  async getPledges(): Promise<PledgeRecord[]> {
+    const response = await this.retryService.fetchWithRetry(this.pledgesEndpoint);
+    if (!response.ok) {
+      throw new Error(`Failed to load pledges: ${response.status}`);
+    }
+    const data = await response.json();
+    return Array.isArray(data.value) ? data.value : [];
+  }
+
+  async deletePledge(pledgeId: number): Promise<void> {
+    const response = await this.retryService.fetchWithRetry(
+      `${this.pledgesEndpoint}/${pledgeId}`,
+      { method: 'DELETE' }
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to delete pledge: ${response.status}`);
+    }
+  }
+
+  private async savePledge(pledge: PledgeSubmission): Promise<void> {
+    const response = await this.retryService.fetchWithRetry(this.pledgesEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Amount: pledge.amountValue,
+        AmountLabel: pledge.amount,
+        Name: pledge.name,
+        Email: pledge.email,
+        PhoneNumber: pledge.phone,
+        Address: pledge.address,
+        VolunteerInterest: pledge.volunteer,
+        Frequency: pledge.frequency,
+        Timing: pledge.timing,
+        PaymentMethod: pledge.method,
+        Notes: pledge.notes,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+  }
+
+  private async sendNotification(pledge: PledgeSubmission): Promise<void> {
+    const response = await this.retryService.fetchWithRetry(this.emailEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

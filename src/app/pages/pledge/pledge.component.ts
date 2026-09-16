@@ -72,6 +72,7 @@ export class PledgeComponent {
     try {
       await this.pledgeService.submitPledge({
         amount: this.resolvedAmount(),
+        amountValue: this.numericAmount(),
         name: this.formData.name.trim(),
         phone: this.formData.phone.trim(),
         email: this.formData.email.trim(),
@@ -127,9 +128,22 @@ export class PledgeComponent {
   }
 
   private resolvedAmount(): string {
-    return this.formData.amount === 'other'
-      ? `$${this.formData.amountOther.trim()} (other)`
-      : `$${this.formData.amount}`;
+    if (this.formData.amount === 'other') {
+      // Strip any currency symbol the donor typed so the label isn't "$$100".
+      const entered = this.formData.amountOther.trim().replace(/^\$+\s*/, '');
+      return `$${entered} (other)`;
+    }
+    return `$${this.formData.amount}`;
+  }
+
+  /** Numeric value used for cumulative reporting; 0 when a free-text amount can't be parsed. */
+  private numericAmount(): number {
+    const raw =
+      this.formData.amount === 'other'
+        ? this.formData.amountOther.replace(/[^0-9.]/g, '')
+        : this.formData.amount;
+    const parsed = parseFloat(raw);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
   }
 
   private resolvedFrequency(): string {

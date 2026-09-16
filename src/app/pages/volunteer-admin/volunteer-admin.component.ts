@@ -5,6 +5,7 @@ import { AdminAuthService, AuthState } from '../calendar/services/admin-auth.ser
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { VolunteerShift } from '../calendar/models/volunteer.model';
+import { PledgeService, PledgeRecord } from '../pledge/pledge.service';
 
 @Component({
   selector: 'app-volunteer-admin',
@@ -42,11 +43,53 @@ export class VolunteerAdminComponent implements OnInit {
   dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   creating = false;
 
+  pledges: PledgeRecord[] = [];
+  pledgesLoading = false;
+  pledgesError = '';
+
   constructor(
     private authService: AdminAuthService,
     private shiftService: VolunteerShiftService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private pledgeService: PledgeService
   ) {}
+
+  get totalPledged(): number {
+    return this.pledges.reduce((sum, p) => sum + (Number(p.Amount) || 0), 0);
+  }
+
+  get averagePledge(): number {
+    return this.pledges.length ? this.totalPledged / this.pledges.length : 0;
+  }
+
+  get monthlyPledgeCount(): number {
+    return this.pledges.filter((p) => p.Frequency === 'Monthly').length;
+  }
+
+  async loadPledges(): Promise<void> {
+    this.pledgesLoading = true;
+    this.pledgesError = '';
+    try {
+      this.pledges = await this.pledgeService.getPledges();
+    } catch (error) {
+      this.pledgesError = 'Could not load pledges. Please try again.';
+      console.error('Failed to load pledges:', error);
+    } finally {
+      this.pledgesLoading = false;
+    }
+  }
+
+  async deletePledge(pledgeId: number): Promise<void> {
+    if (!confirm('Delete this pledge? This cannot be undone.')) return;
+    try {
+      await this.pledgeService.deletePledge(pledgeId);
+      this.pledges = this.pledges.filter((p) => p.PledgeID !== pledgeId);
+      this.toastService.success('Pledge deleted');
+    } catch (error) {
+      this.toastService.error('Failed to delete pledge');
+      console.error('Failed to delete pledge:', error);
+    }
+  }
 
   ngOnInit(): void {
     // Check for magic link token in URL
@@ -66,6 +109,7 @@ export class VolunteerAdminComponent implements OnInit {
       this.authState = state;
       if (state.isAuthenticated) {
         this.loadShifts();
+        this.loadPledges();
       }
     });
   }

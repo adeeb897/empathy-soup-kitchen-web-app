@@ -31,8 +31,29 @@ CREATE TABLE dbo.TextBoxes (
     TextContent NVARCHAR(MAX)  NOT NULL
 );
 
+-- Pledges (from the public pledge form)
+-- NOTE: served by /api/pledges, which is an anonymous Function like /api/signups.
+-- An unauthenticated GET returns every row, including donor contact details.
+CREATE TABLE dbo.Pledges (
+    PledgeID        INT IDENTITY(1,1) PRIMARY KEY,
+    Amount          DECIMAL(10,2)  NOT NULL DEFAULT 0,
+    AmountLabel     NVARCHAR(100)  NULL,
+    Name            NVARCHAR(200)  NOT NULL,
+    Email           NVARCHAR(200)  NOT NULL,
+    PhoneNumber     NVARCHAR(50)   NULL,
+    Address         NVARCHAR(400)  NULL,
+    VolunteerInterest NVARCHAR(50) NULL,
+    Frequency       NVARCHAR(100)  NULL,
+    Timing          NVARCHAR(100)  NULL,
+    PaymentMethod   NVARCHAR(50)   NULL,
+    Notes           NVARCHAR(MAX)  NULL,
+    SubmittedAt     DATETIME2      NOT NULL DEFAULT SYSUTCDATETIME()
+);
+
 -- Indexes
 CREATE INDEX IX_SignUps_ShiftID ON dbo.SignUps(ShiftID);
 CREATE INDEX IX_SignUps_Email ON dbo.SignUps(Email);
 CREATE INDEX IX_VolunteerShifts_StartTime ON dbo.VolunteerShifts(StartTime);
 CREATE INDEX IX_TextBoxes_TextName ON dbo.TextBoxes(TextName);
+CREATE INDEX IX_Pledges_SubmittedAt ON dbo.Pledges(SubmittedAt);
+CREATE INDEX IX_Pledges_Email ON dbo.Pledges(Email);

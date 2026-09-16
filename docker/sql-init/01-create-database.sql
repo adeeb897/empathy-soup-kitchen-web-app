@@ -40,6 +40,27 @@ BEGIN
 END
 GO
 
+-- Create Pledges table
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Pledges' and xtype='U')
+BEGIN
+    CREATE TABLE dbo.Pledges (
+        PledgeID INT IDENTITY(1,1) PRIMARY KEY,
+        Amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+        AmountLabel NVARCHAR(100) NULL,
+        Name NVARCHAR(200) NOT NULL,
+        Email NVARCHAR(200) NOT NULL,
+        PhoneNumber NVARCHAR(50) NULL,
+        Address NVARCHAR(400) NULL,
+        VolunteerInterest NVARCHAR(50) NULL,
+        Frequency NVARCHAR(100) NULL,
+        Timing NVARCHAR(100) NULL,
+        PaymentMethod NVARCHAR(50) NULL,
+        Notes NVARCHAR(MAX) NULL,
+        SubmittedAt DATETIME2(7) NOT NULL DEFAULT GETUTCDATE()
+    );
+END
+GO
+
 -- Create TextBoxes table
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='TextBoxes' and xtype='U')
 BEGIN
