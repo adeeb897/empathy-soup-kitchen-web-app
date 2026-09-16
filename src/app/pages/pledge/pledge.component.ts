@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 import { ToastService } from '../../shared/services/toast.service';
 import { PledgeService } from './pledge.service';
@@ -8,7 +9,7 @@ import { PledgeService } from './pledge.service';
 @Component({
   selector: 'app-pledge',
   standalone: true,
-  imports: [CommonModule, FormsModule, ScrollAnimateDirective],
+  imports: [CommonModule, FormsModule, RouterLink, ScrollAnimateDirective],
   templateUrl: './pledge.component.html',
   styleUrl: './pledge.component.scss',
 })
@@ -17,6 +18,7 @@ export class PledgeComponent {
   readonly contactEmail = 'info@empathysoupkitchen.org';
   readonly websiteUrl = 'https://www.empathysoupkitchen.org';
   readonly websiteLabel = 'www.empathysoupkitchen.org';
+  readonly donateUrl = 'https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation';
 
   formData = {
     amount: '',
@@ -38,6 +40,10 @@ export class PledgeComponent {
   submitting = false;
   success = false;
   errorMessage = '';
+
+  // Captured at submit time so the follow-up links survive a form reset.
+  showVolunteerNext = false;
+  showDonateNext = false;
 
   constructor(
     private pledgeService: PledgeService,
@@ -91,6 +97,8 @@ export class PledgeComponent {
         notes: this.formData.notes.trim(),
       });
 
+      this.showVolunteerNext = this.formData.volunteer === 'yes';
+      this.showDonateNext = this.formData.method === 'online';
       this.success = true;
       this.toastService.success('Thank you! Your pledge has been submitted.');
     } catch (error: any) {
@@ -121,6 +129,8 @@ export class PledgeComponent {
     this.submitted = false;
     this.success = false;
     this.errorMessage = '';
+    this.showVolunteerNext = false;
+    this.showDonateNext = false;
   }
 
   print(): void {

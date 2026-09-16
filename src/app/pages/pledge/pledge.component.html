@@ -36,6 +36,39 @@
           We've received your pledge and a copy has been sent to our team. Someone will
           follow up with you shortly at the contact details you provided.
         </p>
+        @if (showDonateNext || showVolunteerNext) {
+          <div class="pledge__next">
+            <h3 class="pledge__next-title">Next steps</h3>
+
+            @if (showDonateNext) {
+              <a
+                [href]="donateUrl"
+                target="_blank"
+                rel="noopener"
+                class="pledge__next-card">
+                <span class="material-icons">favorite</span>
+                <span class="pledge__next-text">
+                  <strong>Complete your donation online</strong>
+                  <span>You chose to give online — finish your gift on our secure donation page.</span>
+                </span>
+                <span class="material-icons pledge__next-arrow">arrow_forward</span>
+                <span class="sr-only">(opens in a new tab)</span>
+              </a>
+            }
+
+            @if (showVolunteerNext) {
+              <a routerLink="/volunteer" class="pledge__next-card">
+                <span class="material-icons">groups</span>
+                <span class="pledge__next-text">
+                  <strong>Sign up for a volunteer shift</strong>
+                  <span>You said you'd like to volunteer — pick a weekend that works for you.</span>
+                </span>
+                <span class="material-icons pledge__next-arrow">arrow_forward</span>
+              </a>
+            }
+          </div>
+        }
+
         <p class="pledge__success-contact">
           Questions in the meantime? Email
           <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>.
