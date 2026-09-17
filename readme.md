@@ -208,35 +208,47 @@ The site used to deploy **Data API Builder** alongside the app, via a
 `swa-db-connections/` config folder and `data_api_location` in the workflow. Its
 config granted the `anonymous` role `["*"]` — full read, insert, update and
 delete — on `SignUps`, `VolunteerShifts` and `TextBoxes`, with GraphQL
-introspection on. Anyone who knew the URL could read every volunteer's name,
-email and phone number, or delete the shift table, without authenticating.
+introspection on and CORS `*`. Had it been connected to the database, anyone who
+knew the URL could have read every volunteer's name, email and phone number, or
+emptied the shift table, without authenticating.
+
+**It was never connected.** Checked on 2026-09-17: the Static Web App had no
+database connection, so `/data-api/rest/SignUps` answered
+`Data API call failure` (HTTP 500) rather than serving rows, and no volunteer
+data was ever reachable this way.
+
+```
+$ az staticwebapp dbconnection show --name empathy-soup-kitchen-web-app \
+    --resource-group empathy-soup-kitchen-web-app
+Not Found: Cannot find DatabaseConnection with name default.
+```
+
+What made it worth removing is that `main.bicep` *declared* that connection. Any
+full `main.bicep` deployment would have created it, and the `anonymous: ["*"]`
+config would have gone live serving everything — a latent trapdoor rather than an
+open one. Both halves are now gone: the config, the workflow setting, the route
+exclusion, the docker-compose service, and the `databaseConnections` resource.
 
 Nothing in the app ever called it. All data access goes through `api/`, which
-checks authorisation on every write. The config, the workflow setting, the route
-exclusion and the SWA-to-database link in `main.bicep` have all been removed.
+checks authorisation on every write.
 
 **Do not add `data_api_location` back.** If a future feature wants a direct data
-API, it needs per-entity permissions tied to real roles, not `anonymous: ["*"]`.
+API, it needs per-entity permissions tied to real roles, not `anonymous: ["*"]`,
+and the tables holding volunteer contact details should not be among them.
 
-Removing the Bicep resource does not tear down a link that already exists —
-Bicep never deletes what it stops declaring. To remove it from a live app:
+If a connection is ever linked again and needs removing, note that Bicep will not
+delete it for you — it never deletes what it stops declaring:
 
 ```bash
-# Check whether a link still exists (empty output means there is nothing to remove)
-az staticwebapp dbconnection show \
-  --name empathy-soup-kitchen-web-app \
-  --resource-group empathy-soup-kitchen-web-app
-
-# Remove it
 az staticwebapp dbconnection delete \
   --name empathy-soup-kitchen-web-app \
   --resource-group empathy-soup-kitchen-web-app
 ```
 
-Then confirm the endpoint is gone. This should return 404, not a list of
-volunteers — if it returns data, the link is still live:
+Once this change is deployed, the route should be gone entirely:
 
 ```bash
+# expect 404
 curl -s -o /dev/null -w '%{http_code}\n' \
   https://empathysoupkitchen.org/data-api/rest/SignUps
 ```
