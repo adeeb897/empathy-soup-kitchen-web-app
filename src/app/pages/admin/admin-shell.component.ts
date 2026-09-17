@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AdminAuthService, AuthState } from '../calendar/services/admin-auth.service';
 import { ToastService } from '../../shared/services/toast.service';
+import { takeMagicLinkToken } from '../../shared/utils/magic-link-token';
 
 /**
  * Admin shell: owns sign-in and the tab chrome, and renders the active
@@ -45,14 +46,15 @@ export class AdminShellComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Magic-link return: the token arrives as a query param.
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    // The token is stashed before the router runs (see main.ts), so it
+    // survives the /volunteer/admin -> /admin redirect that older emails hit.
+    const token = takeMagicLinkToken();
     if (token) {
       this.authService.verifyToken(token).then((success) => {
-        window.history.replaceState({}, document.title, window.location.pathname);
         if (success) {
           this.toastService.success('Signed in successfully');
+        } else {
+          this.toastService.error('That sign-in link is invalid or has expired.');
         }
       });
     }
