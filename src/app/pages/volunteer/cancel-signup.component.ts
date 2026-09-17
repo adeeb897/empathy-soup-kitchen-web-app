@@ -14,11 +14,10 @@ type State = 'confirm' | 'cancelling' | 'done' | 'error' | 'missing';
  * and link previewers follow URLs on their own.
  */
 @Component({
-  selector: 'app-cancel-signup',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './cancel-signup.component.html',
-  styleUrl: './cancel-signup.component.scss',
+    selector: 'app-cancel-signup',
+    imports: [CommonModule, RouterLink],
+    templateUrl: './cancel-signup.component.html',
+    styleUrl: './cancel-signup.component.scss'
 })
 export class CancelSignupComponent implements OnInit {
   state: State = 'confirm';

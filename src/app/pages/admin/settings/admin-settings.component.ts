@@ -22,11 +22,10 @@ interface EditableText {
  * missing surface.
  */
 @Component({
-  selector: 'app-admin-settings',
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatePanelComponent],
-  templateUrl: './admin-settings.component.html',
-  styleUrl: './admin-settings.component.scss',
+    selector: 'app-admin-settings',
+    imports: [CommonModule, FormsModule, StatePanelComponent],
+    templateUrl: './admin-settings.component.html',
+    styleUrl: './admin-settings.component.scss'
 })
 export class AdminSettingsComponent implements OnInit {
   /** Every text box the site renders. Add a row here when a new one is used. */

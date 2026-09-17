@@ -11,11 +11,10 @@ import { VolunteerShift, SignUp } from '../../../calendar/models/volunteer.model
  * action; past shifts are read-only.
  */
 @Component({
-  selector: 'app-admin-shift-row',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './admin-shift-row.component.html',
-  styleUrl: './admin-shift-row.component.scss',
+    selector: 'app-admin-shift-row',
+    imports: [CommonModule],
+    templateUrl: './admin-shift-row.component.html',
+    styleUrl: './admin-shift-row.component.scss'
 })
 export class AdminShiftRowComponent {
   @Input({ required: true }) shift!: VolunteerShift;

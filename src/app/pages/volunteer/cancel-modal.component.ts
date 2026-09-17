@@ -13,10 +13,9 @@ import { RetryService } from '../../shared/utils/retry.service';
  * response is identical whether or not the address has any shifts.
  */
 @Component({
-  selector: 'app-cancel-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
+    selector: 'app-cancel-modal',
+    imports: [CommonModule, FormsModule],
+    template: `
     <div class="modal-card">
       <div class="modal-card__header">
         <h2>Cancel a Signup</h2>
@@ -80,7 +79,7 @@ import { RetryService } from '../../shared/utils/retry.service';
       }
     </div>
   `,
-  styles: [`
+    styles: [`
     .cancel-sent {
       text-align: center;
     }
@@ -110,7 +109,7 @@ import { RetryService } from '../../shared/utils/retry.service';
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-  `],
+  `]
 })
 export class CancelModalComponent {
   email = '';

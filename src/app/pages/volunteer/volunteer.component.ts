@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
 import { ApiWarmupService } from '../../shared/services/api-warmup.service';
@@ -18,11 +17,10 @@ interface WeekendGroup {
 }
 
 @Component({
-  selector: 'app-volunteer',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ScrollAnimateDirective],
-  templateUrl: './volunteer.component.html',
-  styleUrl: './volunteer.component.scss',
+    selector: 'app-volunteer',
+    imports: [CommonModule, FormsModule, ScrollAnimateDirective],
+    templateUrl: './volunteer.component.html',
+    styleUrl: './volunteer.component.scss'
 })
 export class VolunteerComponent implements OnInit, OnDestroy {
   weekends: WeekendGroup[] = [];

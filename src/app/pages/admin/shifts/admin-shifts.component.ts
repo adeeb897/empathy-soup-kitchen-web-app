@@ -10,11 +10,10 @@ import { StatePanelComponent } from '../../../shared/components/state-panel/stat
 import { AdminShiftRowComponent } from './shift-row/admin-shift-row.component';
 
 @Component({
-  selector: 'app-admin-shifts',
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatePanelComponent, AdminShiftRowComponent],
-  templateUrl: './admin-shifts.component.html',
-  styleUrl: './admin-shifts.component.scss',
+    selector: 'app-admin-shifts',
+    imports: [CommonModule, FormsModule, StatePanelComponent, AdminShiftRowComponent],
+    templateUrl: './admin-shifts.component.html',
+    styleUrl: './admin-shifts.component.scss'
 })
 export class AdminShiftsComponent implements OnInit {
   upcomingShifts: VolunteerShift[] = [];

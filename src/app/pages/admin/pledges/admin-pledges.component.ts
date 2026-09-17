@@ -6,11 +6,10 @@ import { PledgeService, PledgeRecord } from '../../pledge/pledge.service';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
 
 @Component({
-  selector: 'app-admin-pledges',
-  standalone: true,
-  imports: [CommonModule, StatePanelComponent],
-  templateUrl: './admin-pledges.component.html',
-  styleUrl: './admin-pledges.component.scss',
+    selector: 'app-admin-pledges',
+    imports: [CommonModule, StatePanelComponent],
+    templateUrl: './admin-pledges.component.html',
+    styleUrl: './admin-pledges.component.scss'
 })
 export class AdminPledgesComponent implements OnInit {
   pledges: PledgeRecord[] = [];

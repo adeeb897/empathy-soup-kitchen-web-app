@@ -12,11 +12,10 @@ interface FinancialReport {
 }
 
 @Component({
-  selector: 'app-financial-report',
-  standalone: true,
-  imports: [CommonModule, ScrollAnimateDirective, SafePipe],
-  templateUrl: './financial-report.component.html',
-  styleUrl: './financial-report.component.scss',
+    selector: 'app-financial-report',
+    imports: [CommonModule, ScrollAnimateDirective, SafePipe],
+    templateUrl: './financial-report.component.html',
+    styleUrl: './financial-report.component.scss'
 })
 export class FinancialReportComponent implements OnInit {
   readonly annualReportUrl = 'https://eskupdates.pages.dev/';

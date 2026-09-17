@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 
 @Component({
-  selector: 'app-gallery',
-  standalone: true,
-  imports: [CommonModule, ScrollAnimateDirective],
-  templateUrl: './gallery.component.html',
-  styleUrl: './gallery.component.scss',
+    selector: 'app-gallery',
+    imports: [CommonModule, ScrollAnimateDirective],
+    templateUrl: './gallery.component.html',
+    styleUrl: './gallery.component.scss'
 })
 export class GalleryComponent implements OnInit, OnDestroy {
   totalImages = 71;

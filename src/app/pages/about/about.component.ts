@@ -1,15 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 import { SafePipe } from '../../pipes/safe.pipe';
 
 @Component({
-  selector: 'app-about',
-  standalone: true,
-  imports: [CommonModule, RouterLink, ScrollAnimateDirective, SafePipe],
-  templateUrl: './about.component.html',
-  styleUrl: './about.component.scss',
+    selector: 'app-about',
+    imports: [CommonModule, ScrollAnimateDirective, SafePipe],
+    templateUrl: './about.component.html',
+    styleUrl: './about.component.scss'
 })
 export class AboutComponent {
   mapsUrl = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.873990503389!2d-79.84668!3d40.347302!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8834dd3f7b7f051f%3A0x3ada31dc83666f6f!2s523%20Sinclair%20St%2C%20McKeesport%2C%20PA%2015132!5e0!3m2!1sen!2sus!4v1637329894007!5m2!1sen!2sus';

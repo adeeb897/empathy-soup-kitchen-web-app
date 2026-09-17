@@ -7,11 +7,10 @@ import { ToastService } from '../../shared/services/toast.service';
 import { PledgeService } from './pledge.service';
 
 @Component({
-  selector: 'app-pledge',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ScrollAnimateDirective],
-  templateUrl: './pledge.component.html',
-  styleUrl: './pledge.component.scss',
+    selector: 'app-pledge',
+    imports: [CommonModule, FormsModule, RouterLink, ScrollAnimateDirective],
+    templateUrl: './pledge.component.html',
+    styleUrl: './pledge.component.scss'
 })
 export class PledgeComponent {
   readonly presetAmounts = ['50', '100', '250', '500', '1000'];

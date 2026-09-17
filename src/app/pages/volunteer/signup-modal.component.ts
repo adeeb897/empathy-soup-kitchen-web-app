@@ -6,10 +6,9 @@ import { VolunteerShiftService } from '../calendar/services/volunteer-shift.serv
 import { VolunteerShift } from '../calendar/models/volunteer.model';
 
 @Component({
-  selector: 'app-signup-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
+    selector: 'app-signup-modal',
+    imports: [CommonModule, FormsModule],
+    template: `
     <div class="modal-card">
       <div class="modal-card__header">
         <h2>Sign Up to Volunteer</h2>
@@ -101,7 +100,7 @@ import { VolunteerShift } from '../calendar/models/volunteer.model';
       </form>
     </div>
   `,
-  styles: [`
+    styles: [`
     .modal-card {
       background: var(--color-white);
       border-radius: var(--border-radius-lg);

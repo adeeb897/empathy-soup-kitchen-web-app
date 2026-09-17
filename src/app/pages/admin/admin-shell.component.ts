@@ -19,11 +19,10 @@ import { takeMagicLinkToken } from '../../shared/utils/magic-link-token';
  * checks the session token on every privileged endpoint.
  */
 @Component({
-  selector: 'app-admin-shell',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive],
-  templateUrl: './admin-shell.component.html',
-  styleUrl: './admin-shell.component.scss',
+    selector: 'app-admin-shell',
+    imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive],
+    templateUrl: './admin-shell.component.html',
+    styleUrl: './admin-shell.component.scss'
 })
 export class AdminShellComponent implements OnInit {
   authState: AuthState = { isAuthenticated: false, isLoading: true, user: null, error: null };
