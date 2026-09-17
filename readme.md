@@ -102,6 +102,32 @@ GO
 Local Docker databases get their schema from `docker/sql-init/01-create-database.sql`
 instead, which needs the same change applied separately.
 
+### Admin access
+
+Someone is an admin if **either** is true:
+
+- their address is at a domain in `ADMIN_EMAIL_DOMAINS` (defaults to
+  `empathysoupkitchen.org`), or
+- their address is listed explicitly in `ADMIN_EMAILS`
+
+The explicit list is for admins outside the org domain. Both are checked on
+every request, so removing someone takes effect immediately rather than when
+their session expires.
+
+| Setting | Purpose |
+|---------|---------|
+| `ADMIN_EMAIL_DOMAINS` | Comma-separated domains whose addresses are admins. Set to an empty string to require the explicit list only. |
+| `ADMIN_EMAILS` | Comma-separated individual addresses. |
+
+Domains are matched exactly against the part after the last `@`, so a
+lookalike (`user@evil-empathysoupkitchen.org`) or a subdomain
+(`user@mail.empathysoupkitchen.org`) does not qualify.
+
+**Anyone who can receive mail at an admin domain can sign in**, which
+includes shared aliases and accounts belonging to people who have left. A
+catch-all address on the domain would effectively make the admin open to
+anyone, so make sure the domain has none.
+
 ### CI setup for automatic schema deployment (one-time)
 
 The workflow authenticates to Azure with **OIDC federated credentials** — no long-lived

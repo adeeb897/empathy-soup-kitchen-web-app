@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { isAdminEmail } = require('../shared/auth');
 const nodemailer = require('nodemailer');
 
 const CORS_HEADERS = {
@@ -21,12 +22,7 @@ module.exports = async function (context, req) {
       return;
     }
 
-    const adminEmails = (process.env.ADMIN_EMAILS || '')
-      .split(',')
-      .map(e => e.trim().toLowerCase())
-      .filter(Boolean);
-
-    if (!adminEmails.includes(email.trim().toLowerCase())) {
+    if (!isAdminEmail(email)) {
       // Return same response to avoid email enumeration
       context.res = {
         status: 200,

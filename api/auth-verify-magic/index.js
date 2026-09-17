@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { isAdminEmail } = require('../shared/auth');
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -53,12 +54,7 @@ module.exports = async function (context, req) {
     }
 
     // Double-check admin list
-    const adminEmails = (process.env.ADMIN_EMAILS || '')
-      .split(',')
-      .map(e => e.trim().toLowerCase())
-      .filter(Boolean);
-
-    if (!adminEmails.includes(email.toLowerCase())) {
+    if (!isAdminEmail(email)) {
       context.res = { status: 403, headers: CORS_HEADERS, body: { error: 'Access denied' } };
       return;
     }
