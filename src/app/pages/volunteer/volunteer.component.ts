@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
@@ -18,7 +17,7 @@ interface WeekendGroup {
 
 @Component({
     selector: 'app-volunteer',
-    imports: [CommonModule, FormsModule, ScrollAnimateDirective],
+    imports: [FormsModule, ScrollAnimateDirective],
     templateUrl: './volunteer.component.html',
     styleUrl: './volunteer.component.scss'
 })

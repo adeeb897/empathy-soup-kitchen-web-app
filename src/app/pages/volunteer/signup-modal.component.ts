@@ -1,5 +1,4 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MODAL_DATA, MODAL_REF, ModalRef } from '../../shared/services/modal.service';
 import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
@@ -7,7 +6,7 @@ import { VolunteerShift } from '../calendar/models/volunteer.model';
 
 @Component({
     selector: 'app-signup-modal',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     template: `
     <div class="modal-card">
       <div class="modal-card__header">

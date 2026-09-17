@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 import { SafePipe } from '../../pipes/safe.pipe';
 
@@ -13,7 +12,7 @@ interface FinancialReport {
 
 @Component({
     selector: 'app-financial-report',
-    imports: [CommonModule, ScrollAnimateDirective, SafePipe],
+    imports: [ScrollAnimateDirective, SafePipe],
     templateUrl: './financial-report.component.html',
     styleUrl: './financial-report.component.scss'
 })

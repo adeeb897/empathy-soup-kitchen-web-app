@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AdminAuthService, AuthState } from '../calendar/services/admin-auth.service';
@@ -20,7 +19,7 @@ import { takeMagicLinkToken } from '../../shared/utils/magic-link-token';
  */
 @Component({
     selector: 'app-admin-shell',
-    imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive],
+    imports: [FormsModule, RouterOutlet, RouterLink, RouterLinkActive],
     templateUrl: './admin-shell.component.html',
     styleUrl: './admin-shell.component.scss'
 })

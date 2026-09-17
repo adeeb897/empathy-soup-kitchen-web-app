@@ -1,10 +1,9 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 
 @Component({
     selector: 'app-gallery',
-    imports: [CommonModule, ScrollAnimateDirective],
+    imports: [ScrollAnimateDirective],
     templateUrl: './gallery.component.html',
     styleUrl: './gallery.component.scss'
 })

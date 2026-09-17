@@ -1,5 +1,4 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MODAL_DATA, MODAL_REF, ModalRef } from '../../services/modal.service';
 
 export interface ConfirmDialogData {
@@ -19,7 +18,7 @@ export interface ConfirmDialogData {
  */
 @Component({
     selector: 'app-confirm-dialog',
-    imports: [CommonModule],
+    imports: [],
     template: `
     <div class="confirm">
       <div class="confirm__icon" [class.confirm__icon--danger]="destructive">

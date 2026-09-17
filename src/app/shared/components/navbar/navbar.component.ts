@@ -1,11 +1,10 @@
 import { Component, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ApiWarmupService } from '../../services/api-warmup.service';
 
 @Component({
     selector: 'app-navbar',
-    imports: [CommonModule, RouterLink, RouterLinkActive],
+    imports: [RouterLink, RouterLinkActive],
     template: `
     <nav class="navbar" [class.navbar--scrolled]="isScrolled" role="navigation" aria-label="Main navigation">
       <div class="navbar__inner">

@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 
 @Component({
     selector: 'app-fundraiser',
-    imports: [CommonModule, ScrollAnimateDirective],
+    imports: [ScrollAnimateDirective],
     templateUrl: './fundraiser.component.html',
     styleUrl: './fundraiser.component.scss'
 })

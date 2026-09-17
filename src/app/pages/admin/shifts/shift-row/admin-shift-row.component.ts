@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { VolunteerShift, SignUp } from '../../../calendar/models/volunteer.model';
 
 /**
@@ -12,7 +11,7 @@ import { VolunteerShift, SignUp } from '../../../calendar/models/volunteer.model
  */
 @Component({
     selector: 'app-admin-shift-row',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './admin-shift-row.component.html',
     styleUrl: './admin-shift-row.component.scss'
 })

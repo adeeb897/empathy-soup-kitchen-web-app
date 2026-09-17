@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 /**
  * One presentation for the loading / empty / error states that admin sections
@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
  */
 @Component({
     selector: 'app-state-panel',
-    imports: [CommonModule],
+    imports: [],
     template: `
     <div class="state" [class.state--error]="state === 'error'">
       @if (state === 'loading') {

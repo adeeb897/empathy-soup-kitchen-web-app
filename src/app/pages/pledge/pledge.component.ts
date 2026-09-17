@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
@@ -8,7 +7,7 @@ import { PledgeService } from './pledge.service';
 
 @Component({
     selector: 'app-pledge',
-    imports: [CommonModule, FormsModule, RouterLink, ScrollAnimateDirective],
+    imports: [FormsModule, RouterLink, ScrollAnimateDirective],
     templateUrl: './pledge.component.html',
     styleUrl: './pledge.component.scss'
 })

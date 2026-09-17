@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TextBoxService } from '../../calendar/services/text-box.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -23,7 +22,7 @@ interface EditableText {
  */
 @Component({
     selector: 'app-admin-settings',
-    imports: [CommonModule, FormsModule, StatePanelComponent],
+    imports: [FormsModule, StatePanelComponent],
     templateUrl: './admin-settings.component.html',
     styleUrl: './admin-settings.component.scss'
 })

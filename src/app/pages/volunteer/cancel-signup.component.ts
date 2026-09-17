@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { RetryService } from '../../shared/utils/retry.service';
 
@@ -15,7 +14,7 @@ type State = 'confirm' | 'cancelling' | 'done' | 'error' | 'missing';
  */
 @Component({
     selector: 'app-cancel-signup',
-    imports: [CommonModule, RouterLink],
+    imports: [RouterLink],
     templateUrl: './cancel-signup.component.html',
     styleUrl: './cancel-signup.component.scss'
 })

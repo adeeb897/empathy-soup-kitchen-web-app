@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiWarmupService } from '../../../shared/services/api-warmup.service';
 import { VolunteerShiftService } from '../../calendar/services/volunteer-shift.service';
@@ -11,7 +10,7 @@ import { AdminShiftRowComponent } from './shift-row/admin-shift-row.component';
 
 @Component({
     selector: 'app-admin-shifts',
-    imports: [CommonModule, FormsModule, StatePanelComponent, AdminShiftRowComponent],
+    imports: [FormsModule, StatePanelComponent, AdminShiftRowComponent],
     templateUrl: './admin-shifts.component.html',
     styleUrl: './admin-shifts.component.scss'
 })

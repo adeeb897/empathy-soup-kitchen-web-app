@@ -1,5 +1,4 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MODAL_REF, ModalRef } from '../../shared/services/modal.service';
 import { RetryService } from '../../shared/utils/retry.service';
@@ -14,7 +13,7 @@ import { RetryService } from '../../shared/utils/retry.service';
  */
 @Component({
     selector: 'app-cancel-modal',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     template: `
     <div class="modal-card">
       <div class="modal-card__header">

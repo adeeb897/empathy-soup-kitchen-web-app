@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 import { SafePipe } from '../../pipes/safe.pipe';
 
 @Component({
     selector: 'app-about',
-    imports: [CommonModule, ScrollAnimateDirective, SafePipe],
+    imports: [ScrollAnimateDirective, SafePipe],
     templateUrl: './about.component.html',
     styleUrl: './about.component.scss'
 })

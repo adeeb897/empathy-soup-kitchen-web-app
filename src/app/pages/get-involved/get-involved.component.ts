@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 
 @Component({
     selector: 'app-get-involved',
-    imports: [CommonModule, ScrollAnimateDirective],
+    imports: [ScrollAnimateDirective],
     templateUrl: './get-involved.component.html',
     styleUrl: './get-involved.component.scss'
 })
