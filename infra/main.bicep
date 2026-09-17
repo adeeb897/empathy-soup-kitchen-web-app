@@ -124,18 +124,15 @@ resource sqlAdAdmin 'Microsoft.Sql/servers/administrators@2023-08-01-preview' = 
   }
 }
 
-// ─── Link database to SWA ───────────────────────────────────────────
-resource dbConnection 'Microsoft.Web/staticSites/databaseConnections@2023-12-01' = {
-  parent: swa
-  name: 'default'
-  dependsOn: [swaIdentity, sqlAdAdmin]
-  properties: {
-    resourceId: database.outputs.databaseId
-    connectionIdentity: 'SystemAssigned'
-    connectionString: 'Server=tcp:${sqlServerName}${environment().suffixes.sqlServerHostname},1433;Database=${database.outputs.databaseName};Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;'
-    region: location
-  }
-}
+// The Static Web App is deliberately NOT linked to the database. That link is
+// what powers the built-in Data API Builder endpoint at /data-api/*, which
+// serves the tables straight to the internet under whatever permissions its
+// config grants. The functions in api/ hold the only connection string, and
+// they check authorisation on every write.
+//
+// Removing this resource does not unlink an existing connection — Bicep will
+// not delete a resource it no longer declares. See the readme for the one-time
+// `az staticwebapp dbconnection delete` needed to tear the live one down.
 
 // ─── Logic App: Hourly Reminder Scheduler ────────────────────────────
 resource reminderScheduler 'Microsoft.Logic/workflows@2019-05-01' = {

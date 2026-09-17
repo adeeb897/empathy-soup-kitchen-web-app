@@ -28,12 +28,10 @@ export class TextBoxService {
     // First try to get from localStorage (fastest)
     const cachedText = localStorage.getItem(`textBox_${textName}`);
     if (cachedText) {
-      console.log(`Retrieved "${textName}" from local cache`);
       return this.decodeTextContent(cachedText);
     }
 
     try {
-      console.log(`Fetching "${textName}" from API...`);
       const endpoint = `${this.apiEndpoint}?TextName=${textName}`;
       const response = await this.retryService.fetchWithRetry(endpoint);
 
@@ -89,7 +87,6 @@ export class TextBoxService {
 
     // Return default text if available
     if (this.defaultTexts[textName]) {
-      console.log(`Using default text for "${textName}"`);
       return this.defaultTexts[textName];
     }
 
@@ -110,7 +107,6 @@ export class TextBoxService {
     localStorage.setItem(`textBox_${textName}`, encodedContent);
 
     try {
-      console.log(`Saving "${textName}" to API...`);
       // Check if database is available by making a simple GET request
       const testResponse = await this.retryService.fetchWithRetry(this.apiEndpoint, {
         method: 'HEAD',
@@ -175,11 +171,9 @@ export class TextBoxService {
         }
       }
 
-      console.log(`Successfully saved "${textName}" to API`);
       return true;
     } catch (error) {
       console.error(`Error updating text box "${textName}" in API:`, error);
-      console.log('Text was saved to localStorage as fallback');
       return false;
     }
   }

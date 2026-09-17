@@ -188,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
           lfs: false
@@ -204,7 +204,9 @@ jobs:
           app_location: "/" # App source code path
           api_location: "api" # Api source code path - optional
           output_location: "dist/empathy-soup-kitchen-web-app/browser" # Built app content directory - optional
-          data_api_location: "swa-db-connections" # Database connections config
+          # No data_api_location: all data access goes through the functions in
+          # api/, which authenticate every write. Data API Builder used to be
+          # deployed here and exposed the tables directly with no auth at all.
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
