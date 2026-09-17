@@ -51,7 +51,7 @@ module.exports = async function (context, req) {
 
     // Build magic link
     const baseUrl = process.env.SITE_URL || 'https://empathysoupkitchen.org';
-    const magicLink = `${baseUrl}/volunteer/admin?token=${encodeURIComponent(token)}`;
+    const magicLink = `${baseUrl}/admin?token=${encodeURIComponent(token)}`;
 
     // Send email
     const transporter = nodemailer.createTransport({
