@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiWarmupService } from '../../../shared/services/api-warmup.service';
 import { VolunteerShiftService } from '../../calendar/services/volunteer-shift.service';
@@ -10,11 +9,10 @@ import { StatePanelComponent } from '../../../shared/components/state-panel/stat
 import { AdminShiftRowComponent } from './shift-row/admin-shift-row.component';
 
 @Component({
-  selector: 'app-admin-shifts',
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatePanelComponent, AdminShiftRowComponent],
-  templateUrl: './admin-shifts.component.html',
-  styleUrl: './admin-shifts.component.scss',
+    selector: 'app-admin-shifts',
+    imports: [FormsModule, StatePanelComponent, AdminShiftRowComponent],
+    templateUrl: './admin-shifts.component.html',
+    styleUrl: './admin-shifts.component.scss'
 })
 export class AdminShiftsComponent implements OnInit {
   upcomingShifts: VolunteerShift[] = [];

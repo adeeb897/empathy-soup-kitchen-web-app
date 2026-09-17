@@ -1,10 +1,10 @@
 # Empathy Soup Kitchen Web Application
 
-Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in McKeesport, PA.
+Angular 21 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in McKeesport, PA.
 
 ## Architecture
 
-- **Frontend:** Angular 18 standalone components, custom CSS design system (no UI library)
+- **Frontend:** Angular 21 standalone components, custom CSS design system (no UI library)
 - **Hosting:** Azure Static Web Apps (Standard tier)
 - **Database:** Azure SQL (Basic, 5 DTU)
 - **Data access:** Azure Functions in `api/`, deployed as SWA managed functions.
@@ -201,6 +201,21 @@ az keyvault set-policy --name "$KV" --spn "$APP_ID" --secret-permissions get lis
 Until the variables exist and this policy is granted, the schema job fails on merge and
 blocks the app deploy — so do both before merging any change under `infra/`. The job
 reports which of the two is missing in its summary.
+
+## Why Angular 21 and not 22
+
+Angular 22 requires Node `>=22.22.3`. Azure Static Web Apps builds this app with
+Oryx, and Oryx installs **Node 22.22.0** — three patch versions short — so an
+upgrade to 22 builds locally and then fails in CI.
+
+There is nothing to gain by forcing it. Angular 21 is supported, and `npm audit`
+reports zero vulnerabilities on it. Revisit when Oryx ships a newer Node; the
+version it picks is printed in the deploy log under `Using Node version:`.
+
+The build, serve, extract-i18n and test targets all use `@angular/build` rather
+than `@angular-devkit/build-angular`. The latter is the compatibility package
+and pulls in the whole webpack and karma dependency tree — which is where every
+remaining advisory came from after the framework upgrade. Do not switch back.
 
 ## Why there is no `/data-api`
 

@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { RetryService } from '../../shared/utils/retry.service';
 
@@ -14,11 +13,10 @@ type State = 'confirm' | 'cancelling' | 'done' | 'error' | 'missing';
  * and link previewers follow URLs on their own.
  */
 @Component({
-  selector: 'app-cancel-signup',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './cancel-signup.component.html',
-  styleUrl: './cancel-signup.component.scss',
+    selector: 'app-cancel-signup',
+    imports: [RouterLink],
+    templateUrl: './cancel-signup.component.html',
+    styleUrl: './cancel-signup.component.scss'
 })
 export class CancelSignupComponent implements OnInit {
   state: State = 'confirm';

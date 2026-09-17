@@ -1,13 +1,11 @@
 import { Component, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ApiWarmupService } from '../../services/api-warmup.service';
 
 @Component({
-  selector: 'app-navbar',
-  standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
-  template: `
+    selector: 'app-navbar',
+    imports: [RouterLink, RouterLinkActive],
+    template: `
     <nav class="navbar" [class.navbar--scrolled]="isScrolled" role="navigation" aria-label="Main navigation">
       <div class="navbar__inner">
         <a routerLink="/home" class="navbar__logo" aria-label="Empathy Soup Kitchen - Home">
@@ -63,7 +61,7 @@ import { ApiWarmupService } from '../../services/api-warmup.service';
       }
     </nav>
   `,
-  styles: [`
+    styles: [`
     .navbar {
       position: fixed;
       top: 0;

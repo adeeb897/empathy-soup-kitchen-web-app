@@ -2,10 +2,9 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-footer',
-  standalone: true,
-  imports: [RouterLink],
-  template: `
+    selector: 'app-footer',
+    imports: [RouterLink],
+    template: `
     <footer class="footer" role="contentinfo">
       <div class="footer__inner container">
         <div class="footer__top">
@@ -44,7 +43,7 @@ import { RouterLink } from '@angular/router';
       </div>
     </footer>
   `,
-  styles: [`
+    styles: [`
     .footer {
       background: var(--color-charcoal);
       color: var(--color-cream);

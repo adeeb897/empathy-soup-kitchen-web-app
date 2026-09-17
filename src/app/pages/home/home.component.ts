@@ -5,11 +5,10 @@ import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.d
 import { ApiWarmupService } from '../../shared/services/api-warmup.service';
 
 @Component({
-  selector: 'app-home',
-  standalone: true,
-  imports: [CommonModule, RouterLink, ScrollAnimateDirective],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.scss',
+    selector: 'app-home',
+    imports: [CommonModule, RouterLink, ScrollAnimateDirective],
+    templateUrl: './home.component.html',
+    styleUrl: './home.component.scss'
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
   stats = [

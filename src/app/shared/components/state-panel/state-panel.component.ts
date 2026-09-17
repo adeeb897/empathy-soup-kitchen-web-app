@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 /**
  * One presentation for the loading / empty / error states that admin sections
@@ -10,10 +10,9 @@ import { CommonModule } from '@angular/common';
  *                    (action)="reload()" />
  */
 @Component({
-  selector: 'app-state-panel',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-state-panel',
+    imports: [],
+    template: `
     <div class="state" [class.state--error]="state === 'error'">
       @if (state === 'loading') {
         <div class="state__spinner"></div>
@@ -31,7 +30,7 @@ import { CommonModule } from '@angular/common';
       }
     </div>
   `,
-  styles: [`
+    styles: [`
     .state {
       display: flex;
       flex-direction: column;
@@ -72,7 +71,7 @@ import { CommonModule } from '@angular/common';
     @keyframes state-spin {
       to { transform: rotate(360deg); }
     }
-  `],
+  `]
 })
 export class StatePanelComponent {
   /** Which state to present. */

@@ -1,5 +1,4 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MODAL_DATA, MODAL_REF, ModalRef } from '../../services/modal.service';
 
 export interface ConfirmDialogData {
@@ -18,10 +17,9 @@ export interface ConfirmDialogData {
  * Open it through ConfirmService rather than ModalService directly.
  */
 @Component({
-  selector: 'app-confirm-dialog',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-confirm-dialog',
+    imports: [],
+    template: `
     <div class="confirm">
       <div class="confirm__icon" [class.confirm__icon--danger]="destructive">
         <span class="material-icons">{{ destructive ? 'warning' : 'help_outline' }}</span>
@@ -41,7 +39,7 @@ export interface ConfirmDialogData {
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .confirm {
       background: var(--color-white);
       border-radius: var(--border-radius-lg);
@@ -89,7 +87,7 @@ export interface ConfirmDialogData {
       justify-content: center;
       flex-wrap: wrap;
     }
-  `],
+  `]
 })
 export class ConfirmDialogComponent {
   readonly destructive: boolean;

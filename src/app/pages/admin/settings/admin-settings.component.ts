@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TextBoxService } from '../../calendar/services/text-box.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -22,11 +21,10 @@ interface EditableText {
  * missing surface.
  */
 @Component({
-  selector: 'app-admin-settings',
-  standalone: true,
-  imports: [CommonModule, FormsModule, StatePanelComponent],
-  templateUrl: './admin-settings.component.html',
-  styleUrl: './admin-settings.component.scss',
+    selector: 'app-admin-settings',
+    imports: [FormsModule, StatePanelComponent],
+    templateUrl: './admin-settings.component.html',
+    styleUrl: './admin-settings.component.scss'
 })
 export class AdminSettingsComponent implements OnInit {
   /** Every text box the site renders. Add a row here when a new one is used. */

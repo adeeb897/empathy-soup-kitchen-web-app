@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { VolunteerShift, SignUp } from '../../../calendar/models/volunteer.model';
 
 /**
@@ -11,11 +10,10 @@ import { VolunteerShift, SignUp } from '../../../calendar/models/volunteer.model
  * action; past shifts are read-only.
  */
 @Component({
-  selector: 'app-admin-shift-row',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './admin-shift-row.component.html',
-  styleUrl: './admin-shift-row.component.scss',
+    selector: 'app-admin-shift-row',
+    imports: [],
+    templateUrl: './admin-shift-row.component.html',
+    styleUrl: './admin-shift-row.component.scss'
 })
 export class AdminShiftRowComponent {
   @Input({ required: true }) shift!: VolunteerShift;

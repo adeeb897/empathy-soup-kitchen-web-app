@@ -1,13 +1,11 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 
 @Component({
-  selector: 'app-get-involved',
-  standalone: true,
-  imports: [CommonModule, ScrollAnimateDirective],
-  templateUrl: './get-involved.component.html',
-  styleUrl: './get-involved.component.scss',
+    selector: 'app-get-involved',
+    imports: [ScrollAnimateDirective],
+    templateUrl: './get-involved.component.html',
+    styleUrl: './get-involved.component.scss'
 })
 export class GetInvolvedComponent {
   activeTab = 'donate';

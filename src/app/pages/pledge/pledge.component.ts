@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
@@ -7,11 +6,10 @@ import { ToastService } from '../../shared/services/toast.service';
 import { PledgeService } from './pledge.service';
 
 @Component({
-  selector: 'app-pledge',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ScrollAnimateDirective],
-  templateUrl: './pledge.component.html',
-  styleUrl: './pledge.component.scss',
+    selector: 'app-pledge',
+    imports: [FormsModule, RouterLink, ScrollAnimateDirective],
+    templateUrl: './pledge.component.html',
+    styleUrl: './pledge.component.scss'
 })
 export class PledgeComponent {
   readonly presetAmounts = ['50', '100', '250', '500', '1000'];
