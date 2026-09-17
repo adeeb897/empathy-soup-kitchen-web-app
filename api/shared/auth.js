@@ -1,6 +1,50 @@
 const crypto = require('crypto');
 
 /**
+ * Domains whose addresses are admins by default. Override with the
+ * ADMIN_EMAIL_DOMAINS app setting (comma-separated) to add or remove one
+ * without a deploy; set it to an empty string to require the explicit
+ * ADMIN_EMAILS list only.
+ */
+const DEFAULT_ADMIN_DOMAINS = 'empathysoupkitchen.org';
+
+function listFromEnv(value, fallback = '') {
+  return String(value ?? fallback)
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/**
+ * Whether an address counts as an admin.
+ *
+ * Two ways to qualify, checked in this order:
+ *   1. listed explicitly in ADMIN_EMAILS — for admins outside the org domain
+ *   2. the address is at one of ADMIN_EMAIL_DOMAINS
+ *
+ * The domain is compared exactly against the part after the last "@", so
+ * neither a lookalike domain (user@evil-empathysoupkitchen.org) nor a
+ * subdomain (user@mail.empathysoupkitchen.org) matches by accident.
+ */
+function isAdminEmail(email) {
+  const normalized = String(email ?? '').trim().toLowerCase();
+  if (!normalized) return false;
+
+  if (listFromEnv(process.env.ADMIN_EMAILS).includes(normalized)) {
+    return true;
+  }
+
+  const at = normalized.lastIndexOf('@');
+  if (at === -1 || at === normalized.length - 1) return false;
+
+  const domain = normalized.slice(at + 1);
+  const domains = listFromEnv(process.env.ADMIN_EMAIL_DOMAINS, DEFAULT_ADMIN_DOMAINS)
+    .map((d) => d.replace(/^@/, ''));
+
+  return domains.includes(domain);
+}
+
+/**
  * Verifies an admin session token issued by auth-verify-magic.
  *
  * Token format: base64url(email:expiry).hmacSha256Hex
@@ -62,14 +106,9 @@ function verifySessionToken(token) {
     return { valid: false, status: 401, error: 'Session expired' };
   }
 
-  // Re-check the admin list on every request, so removing someone from
-  // ADMIN_EMAILS revokes their access without waiting for token expiry.
-  const adminEmails = (process.env.ADMIN_EMAILS || '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-
-  if (!adminEmails.includes(email.toLowerCase())) {
+  // Re-checked on every request, so removing someone from ADMIN_EMAILS (or
+  // from the admin domain) revokes access without waiting for token expiry.
+  if (!isAdminEmail(email)) {
     return { valid: false, status: 403, error: 'Access denied' };
   }
 
@@ -107,4 +146,4 @@ function requireAdmin(req) {
   return verifySessionToken(getAdminToken(req));
 }
 
-module.exports = { verifySessionToken, getAdminToken, getBearerToken, requireAdmin };
+module.exports = { isAdminEmail, verifySessionToken, getAdminToken, getBearerToken, requireAdmin };
