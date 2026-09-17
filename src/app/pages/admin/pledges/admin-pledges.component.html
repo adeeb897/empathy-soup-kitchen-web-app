@@ -1,10 +1,21 @@
 <div class="admin-pledges">
   <div class="admin-pledges__header">
     <h2>Pledges</h2>
-    <button class="btn btn--ghost btn--small" (click)="loadPledges()" [disabled]="pledgesLoading">
-      <span class="material-icons">refresh</span>
-      Refresh
-    </button>
+    <div class="admin-pledges__actions">
+      @if (pledges.length > 0) {
+        <button
+          class="btn btn--secondary btn--small"
+          (click)="exportCsv()"
+          [disabled]="pledgesLoading">
+          <span class="material-icons">download</span>
+          Export CSV
+        </button>
+      }
+      <button class="btn btn--ghost btn--small" (click)="loadPledges()" [disabled]="pledgesLoading">
+        <span class="material-icons">refresh</span>
+        Refresh
+      </button>
+    </div>
   </div>
 
   @if (pledgesLoading) {

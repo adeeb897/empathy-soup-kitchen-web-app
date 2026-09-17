@@ -364,6 +364,8 @@ npm run dev
 | `ng serve` | Dev server only (no local DB) at `http://localhost:4200/` |
 | `ng build` | Production build → `dist/empathy-soup-kitchen-web-app/browser` |
 | `ng test` | Run unit tests via Karma |
+| `ng test --watch=false --browsers=ChromeHeadlessNoSandbox` | Same, inside a container (Chrome will not start as root without `--no-sandbox`) |
+| `cd api && npm test` | Run the API tests (mailer, cancellation tokens, error shapes) |
 
 The local dev server proxies `/api` to a local Azure Functions host at
 `http://localhost:7071` (`cd api && npm start`, which needs the Azure Functions
