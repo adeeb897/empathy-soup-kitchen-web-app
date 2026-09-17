@@ -76,17 +76,35 @@ function verifySessionToken(token) {
   return { valid: true, email };
 }
 
-/** Pulls the bearer token out of an Authorization header. */
-function getBearerToken(req) {
-  const header =
-    (req.headers && (req.headers.authorization || req.headers.Authorization)) || '';
-  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+/**
+ * Reads the admin session token from the request.
+ *
+ * X-Admin-Token is checked first and is the header the client relies on.
+ * Azure Static Web Apps treats Authorization as its own — a request can
+ * reach the function with an Authorization header whose value is not the
+ * one the browser sent, which surfaces as a valid-looking token being
+ * rejected as "Invalid token". A custom header is passed through untouched.
+ *
+ * Authorization is still accepted so direct API calls (curl, tests, any
+ * non-SWA host) keep working.
+ */
+function getAdminToken(req) {
+  const headers = req.headers || {};
+
+  const custom = headers['x-admin-token'] || headers['X-Admin-Token'];
+  if (custom && String(custom).trim()) return String(custom).trim();
+
+  const authHeader = String(headers.authorization || headers.Authorization || '');
+  const match = /^Bearer\s+(.+)$/i.exec(authHeader.trim());
   return match ? match[1] : null;
 }
 
-/** Convenience wrapper: verifies the request's bearer token. */
+/** @deprecated use getAdminToken; kept so existing imports keep working. */
+const getBearerToken = getAdminToken;
+
+/** Convenience wrapper: verifies the request's admin session token. */
 function requireAdmin(req) {
-  return verifySessionToken(getBearerToken(req));
+  return verifySessionToken(getAdminToken(req));
 }
 
-module.exports = { verifySessionToken, getBearerToken, requireAdmin };
+module.exports = { verifySessionToken, getAdminToken, getBearerToken, requireAdmin };

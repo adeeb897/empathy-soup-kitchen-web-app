@@ -2,7 +2,7 @@ const { getPool, sql } = require('../shared/db');
 const { corsHeaders, errorResponse } = require('../shared/http');
 const { requireAdmin } = require('../shared/auth');
 
-const HEADERS = corsHeaders('GET, POST, PATCH, HEAD, OPTIONS', 'Content-Type, Authorization');
+const HEADERS = corsHeaders('GET, POST, PATCH, HEAD, OPTIONS', 'Content-Type, Authorization, X-Admin-Token');
 
 module.exports = async function (context, req) {
   if (req.method === 'OPTIONS') {

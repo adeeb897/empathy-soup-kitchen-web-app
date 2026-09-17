@@ -2,7 +2,7 @@ const { getPool, sql } = require('../shared/db');
 const { requireAdmin } = require('../shared/auth');
 const { corsHeaders, errorResponse } = require('../shared/http');
 
-const HEADERS = corsHeaders('GET, POST, DELETE, OPTIONS', 'Content-Type, Authorization');
+const HEADERS = corsHeaders('GET, POST, DELETE, OPTIONS', 'Content-Type, Authorization, X-Admin-Token');
 
 // Pledge records hold donor contact details, home addresses and amounts, so
 // reads and deletes require a valid admin session token (Authorization:
