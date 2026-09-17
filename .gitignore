@@ -9,6 +9,12 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# A partial api/node_modules tree was committed once by accident and went stale,
+# leaving an outdated nodemailer in the repo long after package.json had moved
+# on. The SWA build installs the API's dependencies from api/package-lock.json;
+# nothing should ever be committed here.
+api/node_modules/
+
 # IDEs and editors
 .idea/
 .project

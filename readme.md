@@ -6,7 +6,10 @@ Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a
 
 - **Frontend:** Angular 18 standalone components, custom CSS design system (no UI library)
 - **Hosting:** Azure Static Web Apps (Standard tier)
-- **Database:** Azure SQL (Basic, 5 DTU) via Data API Builder (DAB)
+- **Database:** Azure SQL (Basic, 5 DTU)
+- **Data access:** Azure Functions in `api/`, deployed as SWA managed functions.
+  These hold the only database connection string and authorise every write.
+  There is no Data API Builder endpoint — see "Why there is no `/data-api`".
 - **CI/CD:** GitHub Actions → Azure SWA auto-deploy on push to `main`
 
 ## Project Structure
@@ -15,30 +18,46 @@ Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a
 src/app/
 ├── pages/
 │   ├── home/                 # Landing page with hero, stats, hours
-│   ├── volunteer/            # Shift signup + cancellation
-│   ├── volunteer-admin/      # Admin panel (OAuth-protected)
-│   ├── get-involved/         # Donate, refugee services, financial reports
+│   ├── volunteer/            # Shift signup + emailed cancellation links
+│   ├── admin/                # Admin panel (magic link + signed session token)
+│   │   ├── shifts/           # Create/edit shifts, view signups
+│   │   ├── pledges/          # Submitted pledges + cumulative totals
+│   │   └── settings/         # Editable site text
+│   ├── pledge/               # Public pledge form
+│   ├── fundraiser/           # Annual fundraiser details + ticket link
+│   ├── financial-report/     # Quarterly PDFs + updates link
+│   ├── get-involved/         # Donate, refugee services
 │   ├── gallery/              # Masonry photo gallery with lightbox
 │   └── about/                # Mission, board, FAQ, contact
 ├── shared/
 │   ├── components/           # Navbar, Footer, ScrollAnimate directive
-│   └── services/             # ModalService, ToastService, ApiWarmupService
+│   ├── services/             # ModalService, ToastService, ApiWarmupService
+│   └── utils/                # RetryService, magic-link token capture
 └── pages/calendar/
     ├── models/               # VolunteerShift, SignUp interfaces
-    └── services/             # VolunteerShiftService, TextBoxService, EmailService
+    └── services/             # VolunteerShiftService, TextBoxService, AdminAuthService
+api/                          # Azure Functions — the only database clients
+├── shifts/                   # Shift CRUD (writes are admin-only)
+├── signups/                  # Signup create/cancel; PII is admin-only
+├── pledges/                  # Pledge submit (public) + list (admin-only)
+├── textboxes/                # Editable site text
+├── cancel-links/             # Emails signed cancellation links
+├── auth-magic-link/          # Sends an admin sign-in link
+├── auth-verify-magic/        # Exchanges that link for a session token
+├── send-email/               # Confirmation email
+├── send-reminders/           # Called hourly by the Logic App
+└── shared/                   # db, http, auth, email, cancel-token helpers
 infra/
-├── main.bicep                # Full stack: Key Vault, SQL, SWA DB link, Logic App
+├── main.bicep                # Full stack: Key Vault, SQL, Logic App
 ├── database.bicep            # SQL server + database (used by CI and by main.bicep)
 ├── schema.bicep              # Applies sql-setup.sql (used by CI and by main.bicep)
-├── sql-setup.sql             # Table schemas (VolunteerShifts, SignUps, TextBoxes)
+├── sql-setup.sql             # Table schemas (VolunteerShifts, SignUps, TextBoxes, Pledges)
 └── parameters.json           # Deployment parameter template
-swa-db-connections/
-└── staticwebapp.database.config.json  # DAB entity config
 ```
 
 ## Database Schema
 
-Defined in `infra/sql-setup.sql`. Column names match the Angular service contracts exactly so DAB auto-maps without field overrides.
+Defined in `infra/sql-setup.sql`.
 
 | Table | Key Columns |
 |-------|------------|
@@ -183,6 +202,45 @@ Until the variables exist and this policy is granted, the schema job fails on me
 blocks the app deploy — so do both before merging any change under `infra/`. The job
 reports which of the two is missing in its summary.
 
+## Why there is no `/data-api`
+
+The site used to deploy **Data API Builder** alongside the app, via a
+`swa-db-connections/` config folder and `data_api_location` in the workflow. Its
+config granted the `anonymous` role `["*"]` — full read, insert, update and
+delete — on `SignUps`, `VolunteerShifts` and `TextBoxes`, with GraphQL
+introspection on. Anyone who knew the URL could read every volunteer's name,
+email and phone number, or delete the shift table, without authenticating.
+
+Nothing in the app ever called it. All data access goes through `api/`, which
+checks authorisation on every write. The config, the workflow setting, the route
+exclusion and the SWA-to-database link in `main.bicep` have all been removed.
+
+**Do not add `data_api_location` back.** If a future feature wants a direct data
+API, it needs per-entity permissions tied to real roles, not `anonymous: ["*"]`.
+
+Removing the Bicep resource does not tear down a link that already exists —
+Bicep never deletes what it stops declaring. To remove it from a live app:
+
+```bash
+# Check whether a link still exists (empty output means there is nothing to remove)
+az staticwebapp dbconnection show \
+  --name empathy-soup-kitchen-web-app \
+  --resource-group empathy-soup-kitchen-web-app
+
+# Remove it
+az staticwebapp dbconnection delete \
+  --name empathy-soup-kitchen-web-app \
+  --resource-group empathy-soup-kitchen-web-app
+```
+
+Then confirm the endpoint is gone. This should return 404, not a list of
+volunteers — if it returns data, the link is still live:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' \
+  https://empathysoupkitchen.org/data-api/rest/SignUps
+```
+
 ## Infrastructure Deployment
 
 Requires [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli).
@@ -191,7 +249,7 @@ Requires [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-c
 # 1. Login
 az login
 
-# 2. Deploy Azure SQL + link to SWA + apply the database schema
+# 2. Deploy Azure SQL + apply the database schema
 az deployment group create \
   --resource-group empathy-soup-kitchen-web-app \
   --template-file infra/main.bicep \
@@ -272,7 +330,7 @@ npm run dev
 | Command | Description |
 |---------|------------|
 | `npm run dev` | Start DB containers + Angular dev server with proxy |
-| `npm run db:start` | Start SQL Server + DAB containers |
+| `npm run db:start` | Start the local SQL Server container |
 | `npm run db:stop` | Stop database containers |
 | `npm run db:reset` | Reset database (deletes all data) |
 | `npm run db:logs` | View database container logs |
@@ -280,7 +338,9 @@ npm run dev
 | `ng build` | Production build → `dist/empathy-soup-kitchen-web-app/browser` |
 | `ng test` | Run unit tests via Karma |
 
-The local dev server proxies `/data-api/rest/` calls to the local DAB instance at `http://localhost:5000`.
+The local dev server proxies `/api` to a local Azure Functions host at
+`http://localhost:7071` (`cd api && npm start`, which needs the Azure Functions
+Core Tools). Without it the page loads but every data call fails.
 
 ## Database Availability
 

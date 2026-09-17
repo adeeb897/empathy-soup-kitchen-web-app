@@ -1,5 +1,5 @@
 const { getPool, sql } = require('../shared/db');
-const { corsHeaders, errorResponse } = require('../shared/http');
+const { corsHeaders } = require('../shared/http');
 const { mintCancelToken } = require('../shared/cancel-token');
 const { sendMail, siteUrl, escapeHtml } = require('../shared/email');
 

@@ -27,8 +27,16 @@ function errorResponse(context, error, headers) {
     };
   }
 
+  // The message can carry driver and schema detail — table names, constraint
+  // names, fragments of the failing statement — so it stays in the logs. The
+  // client gets something it can show a volunteer and nothing it can map the
+  // database with.
   context.log.error('API error:', error);
-  return { status: 500, headers, body: { error: error.message } };
+  return {
+    status: 500,
+    headers,
+    body: { error: 'Something went wrong. Please try again.' }
+  };
 }
 
 module.exports = { corsHeaders, errorResponse, RETRY_AFTER_SECONDS };
