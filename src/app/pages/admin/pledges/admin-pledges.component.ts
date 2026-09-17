@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService } from '../../../shared/services/toast.service';
+import { ConfirmService } from '../../../shared/services/confirm.service';
 import { PledgeService, PledgeRecord } from '../../pledge/pledge.service';
+import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
 
 @Component({
   selector: 'app-admin-pledges',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StatePanelComponent],
   templateUrl: './admin-pledges.component.html',
   styleUrl: './admin-pledges.component.scss',
 })
@@ -17,7 +19,8 @@ export class AdminPledgesComponent implements OnInit {
 
   constructor(
     private pledgeService: PledgeService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private confirm: ConfirmService
   ) {}
 
   ngOnInit(): void {
@@ -53,7 +56,12 @@ export class AdminPledgesComponent implements OnInit {
   }
 
   async deletePledge(pledgeId: number): Promise<void> {
-    if (!confirm('Delete this pledge? This cannot be undone.')) return;
+    const ok = await this.confirm.ask({
+      title: 'Delete this pledge?',
+      message: 'This removes the record permanently and cannot be undone.',
+      confirmLabel: 'Delete pledge',
+    });
+    if (!ok) return;
     try {
       await this.pledgeService.deletePledge(pledgeId);
       this.pledges = this.pledges.filter((p) => p.PledgeID !== pledgeId);

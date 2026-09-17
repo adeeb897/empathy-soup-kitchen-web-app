@@ -35,6 +35,7 @@ export class AdminShellComponent implements OnInit {
   readonly tabs = [
     { path: 'shifts', label: 'Shifts', icon: 'event' },
     { path: 'pledges', label: 'Pledges', icon: 'volunteer_activism' },
+    { path: 'settings', label: 'Site Text', icon: 'edit_note' },
   ];
 
   constructor(

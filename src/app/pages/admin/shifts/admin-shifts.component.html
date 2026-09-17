@@ -141,12 +141,18 @@
   </div>
 
   @if (loading) {
-    <div class="admin-loading">
-      <div class="spinner"></div>
-      <span>Loading shifts...</span>
-    </div>
+    <app-state-panel state="loading" message="Loading shifts…" />
+  } @else if (shiftsError) {
+    <app-state-panel
+      state="error"
+      [message]="shiftsError"
+      actionLabel="Try again"
+      (action)="loadShifts()" />
   } @else if (upcomingShifts.length === 0) {
-    <p class="admin-empty">No upcoming shifts.</p>
+    <app-state-panel
+      state="empty"
+      emptyIcon="event_available"
+      message="No upcoming shifts." />
   } @else {
     <div class="admin-shifts__list">
       @for (shift of upcomingShifts; track shift.ShiftID) {
