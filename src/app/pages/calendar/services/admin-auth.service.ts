@@ -165,12 +165,22 @@ export class AdminAuthService {
   }
 
   /**
-   * Authorization header for admin API calls, or {} when not signed in —
-   * safe to spread into any request, including public ones.
+   * Auth headers for admin API calls, or {} when not signed in — safe to
+   * spread into any request, including public ones.
+   *
+   * X-Admin-Token is the one the API relies on. Azure Static Web Apps treats
+   * Authorization as its own header, so a request can arrive at the function
+   * carrying a different value than the browser sent, which the API then
+   * rejects as an invalid token. Authorization is still sent so anything
+   * calling the API directly keeps working.
    */
   authHeaders(): Record<string, string> {
     const token = this.getSessionToken();
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (!token) return {};
+    return {
+      'X-Admin-Token': token,
+      Authorization: `Bearer ${token}`,
+    };
   }
 
   private setState(s: AuthState): void {

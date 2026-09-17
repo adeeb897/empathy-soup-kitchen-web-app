@@ -2,7 +2,7 @@ const { getPool, sql } = require('../shared/db');
 const { corsHeaders, errorResponse } = require('../shared/http');
 const { requireAdmin } = require('../shared/auth');
 
-const HEADERS = corsHeaders('GET, POST, PATCH, DELETE, OPTIONS', 'Content-Type, Authorization');
+const HEADERS = corsHeaders('GET, POST, PATCH, DELETE, OPTIONS', 'Content-Type, Authorization, X-Admin-Token');
 
 // Columns safe to return to an unauthenticated caller. The public volunteer
 // calendar only needs to count signups per shift to show remaining capacity —
