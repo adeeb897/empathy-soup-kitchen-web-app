@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const { sendMail, missingEmailConfig } = require('../shared/email');
 
 /**
  * Azure Function for sending emails via SMTP
@@ -41,16 +41,7 @@ module.exports = async function (context, req) {
         const { to, subject, html, text, type } = req.body;
 
         // Validate environment variables
-        const requiredEnvVars = [
-            'EMAIL_SMTP_HOST',
-            'EMAIL_SMTP_PORT',
-            'EMAIL_SMTP_USERNAME',
-            'EMAIL_SMTP_PASSWORD',
-            'EMAIL_SENDER_EMAIL',
-            'EMAIL_SENDER_NAME'
-        ];
-
-        const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+        const missingVars = missingEmailConfig();
         if (missingVars.length > 0) {
             context.log.error('Missing environment variables:', missingVars);
             context.res = {
@@ -64,53 +55,8 @@ module.exports = async function (context, req) {
             return;
         }
 
-        // Create SMTP transporter
-        const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_SMTP_HOST,
-            port: parseInt(process.env.EMAIL_SMTP_PORT),
-            secure: process.env.EMAIL_SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.EMAIL_SMTP_USERNAME,
-                pass: process.env.EMAIL_SMTP_PASSWORD
-            }
-        });
-
-        // Verify SMTP connection
-        try {
-            await transporter.verify();
-            context.log('SMTP connection verified');
-        } catch (verifyError) {
-            context.log.error('SMTP verification failed:', verifyError);
-            context.res = {
-                status: 500,
-                headers: corsHeaders,
-                body: {
-                    success: false,
-                    error: 'Email service configuration error'
-                }
-            };
-            return;
-        }
-
-        // Prepare email options
-        const mailOptions = {
-            from: `${process.env.EMAIL_SENDER_NAME} <${process.env.EMAIL_SENDER_EMAIL}>`,
-            to: to,
-            subject: subject,
-            html: html,
-            text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML for text version
-        };
-
-        // Add email type to headers for tracking
-        if (type) {
-            mailOptions.headers = {
-                'X-Email-Type': type
-            };
-        }
-
-        // Send email
         context.log(`Sending email to ${to}, subject: ${subject}`);
-        const info = await transporter.sendMail(mailOptions);
+        const info = await sendMail({ to, subject, html, text, type });
 
         context.log(`Email sent successfully. Message ID: ${info.messageId}`);
 

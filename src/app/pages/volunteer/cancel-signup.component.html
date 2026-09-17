@@ -1,0 +1,60 @@
+<section class="cancel section">
+  <div class="container">
+    <div class="cancel__card">
+
+      @switch (state) {
+        @case ('missing') {
+          <span class="material-icons cancel__icon cancel__icon--warn">link_off</span>
+          <h1>This link is incomplete</h1>
+          <p>
+            The cancellation link looks incomplete. Please open it directly from
+            your confirmation email, or request a new link from the Volunteer page.
+          </p>
+          <a routerLink="/volunteer" class="btn btn--primary">Go to Volunteer page</a>
+        }
+
+        @case ('done') {
+          <span class="material-icons cancel__icon cancel__icon--ok">check_circle</span>
+          <h1>Your shift is cancelled</h1>
+          <p>
+            Thanks for letting us know — the spot is free for someone else.
+            We'd love to see you at a future shift.
+          </p>
+          <a routerLink="/volunteer" class="btn btn--primary">See upcoming shifts</a>
+        }
+
+        @case ('error') {
+          <span class="material-icons cancel__icon cancel__icon--warn">error_outline</span>
+          <h1>We couldn't cancel that shift</h1>
+          <p>{{ errorMessage }}</p>
+          <p class="cancel__hint">
+            If the shift has already passed or was cancelled already, there's
+            nothing left to do. Otherwise, request a fresh link from the
+            Volunteer page.
+          </p>
+          <a routerLink="/volunteer" class="btn btn--secondary">Go to Volunteer page</a>
+        }
+
+        @default {
+          <span class="material-icons cancel__icon">event_busy</span>
+          <h1>Cancel your shift?</h1>
+          <p>
+            This will free up your spot so someone else can take it. You can
+            always sign up again afterwards.
+          </p>
+          <div class="cancel__actions">
+            <a routerLink="/volunteer" class="btn btn--ghost">Keep my shift</a>
+            <button
+              type="button"
+              class="btn btn--danger"
+              [disabled]="state === 'cancelling'"
+              (click)="cancel()">
+              {{ state === 'cancelling' ? 'Cancelling…' : 'Yes, cancel it' }}
+            </button>
+          </div>
+        }
+      }
+
+    </div>
+  </div>
+</section>

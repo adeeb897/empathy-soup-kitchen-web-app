@@ -104,12 +104,15 @@ export class VolunteerShiftService {
 
     const data = await response.json();
     const newSignup = Array.isArray(data.value) ? data.value[0] : data;
+    // Signed server-side and scoped to this signup; it is what makes the
+    // "Cancel this shift" link in the confirmation email work.
+    const cancelToken: string | undefined = data.cancelToken ?? undefined;
 
     // Send emails (non-blocking)
     try {
       const shift = await this.getShiftById(signupData.ShiftID);
       if (shift) {
-        this.emailService.sendSignupConfirmation(shift, newSignup).catch(e => console.warn('Signup confirmation email failed:', e));
+        this.emailService.sendSignupConfirmation(shift, newSignup, cancelToken).catch(e => console.warn('Signup confirmation email failed:', e));
         this.emailService.sendSignupAdminNotification(shift, newSignup).catch(e => console.warn('Admin signup notification failed:', e));
       }
     } catch (e) {
@@ -135,7 +138,7 @@ export class VolunteerShiftService {
    *
    * Takes the signup record rather than an ID: looking one up by ID is
    * admin-only (it would otherwise let anyone walk the table), and every
-   * caller already holds the record from findSignupsByEmail.
+   * caller already holds the record.
    */
   async cancelSignupWithNotification(signup: SignUp): Promise<void> {
     if (!signup?.SignUpID) {
@@ -153,23 +156,6 @@ export class VolunteerShiftService {
       this.emailService.sendCancellationConfirmation(shift, signup).catch(e => console.warn('Cancellation confirmation email failed:', e));
       this.emailService.sendCancellationAdminNotification(shift, signup).catch(e => console.warn('Admin cancellation notification failed:', e));
     }
-  }
-
-  async findSignupsByEmail(email: string): Promise<(SignUp & { shift?: VolunteerShift })[]> {
-    const [emailSignups, shifts] = await Promise.all([
-      this.fetchJson<SignUpAPIResponse>(`${this.signupsEndpoint}?Email=${encodeURIComponent(email)}`),
-      this.getAllShifts()
-    ]);
-
-    const signups = emailSignups.value || [];
-    const shiftMap = new Map(shifts.map(s => [s.ShiftID, s]));
-
-    return signups
-      .filter(s => {
-        const shift = shiftMap.get(s.ShiftID);
-        return shift && shift.StartTime >= new Date();
-      })
-      .map(s => ({ ...s, shift: shiftMap.get(s.ShiftID) }));
   }
 
   getShiftCapacityInfo(shift: VolunteerShift) {
