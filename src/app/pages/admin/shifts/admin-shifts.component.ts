@@ -1,22 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminAuthService, AuthState } from '../calendar/services/admin-auth.service';
-import { ApiWarmupService } from '../../shared/services/api-warmup.service';
-import { VolunteerShiftService } from '../calendar/services/volunteer-shift.service';
-import { ToastService } from '../../shared/services/toast.service';
-import { VolunteerShift, SignUp } from '../calendar/models/volunteer.model';
-import { PledgeService, PledgeRecord } from '../pledge/pledge.service';
+import { ApiWarmupService } from '../../../shared/services/api-warmup.service';
+import { VolunteerShiftService } from '../../calendar/services/volunteer-shift.service';
+import { ToastService } from '../../../shared/services/toast.service';
+import { VolunteerShift, SignUp } from '../../calendar/models/volunteer.model';
 
 @Component({
-  selector: 'app-volunteer-admin',
+  selector: 'app-admin-shifts',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './volunteer-admin.component.html',
-  styleUrl: './volunteer-admin.component.scss',
+  templateUrl: './admin-shifts.component.html',
+  styleUrl: './admin-shifts.component.scss',
 })
-export class VolunteerAdminComponent implements OnInit {
-  authState: AuthState = { isAuthenticated: false, isLoading: true, user: null, error: null };
+export class AdminShiftsComponent implements OnInit {
   upcomingShifts: VolunteerShift[] = [];
   pastShifts: VolunteerShift[] = [];
   loading = false;
@@ -25,11 +22,6 @@ export class VolunteerAdminComponent implements OnInit {
   selectedShiftIds = new Set<number>();
   deleting = false;
   todayStr = new Date().toISOString().split('T')[0];
-
-  // Login form
-  loginEmail = '';
-  linkSent = false;
-  linkMessage = '';
 
   // Create shift form
   newShift = {
@@ -44,104 +36,14 @@ export class VolunteerAdminComponent implements OnInit {
   dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   creating = false;
 
-  pledges: PledgeRecord[] = [];
-  pledgesLoading = false;
-  pledgesError = '';
-
   constructor(
-    private authService: AdminAuthService,
     private shiftService: VolunteerShiftService,
     private toastService: ToastService,
-    private pledgeService: PledgeService,
     private warmup: ApiWarmupService
   ) {}
 
-  get totalPledged(): number {
-    return this.pledges.reduce((sum, p) => sum + (Number(p.Amount) || 0), 0);
-  }
-
-  get averagePledge(): number {
-    return this.pledges.length ? this.totalPledged / this.pledges.length : 0;
-  }
-
-  get monthlyPledgeCount(): number {
-    return this.pledges.filter((p) => p.Frequency === 'Monthly').length;
-  }
-
-  async loadPledges(): Promise<void> {
-    this.pledgesLoading = true;
-    this.pledgesError = '';
-    try {
-      this.pledges = await this.pledgeService.getPledges();
-    } catch (error: any) {
-      const message = String(error?.message ?? '');
-      this.pledgesError = /401|403/.test(message)
-        ? 'Your session has expired. Please sign out and sign in again to view pledges.'
-        : 'Could not load pledges. Please try again.';
-      console.error('Failed to load pledges:', error);
-    } finally {
-      this.pledgesLoading = false;
-    }
-  }
-
-  async deletePledge(pledgeId: number): Promise<void> {
-    if (!confirm('Delete this pledge? This cannot be undone.')) return;
-    try {
-      await this.pledgeService.deletePledge(pledgeId);
-      this.pledges = this.pledges.filter((p) => p.PledgeID !== pledgeId);
-      this.toastService.success('Pledge deleted');
-    } catch (error) {
-      this.toastService.error('Failed to delete pledge');
-      console.error('Failed to delete pledge:', error);
-    }
-  }
-
   ngOnInit(): void {
-    // Check for magic link token in URL
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    if (token) {
-      this.authService.verifyToken(token).then((success) => {
-        // Clean URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        if (success) {
-          this.toastService.success('Signed in successfully');
-        }
-      });
-    }
-
-    this.authService.authState$.subscribe((state) => {
-      this.authState = state;
-      if (state.isAuthenticated) {
-        this.loadShifts();
-        this.loadPledges();
-      }
-    });
-  }
-
-  async sendLoginLink(): Promise<void> {
-    if (!this.loginEmail) {
-      this.toastService.error('Please enter your email');
-      return;
-    }
-
-    const result = await this.authService.sendMagicLink(this.loginEmail);
-    this.linkSent = true;
-    this.linkMessage = result.message;
-
-    if (result.success) {
-      this.toastService.success('Check your email for a login link');
-    } else {
-      this.toastService.error(result.message);
-    }
-  }
-
-  logout(): void {
-    this.authService.logout();
-    this.upcomingShifts = [];
-    this.pastShifts = [];
-    this.linkSent = false;
-    this.loginEmail = '';
+    this.loadShifts();
   }
 
   async loadShifts(): Promise<void> {

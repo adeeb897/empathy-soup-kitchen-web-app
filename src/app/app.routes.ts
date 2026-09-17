@@ -16,11 +16,26 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'volunteer/admin',
+    path: 'admin',
     loadComponent: () =>
-      import('./pages/volunteer-admin/volunteer-admin.component').then(
-        (m) => m.VolunteerAdminComponent
-      ),
+      import('./pages/admin/admin-shell.component').then((m) => m.AdminShellComponent),
+    children: [
+      { path: '', redirectTo: 'shifts', pathMatch: 'full' },
+      {
+        path: 'shifts',
+        loadComponent: () =>
+          import('./pages/admin/shifts/admin-shifts.component').then(
+            (m) => m.AdminShiftsComponent
+          ),
+      },
+      {
+        path: 'pledges',
+        loadComponent: () =>
+          import('./pages/admin/pledges/admin-pledges.component').then(
+            (m) => m.AdminPledgesComponent
+          ),
+      },
+    ],
   },
   {
     path: 'get-involved',
@@ -60,7 +75,8 @@ export const routes: Routes = [
   },
 
   // Legacy redirects
-  { path: 'calendar/admin', redirectTo: '/volunteer/admin', pathMatch: 'full' },
+  { path: 'calendar/admin', redirectTo: '/admin', pathMatch: 'full' },
+  { path: 'volunteer/admin', redirectTo: '/admin', pathMatch: 'full' },
   { path: 'calendar', redirectTo: '/volunteer', pathMatch: 'full' },
   { path: 'donate', redirectTo: '/get-involved', pathMatch: 'full' },
   { path: 'donations', redirectTo: '/get-involved', pathMatch: 'full' },

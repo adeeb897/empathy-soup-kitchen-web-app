@@ -1,0 +1,87 @@
+<section class="admin section">
+  <div class="container">
+
+    <!-- Loading -->
+    @if (authState.isLoading) {
+      <div class="admin-loading">
+        <div class="spinner"></div>
+        <span>Authenticating...</span>
+      </div>
+    }
+
+    <!-- Not authenticated -->
+    @else if (!authState.isAuthenticated) {
+      <div class="admin-login">
+        <span class="material-icons admin-login__icon">admin_panel_settings</span>
+        <h1>Volunteer Admin</h1>
+        <p>Enter your admin email to receive a sign-in link.</p>
+        @if (authState.error) {
+          <div class="admin-error">
+            <span class="material-icons">error</span>
+            {{ authState.error }}
+          </div>
+        }
+        @if (!linkSent) {
+          <form (ngSubmit)="sendLoginLink()" class="admin-login__form">
+            <div class="form-group">
+              <input
+                type="email"
+                class="form-input"
+                placeholder="your@email.com"
+                [(ngModel)]="loginEmail"
+                name="email"
+                required>
+            </div>
+            <button type="submit" class="btn btn--primary btn--large" [disabled]="authState.isLoading">
+              @if (authState.isLoading) {
+                <div class="spinner spinner--sm"></div>
+                Sending...
+              } @else {
+                <span class="material-icons">email</span>
+                Send Login Link
+              }
+            </button>
+          </form>
+        } @else {
+          <div class="admin-link-sent">
+            <span class="material-icons" style="font-size:48px;color:var(--sage)">mark_email_read</span>
+            <p>{{ linkMessage }}</p>
+            <p class="admin-link-sent__hint">Check your inbox and click the link to sign in.</p>
+            <button class="btn btn--ghost" (click)="linkSent = false">
+              Try a different email
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Authenticated -->
+    @else {
+      <div class="admin-header">
+        <div>
+          <h1>Admin</h1>
+          <p>Signed in as <strong>{{ authState.user?.email }}</strong></p>
+        </div>
+        <button class="btn btn--ghost" (click)="logout()">
+          <span class="material-icons">logout</span>
+          Sign Out
+        </button>
+      </div>
+
+      <nav class="admin-tabs" role="tablist" aria-label="Admin sections">
+        @for (tab of tabs; track tab.path) {
+          <a
+            class="admin-tabs__link"
+            [routerLink]="['/admin', tab.path]"
+            routerLinkActive="is-active"
+            role="tab">
+            <span class="material-icons">{{ tab.icon }}</span>
+            {{ tab.label }}
+          </a>
+        }
+      </nav>
+
+      <router-outlet></router-outlet>
+    }
+  </div>
+</section>
