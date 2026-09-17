@@ -1,10 +1,10 @@
 # Empathy Soup Kitchen Web Application
 
-Angular 18 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in McKeesport, PA.
+Angular 21 website for [Empathy Soup Kitchen](https://empathysoupkitchen.org), a nonprofit serving meals in McKeesport, PA.
 
 ## Architecture
 
-- **Frontend:** Angular 18 standalone components, custom CSS design system (no UI library)
+- **Frontend:** Angular 21 standalone components, custom CSS design system (no UI library)
 - **Hosting:** Azure Static Web Apps (Standard tier)
 - **Database:** Azure SQL (Basic, 5 DTU)
 - **Data access:** Azure Functions in `api/`, deployed as SWA managed functions.
