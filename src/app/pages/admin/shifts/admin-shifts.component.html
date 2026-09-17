@@ -156,73 +156,18 @@
   } @else {
     <div class="admin-shifts__list">
       @for (shift of upcomingShifts; track shift.ShiftID) {
-        <div class="admin-shift" [class.admin-shift--selected]="selectedShiftIds.has(shift.ShiftID)">
-          <div class="admin-shift__header">
-            <label class="admin-shift__checkbox" (click)="$event.stopPropagation()">
-              <input
-                type="checkbox"
-                [checked]="selectedShiftIds.has(shift.ShiftID)"
-                (change)="toggleSelect(shift.ShiftID)">
-            </label>
-            <div class="admin-shift__info" (click)="toggleExpand(shift.ShiftID)">
-              <strong>{{ formatDate(shift) }}</strong>
-              <span>{{ formatTime(shift) }}</span>
-            </div>
-            <div class="admin-shift__meta" (click)="toggleExpand(shift.ShiftID)">
-              <span class="admin-shift__count">
-                {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} group{{ shift.Capacity === 1 ? '' : 's' }}
-              </span>
-              <span class="material-icons">
-                {{ expandedShiftId === shift.ShiftID ? 'expand_less' : 'expand_more' }}
-              </span>
-            </div>
-          </div>
-
-          @if (expandedShiftId === shift.ShiftID) {
-            <div class="admin-shift__body">
-              @if (shift.signups.length === 0) {
-                <p class="admin-shift__empty">No signups yet.</p>
-              } @else {
-                <table class="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>#</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (signup of shift.signups; track signup.SignUpID) {
-                      <tr>
-                        <td>{{ signup.Name }}</td>
-                        <td>{{ signup.Email }}</td>
-                        <td>{{ signup.PhoneNumber }}</td>
-                        <td>{{ signup.NumPeople }}</td>
-                        <td>
-                          <button
-                            class="btn btn--danger btn--small"
-                            (click)="deleteSignup(signup); $event.stopPropagation()">
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              }
-              <div class="admin-shift__actions">
-                <button
-                  class="btn btn--danger btn--small"
-                  (click)="deleteShift(shift); $event.stopPropagation()">
-                  <span class="material-icons">delete</span>
-                  Delete Shift
-                </button>
-              </div>
-            </div>
-          }
-        </div>
+        <app-admin-shift-row
+          [shift]="shift"
+          [expanded]="expandedShiftId === shift.ShiftID"
+          [selected]="selectedShiftIds.has(shift.ShiftID)"
+          [editable]="true"
+          [dateLabel]="formatDate(shift)"
+          [timeLabel]="formatTime(shift)"
+          [filledSlots]="getCapacity(shift).filledSlots"
+          (toggleExpand)="toggleExpand($event)"
+          (toggleSelect)="toggleSelect($event)"
+          (deleteShift)="deleteShift($event)"
+          (deleteSignup)="deleteSignup($event)" />
       }
     </div>
   }
@@ -241,51 +186,14 @@
     @if (showPastShifts) {
       <div class="admin-shifts__list">
         @for (shift of pastShifts; track shift.ShiftID) {
-          <div class="admin-shift admin-shift--past">
-            <div class="admin-shift__header" (click)="toggleExpand(shift.ShiftID)">
-              <div class="admin-shift__info">
-                <strong>{{ formatDate(shift) }}</strong>
-                <span>{{ formatTime(shift) }}</span>
-              </div>
-              <div class="admin-shift__meta">
-                <span class="admin-shift__count">
-                  {{ getCapacity(shift).filledSlots }}/{{ shift.Capacity }} group{{ shift.Capacity === 1 ? '' : 's' }}
-                </span>
-                <span class="material-icons">
-                  {{ expandedShiftId === shift.ShiftID ? 'expand_less' : 'expand_more' }}
-                </span>
-              </div>
-            </div>
-
-            @if (expandedShiftId === shift.ShiftID) {
-              <div class="admin-shift__body">
-                @if (shift.signups.length === 0) {
-                  <p class="admin-shift__empty">No signups were recorded.</p>
-                } @else {
-                  <table class="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>#</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (signup of shift.signups; track signup.SignUpID) {
-                        <tr>
-                          <td>{{ signup.Name }}</td>
-                          <td>{{ signup.Email }}</td>
-                          <td>{{ signup.PhoneNumber }}</td>
-                          <td>{{ signup.NumPeople }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                }
-              </div>
-            }
-          </div>
+          <app-admin-shift-row
+            [shift]="shift"
+            [expanded]="expandedShiftId === shift.ShiftID"
+            [editable]="false"
+            [dateLabel]="formatDate(shift)"
+            [timeLabel]="formatTime(shift)"
+            [filledSlots]="getCapacity(shift).filledSlots"
+            (toggleExpand)="toggleExpand($event)" />
         }
       </div>
     }

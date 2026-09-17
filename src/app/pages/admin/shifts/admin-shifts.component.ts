@@ -7,11 +7,12 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { ConfirmService } from '../../../shared/services/confirm.service';
 import { VolunteerShift, SignUp } from '../../calendar/models/volunteer.model';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { AdminShiftRowComponent } from './shift-row/admin-shift-row.component';
 
 @Component({
   selector: 'app-admin-shifts',
   standalone: true,
-  imports: [CommonModule, FormsModule, StatePanelComponent],
+  imports: [CommonModule, FormsModule, StatePanelComponent, AdminShiftRowComponent],
   templateUrl: './admin-shifts.component.html',
   styleUrl: './admin-shifts.component.scss',
 })

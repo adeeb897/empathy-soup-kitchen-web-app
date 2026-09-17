@@ -1,0 +1,85 @@
+<div
+  class="admin-shift"
+  [class.admin-shift--selected]="editable && selected"
+  [class.admin-shift--past]="!editable">
+
+  <div class="admin-shift__header">
+    @if (editable) {
+      <label class="admin-shift__checkbox" (click)="$event.stopPropagation()">
+        <input
+          type="checkbox"
+          [checked]="selected"
+          [attr.aria-label]="'Select shift on ' + dateLabel"
+          (change)="toggleSelect.emit(shift.ShiftID)">
+      </label>
+    }
+
+    <div class="admin-shift__info" (click)="toggleExpand.emit(shift.ShiftID)">
+      <strong>{{ dateLabel }}</strong>
+      <span>{{ timeLabel }}</span>
+    </div>
+
+    <div class="admin-shift__meta" (click)="toggleExpand.emit(shift.ShiftID)">
+      <span class="admin-shift__count">
+        {{ filledSlots }}/{{ shift.Capacity }} group{{ shift.Capacity === 1 ? '' : 's' }}
+      </span>
+      <span class="material-icons">
+        {{ expanded ? 'expand_less' : 'expand_more' }}
+      </span>
+    </div>
+  </div>
+
+  @if (expanded) {
+    <div class="admin-shift__body">
+      @if (!shift.signups || shift.signups.length === 0) {
+        <p class="admin-shift__empty">{{ emptyMessage }}</p>
+      } @else {
+        <div class="data-table__wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>#</th>
+                @if (editable) {
+                  <th><span class="sr-only">Actions</span></th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (signup of shift.signups; track signup.SignUpID) {
+                <tr>
+                  <td>{{ signup.Name }}</td>
+                  <td>{{ signup.Email }}</td>
+                  <td>{{ signup.PhoneNumber }}</td>
+                  <td>{{ signup.NumPeople }}</td>
+                  @if (editable) {
+                    <td>
+                      <button
+                        class="btn btn--danger btn--small"
+                        (click)="deleteSignup.emit(signup); $event.stopPropagation()">
+                        Remove
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (editable) {
+        <div class="admin-shift__actions">
+          <button
+            class="btn btn--danger btn--small"
+            (click)="deleteShift.emit(shift); $event.stopPropagation()">
+            <span class="material-icons">delete</span>
+            Delete Shift
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
