@@ -9,6 +9,13 @@ export const routes: Routes = [
       import('./pages/home/home.component').then((m) => m.HomeComponent),
   },
   {
+    path: 'volunteer/cancel',
+    loadComponent: () =>
+      import('./pages/volunteer/cancel-signup.component').then(
+        (m) => m.CancelSignupComponent
+      ),
+  },
+  {
     path: 'volunteer',
     loadComponent: () =>
       import('./pages/volunteer/volunteer.component').then(

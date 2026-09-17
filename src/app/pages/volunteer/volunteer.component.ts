@@ -138,9 +138,10 @@ export class VolunteerComponent implements OnInit, OnDestroy {
     const ref = this.modalService.open(CancelModalComponent);
     const result = await ref.result;
 
-    if (result?.cancelled) {
-      this.toastService.success('Your signup has been cancelled.');
-      await this.loadData();
+    if (result?.requested) {
+      // Nothing is cancelled yet — the volunteer confirms from the emailed
+      // link, so there is no local state to refresh here.
+      this.toastService.success('Check your email for your cancellation links.');
     }
   }
 

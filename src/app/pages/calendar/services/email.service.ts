@@ -20,9 +20,12 @@ export class EmailService {
 
   constructor(private retryService: RetryService) {}
 
-  async sendSignupConfirmation(shift: VolunteerShift, signup: SignUp): Promise<void> {
+  async sendSignupConfirmation(shift: VolunteerShift, signup: SignUp, cancelToken?: string): Promise<void> {
     const shiftDate = this.formatDate(shift.StartTime);
     const shiftTime = this.formatTimeRange(shift);
+    const cancelUrl = cancelToken
+      ? `${window.location.origin}/volunteer/cancel?t=${encodeURIComponent(cancelToken)}`
+      : '';
 
     await this.sendEmail({
       to: signup.Email,
@@ -46,12 +49,16 @@ export class EmailService {
             <h3>Location</h3>
             <p>Empathy Soup Kitchen<br>523 Sinclair Street<br>McKeesport, PA 15132</p>
             <h3>Need to Cancel?</h3>
-            <p>Visit our <strong>Volunteer Shifts</strong> page and use the "Cancel My Signup" section with your email address and name.</p>
+            ${cancelUrl
+              ? `<p>Use the button below — no need to look anything up.</p>
+                 <p><a href="${cancelUrl}" style="display:inline-block;background:#bf6b3f;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">Cancel this shift</a></p>
+                 <p style="color:#777;font-size:13px">Keep this email if you might need to cancel. You can also request a fresh link from the Volunteer page.</p>`
+              : `<p>Visit our <strong>Volunteer Shifts</strong> page and request a cancellation link.</p>`}
             <p>Warm regards,<br>The Empathy Soup Kitchen Team</p>
           </div>
         </div>
       `,
-      text: `Thank You for Volunteering!\n\nHi ${signup.Name},\n\nThank you for signing up to volunteer with the Empathy Soup Kitchen!\n\nYour Shift Details:\n- Date: ${shiftDate}\n- Time: ${shiftTime}\n- People: ${signup.NumPeople}\n\nPlease arrive 15 minutes before your scheduled time.\n\nLocation:\nEmpathy Soup Kitchen\n523 Sinclair Street\nMcKeesport, PA 15132\n\nNeed to Cancel?\nVisit our Volunteer Shifts page and use the "Cancel My Signup" section with your email address and name.\n\nWarm regards,\nThe Empathy Soup Kitchen Team`
+      text: `Thank You for Volunteering!\n\nHi ${signup.Name},\n\nThank you for signing up to volunteer with the Empathy Soup Kitchen!\n\nYour Shift Details:\n- Date: ${shiftDate}\n- Time: ${shiftTime}\n- People: ${signup.NumPeople}\n\nPlease arrive 15 minutes before your scheduled time.\n\nLocation:\nEmpathy Soup Kitchen\n523 Sinclair Street\nMcKeesport, PA 15132\n\nNeed to Cancel?\n${cancelUrl ? `Open this link: ${cancelUrl}` : 'Visit our Volunteer Shifts page and request a cancellation link.'}\n\nWarm regards,\nThe Empathy Soup Kitchen Team`
     });
   }
 

@@ -1,0 +1,49 @@
+/* ============================================
+   CANCEL SIGNUP (from an emailed link)
+   ============================================ */
+
+.cancel {
+  padding-top: calc(var(--nav-height) + var(--space-3xl));
+}
+
+.cancel__card {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-2xl);
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+
+  h1 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-charcoal);
+    margin-bottom: var(--space-md);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-lg);
+  }
+}
+
+.cancel__icon {
+  font-size: 56px;
+  color: var(--color-terracotta);
+  margin-bottom: var(--space-lg);
+
+  &--ok { color: var(--color-sage); }
+  &--warn { color: #C0563F; }
+}
+
+.cancel__hint {
+  font-size: var(--font-size-sm);
+}
+
+.cancel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+}
