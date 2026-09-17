@@ -35,6 +35,13 @@ export const routes: Routes = [
             (m) => m.AdminPledgesComponent
           ),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/admin/settings/admin-settings.component').then(
+            (m) => m.AdminSettingsComponent
+          ),
+      },
     ],
   },
   {

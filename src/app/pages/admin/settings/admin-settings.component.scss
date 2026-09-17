@@ -1,0 +1,77 @@
+/* ============================================
+   ADMIN — SITE TEXT SETTINGS
+   ============================================ */
+
+.settings__header {
+  max-width: 600px;
+  margin-bottom: var(--space-2xl);
+
+  h2 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-charcoal);
+    margin-bottom: var(--space-sm);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+  }
+}
+
+.settings__item {
+  max-width: 720px;
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  background: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.settings__label {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-charcoal);
+}
+
+.settings__hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: var(--space-xs) 0 var(--space-md);
+}
+
+.settings__textarea {
+  width: 100%;
+  padding: var(--space-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--color-charcoal);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-terracotta);
+    box-shadow: 0 0 0 3px rgba(191, 107, 63, 0.12);
+  }
+}
+
+.settings__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.settings__dirty {
+  margin-right: auto;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-terracotta);
+}

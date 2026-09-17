@@ -1,0 +1,57 @@
+<div class="settings">
+  <div class="settings__header">
+    <h2>Site Text</h2>
+    <p>Edit copy that appears on the public site. Changes take effect immediately.</p>
+  </div>
+
+  @if (loading) {
+    <app-state-panel state="loading" message="Loading site text…" />
+  } @else if (error) {
+    <app-state-panel
+      state="error"
+      [message]="error"
+      actionLabel="Try again"
+      (action)="load()" />
+  } @else if (texts.length === 0) {
+    <app-state-panel
+      state="empty"
+      emptyIcon="edit_note"
+      message="No editable text is configured." />
+  } @else {
+    @for (text of texts; track text.name) {
+      <div class="settings__item">
+        <label class="settings__label" [attr.for]="'text-' + text.name">
+          {{ text.label }}
+        </label>
+        <p class="settings__hint">{{ text.description }}</p>
+
+        <textarea
+          [id]="'text-' + text.name"
+          class="settings__textarea"
+          rows="5"
+          [(ngModel)]="text.content"
+          [name]="text.name"></textarea>
+
+        <div class="settings__actions">
+          @if (isDirty(text)) {
+            <span class="settings__dirty">Unsaved changes</span>
+          }
+          <button
+            type="button"
+            class="btn btn--ghost btn--small"
+            [disabled]="!isDirty(text) || text.saving"
+            (click)="revert(text)">
+            Revert
+          </button>
+          <button
+            type="button"
+            class="btn btn--primary btn--small"
+            [disabled]="!isDirty(text) || text.saving"
+            (click)="save(text)">
+            {{ text.saving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>

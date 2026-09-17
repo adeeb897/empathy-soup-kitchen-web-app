@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ApiWarmupService } from '../../../shared/services/api-warmup.service';
 import { VolunteerShiftService } from '../../calendar/services/volunteer-shift.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { ConfirmService } from '../../../shared/services/confirm.service';
 import { VolunteerShift, SignUp } from '../../calendar/models/volunteer.model';
+import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
 
 @Component({
   selector: 'app-admin-shifts',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StatePanelComponent],
   templateUrl: './admin-shifts.component.html',
   styleUrl: './admin-shifts.component.scss',
 })
@@ -17,6 +19,7 @@ export class AdminShiftsComponent implements OnInit {
   upcomingShifts: VolunteerShift[] = [];
   pastShifts: VolunteerShift[] = [];
   loading = false;
+  shiftsError = '';
   expandedShiftId: number | null = null;
   showPastShifts = false;
   selectedShiftIds = new Set<number>();
@@ -39,7 +42,8 @@ export class AdminShiftsComponent implements OnInit {
   constructor(
     private shiftService: VolunteerShiftService,
     private toastService: ToastService,
-    private warmup: ApiWarmupService
+    private warmup: ApiWarmupService,
+    private confirm: ConfirmService
   ) {}
 
   ngOnInit(): void {
@@ -48,6 +52,7 @@ export class AdminShiftsComponent implements OnInit {
 
   async loadShifts(): Promise<void> {
     this.loading = true;
+    this.shiftsError = '';
     try {
       // The database may have auto-paused; wait for it to resume before querying.
       await this.warmup.ensureReady();
@@ -57,7 +62,10 @@ export class AdminShiftsComponent implements OnInit {
       this.upcomingShifts = allShifts.filter(s => s.StartTime >= now);
       this.pastShifts = allShifts.filter(s => s.StartTime < now).reverse();
     } catch (e) {
-      this.toastService.error('Failed to load shifts');
+      // Persist the failure: a toast alone left the section showing
+      // "No upcoming shifts", which reads as an empty calendar.
+      this.shiftsError = 'Could not load shifts. Please try again.';
+      console.error('Failed to load shifts:', e);
     } finally {
       this.loading = false;
     }
@@ -163,9 +171,12 @@ export class AdminShiftsComponent implements OnInit {
   }
 
   async deleteShift(shift: VolunteerShift): Promise<void> {
-    if (!confirm(`Delete shift on ${this.formatDate(shift)}? This will also delete all signups.`)) {
-      return;
-    }
+    const ok = await this.confirm.ask({
+      title: 'Delete this shift?',
+      message: `${this.formatDate(shift)} — any signups for it will be removed too.`,
+      confirmLabel: 'Delete shift',
+    });
+    if (!ok) return;
 
     try {
       await this.shiftService.deleteShift(shift.ShiftID);
@@ -177,7 +188,12 @@ export class AdminShiftsComponent implements OnInit {
   }
 
   async deleteSignup(signup: SignUp): Promise<void> {
-    if (!confirm('Remove this signup?')) return;
+    const ok = await this.confirm.ask({
+      title: 'Remove this signup?',
+      message: `${signup.Name} will be removed from the shift and sent a cancellation email.`,
+      confirmLabel: 'Remove signup',
+    });
+    if (!ok) return;
 
     try {
       await this.shiftService.cancelSignupWithNotification(signup);
@@ -211,9 +227,12 @@ export class AdminShiftsComponent implements OnInit {
   async deleteSelectedShifts(): Promise<void> {
     const count = this.selectedShiftIds.size;
     if (count === 0) return;
-    if (!confirm(`Delete ${count} shift${count > 1 ? 's' : ''}? This will also delete all associated signups.`)) {
-      return;
-    }
+    const ok = await this.confirm.ask({
+      title: `Delete ${count} shift${count > 1 ? 's' : ''}?`,
+      message: 'Any signups for these shifts will be removed too.',
+      confirmLabel: `Delete ${count} shift${count > 1 ? 's' : ''}`,
+    });
+    if (!ok) return;
 
     this.deleting = true;
     try {

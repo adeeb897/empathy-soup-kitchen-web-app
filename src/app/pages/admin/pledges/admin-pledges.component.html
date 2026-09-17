@@ -8,20 +8,18 @@
   </div>
 
   @if (pledgesLoading) {
-    <div class="admin-pledges__loading">
-      <div class="spinner"></div>
-      <p>Loading pledges…</p>
-    </div>
+    <app-state-panel state="loading" message="Loading pledges…" />
   } @else if (pledgesError) {
-    <div class="admin-pledges__empty">
-      <span class="material-icons">error_outline</span>
-      <p>{{ pledgesError }}</p>
-    </div>
+    <app-state-panel
+      state="error"
+      [message]="pledgesError"
+      actionLabel="Try again"
+      (action)="loadPledges()" />
   } @else if (pledges.length === 0) {
-    <div class="admin-pledges__empty">
-      <span class="material-icons">volunteer_activism</span>
-      <p>No pledges submitted yet.</p>
-    </div>
+    <app-state-panel
+      state="empty"
+      emptyIcon="volunteer_activism"
+      message="No pledges submitted yet." />
   } @else {
     <div class="admin-pledges__stats">
       <div class="admin-pledges__stat">
