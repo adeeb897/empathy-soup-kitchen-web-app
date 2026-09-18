@@ -4,6 +4,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { ConfirmService } from '../../../shared/services/confirm.service';
 import { PledgeService, PledgeRecord } from '../../pledge/pledge.service';
 import { StatePanelComponent } from '../../../shared/components/state-panel/state-panel.component';
+import { toCsv, downloadCsv, isoDate } from '../../../shared/utils/csv';
 
 @Component({
     selector: 'app-admin-pledges',
@@ -52,6 +53,55 @@ export class AdminPledgesComponent implements OnInit {
     } finally {
       this.pledgesLoading = false;
     }
+  }
+
+  /**
+   * Saves every pledge to a CSV the treasurer can open in Excel or Sheets.
+   *
+   * Exports all thirteen fields, not the seven the table shows — Notes and
+   * Timing are the ones people actually need when reconciling, and there is
+   * nowhere else to read them. Amount goes out as a bare number so it sums in
+   * a spreadsheet; the formatted label the donor saw rides alongside it.
+   */
+  exportCsv(): void {
+    if (this.pledges.length === 0) return;
+
+    const headers = [
+      'Pledge ID',
+      'Submitted',
+      'Name',
+      'Amount',
+      'Amount as entered',
+      'Email',
+      'Phone',
+      'Address',
+      'Frequency',
+      'Timing',
+      'Payment method',
+      'Volunteer interest',
+      'Notes',
+    ];
+
+    const rows = this.pledges.map((p) => [
+      p.PledgeID,
+      isoDate(p.SubmittedAt),
+      p.Name,
+      Number(p.Amount) || 0,
+      p.AmountLabel ?? '',
+      p.Email,
+      p.PhoneNumber ?? '',
+      p.Address ?? '',
+      p.Frequency ?? '',
+      p.Timing ?? '',
+      p.PaymentMethod ?? '',
+      p.VolunteerInterest ?? '',
+      p.Notes ?? '',
+    ]);
+
+    downloadCsv(`esk-pledges-${isoDate(new Date())}.csv`, toCsv(headers, rows));
+    this.toastService.success(
+      `Exported ${this.pledges.length} pledge${this.pledges.length === 1 ? '' : 's'}`
+    );
   }
 
   async deletePledge(pledgeId: number): Promise<void> {
