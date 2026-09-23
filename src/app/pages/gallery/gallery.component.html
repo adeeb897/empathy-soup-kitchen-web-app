@@ -1,17 +1,39 @@
 <!-- Header -->
 <section class="gallery-header section">
   <div class="container">
-    <div class="gallery-header__content" appScrollAnimate>
-      <span class="section-label">Gallery</span>
-      <h1 class="section-title">Moments of connection</h1>
-      <p class="gallery-header__subtitle">Every photo tells a story of community, compassion, and shared meals.</p>
+    <div class="gallery-header__layout">
+      <div class="gallery-header__content" appScrollAnimate>
+        <span class="section-label">Gallery</span>
+        <h1 class="section-title">Moments of connection</h1>
+        <p class="gallery-header__subtitle">Every photo tells a story of community, compassion, and shared meals.</p>
+      </div>
+
       <button
         #videoTrigger
         type="button"
-        class="btn btn--primary gallery-header__video-btn"
-        (click)="openVideo()">
-        <span class="material-icons" aria-hidden="true">play_circle</span>
-        Watch our video
+        class="video-card"
+        appScrollAnimate
+        (click)="openVideo()"
+        [attr.aria-label]="'Watch our video, ' + videoDurationSpoken">
+        <!-- Decorative: the button's label says what it does. -->
+        <img
+          class="video-card__image"
+          [src]="videoThumbnail"
+          alt=""
+          width="882"
+          height="662">
+        <!-- Inline SVG rather than the icon font: this is the focal point of the
+             card, and the font's ligature text ("play_arrow") would show in its
+             place until the font loads. -->
+        <span class="video-card__play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.9-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14Z" />
+          </svg>
+        </span>
+        <span class="video-card__caption" aria-hidden="true">
+          <span class="video-card__title">Watch our video</span>
+          <span class="video-card__duration">{{ videoDuration }}</span>
+        </span>
       </button>
     </div>
   </div>

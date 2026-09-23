@@ -17,14 +17,145 @@
   margin-top: var(--space-md);
 }
 
-.gallery-header__video-btn {
-  margin-top: var(--space-lg);
-  display: inline-flex;
+/* Heading beside the video on wide screens, stacked on narrow ones. */
+.gallery-header__layout {
+  display: grid;
+  gap: var(--space-xl);
   align-items: center;
-  gap: var(--space-sm);
 
-  .material-icons {
-    font-size: 22px;
+  @media (min-width: 900px) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+    gap: var(--space-3xl);
+  }
+}
+
+/* Video thumbnail card */
+.video-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  aspect-ratio: 882 / 662;
+  padding: 0;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--color-cream);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base);
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: var(--shadow-lg);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-terracotta);
+    outline-offset: 3px;
+  }
+
+  /* A scrim so the caption stays legible over any part of the photo. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(15, 13, 11, 0.72) 0%,
+      rgba(15, 13, 11, 0.15) 45%,
+      rgba(15, 13, 11, 0) 70%
+    );
+    pointer-events: none;
+  }
+}
+
+.video-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+
+  .video-card:hover & {
+    transform: scale(1.04);
+  }
+}
+
+.video-card__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-terracotta);
+  color: var(--color-white);
+  box-shadow: 0 6px 20px rgba(15, 13, 11, 0.35);
+  transform: translate(-50%, -50%);
+  transition: transform var(--transition-base), background var(--transition-base);
+
+  svg {
+    width: 34px;
+    height: 34px;
+    fill: currentColor;
+    /* A triangle's visual centre sits right of its box centre; the path is
+       already offset within its viewBox to compensate. */
+  }
+
+  .video-card:hover & {
+    background: var(--color-terracotta-dark);
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+
+  @media (max-width: 539px) {
+    width: 60px;
+    height: 60px;
+
+    svg { width: 28px; height: 28px; }
+  }
+}
+
+.video-card__caption {
+  position: absolute;
+  left: var(--space-lg);
+  right: var(--space-lg);
+  bottom: var(--space-md);
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  color: var(--color-white);
+  text-align: left;
+}
+
+.video-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.video-card__duration {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: 2px var(--space-sm);
+  border-radius: var(--border-radius);
+  background: rgba(15, 13, 11, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-card__image,
+  .video-card__play {
+    transition: none;
+  }
+
+  .video-card:hover .video-card__image {
+    transform: none;
   }
 }
 
