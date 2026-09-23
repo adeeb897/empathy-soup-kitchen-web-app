@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { ScrollAnimateDirective } from '../../shared/components/scroll-animate.directive';
 
 @Component({
@@ -17,6 +17,15 @@ export class GalleryComponent implements OnInit, OnDestroy {
   lightboxOpen = false;
   lightboxIndex = 0;
   lightboxLoading = true;
+
+  // Video
+  // The <video> only exists while the player is open, so the 10 MB file is
+  // fetched when someone presses play rather than on every gallery visit.
+  videoOpen = false;
+  readonly videoSrc = 'assets/video/community-highlights.mp4';
+  readonly videoPoster = 'assets/video/community-highlights-poster.jpg';
+  @ViewChild('videoTrigger') private videoTrigger?: ElementRef<HTMLButtonElement>;
+  @ViewChild('videoPlayer') private videoPlayer?: ElementRef<HTMLVideoElement>;
 
   // Infinite scroll
   private scrollObserver!: IntersectionObserver;
@@ -40,6 +49,9 @@ export class GalleryComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.scrollObserver?.disconnect();
+    // Leaving the page with the lightbox or player open (the back button, say)
+    // would otherwise carry the scroll lock onto whatever page comes next.
+    document.body.style.overflow = '';
   }
 
   private setupScrollObserver(): void {
@@ -100,8 +112,30 @@ export class GalleryComponent implements OnInit, OnDestroy {
     this.lightboxLoading = false;
   }
 
+  // Video
+  openVideo(): void {
+    this.videoOpen = true;
+    document.body.style.overflow = 'hidden';
+    // Move focus into the dialog so the keyboard controls the player (space to
+    // pause, arrows to seek) rather than the page behind it.
+    setTimeout(() => this.videoPlayer?.nativeElement.focus());
+  }
+
+  closeVideo(): void {
+    this.videoOpen = false;
+    document.body.style.overflow = '';
+    // Hand focus back to the button that opened it, so a keyboard user is not
+    // dropped at the top of the page.
+    setTimeout(() => this.videoTrigger?.nativeElement.focus());
+  }
+
   @HostListener('window:keydown', ['$event'])
   handleKeydown(event: KeyboardEvent): void {
+    if (this.videoOpen) {
+      if (event.key === 'Escape') this.closeVideo();
+      return;
+    }
+
     if (!this.lightboxOpen) return;
 
     switch (event.key) {
