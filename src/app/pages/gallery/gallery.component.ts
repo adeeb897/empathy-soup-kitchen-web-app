@@ -24,6 +24,11 @@ export class GalleryComponent implements OnInit, OnDestroy {
   videoOpen = false;
   readonly videoSrc = 'assets/video/community-highlights.mp4';
   readonly videoPoster = 'assets/video/community-highlights-poster.jpg';
+  // A landscape crop of one frame. The poster is the full 9:16 frame, which is
+  // mostly letterbox, so it makes a poor thumbnail.
+  readonly videoThumbnail = 'assets/video/community-highlights-thumb.jpg';
+  readonly videoDuration = '1:23';
+  readonly videoDurationSpoken = '1 minute 23 seconds';
   @ViewChild('videoTrigger') private videoTrigger?: ElementRef<HTMLButtonElement>;
   @ViewChild('videoPlayer') private videoPlayer?: ElementRef<HTMLVideoElement>;
 
