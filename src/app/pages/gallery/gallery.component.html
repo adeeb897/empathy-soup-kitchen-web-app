@@ -5,6 +5,14 @@
       <span class="section-label">Gallery</span>
       <h1 class="section-title">Moments of connection</h1>
       <p class="gallery-header__subtitle">Every photo tells a story of community, compassion, and shared meals.</p>
+      <button
+        #videoTrigger
+        type="button"
+        class="btn btn--primary gallery-header__video-btn"
+        (click)="openVideo()">
+        <span class="material-icons" aria-hidden="true">play_circle</span>
+        Watch our video
+      </button>
     </div>
   </div>
 </section>
@@ -36,6 +44,45 @@
     }
   </div>
 </section>
+
+<!-- Video player -->
+@if (videoOpen) {
+  <div
+    class="lightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Empathy Soup Kitchen community video"
+    (click)="closeVideo()">
+    <!-- lightbox__content fills the whole screen, so stopping clicks there
+         would leave no backdrop to click. Only the video swallows its clicks;
+         anywhere else closes the player. -->
+    <div class="lightbox__content">
+      <button
+        class="lightbox__close"
+        (click)="closeVideo(); $event.stopPropagation()"
+        aria-label="Close video">
+        <span class="material-icons">close</span>
+      </button>
+
+      <!-- Opened by a click, so autoplay with sound is permitted. playsinline
+           keeps iOS from forcing it straight into fullscreen. -->
+      <video
+        #videoPlayer
+        (click)="$event.stopPropagation()"
+        class="video-player"
+        [poster]="videoPoster"
+        controls
+        autoplay
+        playsinline
+        preload="auto"
+        tabindex="-1">
+        <source [src]="videoSrc" type="video/mp4">
+        Your browser can't play this video.
+        <a [href]="videoSrc" download>Download it instead</a>.
+      </video>
+    </div>
+  </div>
+}
 
 <!-- Lightbox -->
 @if (lightboxOpen) {

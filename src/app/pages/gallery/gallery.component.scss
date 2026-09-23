@@ -17,6 +17,43 @@
   margin-top: var(--space-md);
 }
 
+.gallery-header__video-btn {
+  margin-top: var(--space-lg);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+
+  .material-icons {
+    font-size: 22px;
+  }
+}
+
+/* Video player
+   The video is 9:16 portrait (made for phones), so height is the constraint
+   that matters: fit it to the viewport height and let the width follow. On a
+   screen too narrow for that, max-width wins and the video letterboxes inside
+   its box rather than stretching. */
+.video-player {
+  display: block;
+  height: calc(100vh - 144px);
+  height: calc(100dvh - 144px);
+  max-height: 1920px;
+  aspect-ratio: 882 / 1920;
+  max-width: calc(100vw - 32px);
+  object-fit: contain;
+  background: #000;
+  border-radius: var(--border-radius);
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-terracotta);
+    outline-offset: 3px;
+  }
+}
+
 /* Masonry Grid */
 .gallery-grid__masonry {
   columns: 1;
