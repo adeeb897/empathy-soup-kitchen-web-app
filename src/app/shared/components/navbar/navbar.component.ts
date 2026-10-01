@@ -20,7 +20,6 @@ import { ApiWarmupService } from '../../services/api-warmup.service';
           <li role="none"><a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a></li>
           <li role="none"><a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a></li>
           <li role="none"><a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a></li>
-          <li role="none"><a routerLink="/financial-report" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Financial Report</a></li>
         </ul>
 
         <div class="navbar__actions">
@@ -52,7 +51,6 @@ import { ApiWarmupService } from '../../services/api-warmup.service';
           <a routerLink="/gallery" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Gallery</a>
           <a routerLink="/about" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">About</a>
           <a routerLink="/fundraiser" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Fundraiser</a>
-          <a routerLink="/financial-report" routerLinkActive="is-active" role="menuitem" (click)="closeMobile()">Financial Report</a>
           <div class="navbar__mobile-cta">
             <a routerLink="/pledge" class="btn btn--secondary btn--large" (click)="closeMobile()">Pledge</a>
             <a href="https://us.mohid.co/pa/pittsburgh/esk/masjid/online/donation" target="_blank" rel="noopener" class="btn btn--primary btn--large" (click)="closeMobile()">Donate Now</a>
